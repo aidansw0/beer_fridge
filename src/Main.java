@@ -1,15 +1,19 @@
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Polygon;
+import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.scene.control.Label;
 
 public class Main extends Application {
 
@@ -22,50 +26,59 @@ public class Main extends Application {
         Stage window;
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        BeerKeg beerKeg = new BeerKeg();
 
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
 
-        Rectangle coffee = new Rectangle(600,600,Color.rgb(76,65,61));
-        Rectangle temp = new Rectangle(178,250,Color.rgb(192,38,38));
+        //Keg Frame
+        Image img1 = new Image("img/keg.png");
+        ImageView keg = new ImageView();
+        keg.setImage(img1);
+        keg.setFitHeight(345);
+        keg.setPreserveRatio(true);
 
-        Image image1 = new Image("img/coffeepot.png");
-        ImageView coffeepot = new ImageView();
-        coffeepot.setImage(image1);
-        coffeepot.setFitHeight(bounds.getHeight());
-        coffeepot.setPreserveRatio(true);
+        Image img2 = new Image("img/kegheader.png");
+        ImageView kegheader = new ImageView();
+        kegheader.setImage(img2);
+        kegheader.setFitWidth(445);
+        kegheader.setPreserveRatio(true);
 
-        Image image2 = new Image("img/thermo.png");
-        ImageView thermo = new ImageView();
-        thermo.setImage(image2);
-        thermo.setFitHeight(bounds.getHeight());
-        thermo.setPreserveRatio(true);
+        Polygon kegMeter = new Polygon();
+        kegMeter.setFill(Color.web("06d3ce"));
+        kegMeter.getPoints().addAll(4.7, 0.0,
+                                    71.8, 0.0,
+                                    30.6, 232.1,
+                                    0.0, 232.3);
 
-        StackPane LeftCoffee = new StackPane();
-        LeftCoffee.setAlignment(Pos.BOTTOM_CENTER);
-        LeftCoffee.getChildren().add(coffee);
-        LeftCoffee.getChildren().add(coffeepot);
+        Label kegVolume = new Label ("33L");
+        kegVolume.setTextFill(Color.web("ffffff"));
+        kegVolume.setFont(new Font("Helvetica Neue UltraLight", 80));
 
-        StackPane RightTemp = new StackPane();
-        RightTemp.setAlignment(Pos.BOTTOM_CENTER);
-        RightTemp.getChildren().add(temp);
-        RightTemp.getChildren().add(thermo);
+        StackPane kegMeterStack = new StackPane();
+        kegMeterStack.getChildren().add(kegMeter);
+        kegMeterStack.getChildren().add(kegVolume);
 
+        StackPane.setAlignment(kegVolume, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(kegVolume, new Insets(0,0,40,60));
+        StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(kegMeter, new Insets(50,0,58,5));
+
+        BorderPane kegFrame = new BorderPane();
+        kegFrame.setPrefSize(445,450);
+        kegFrame.setStyle("-fx-background-color: #2d2d2d");
+        kegFrame.setTop(kegheader);
+        kegFrame.setLeft(keg);
+        kegFrame.setCenter(kegMeterStack);
+
+        BorderPane.setAlignment(keg, Pos.CENTER_LEFT);
+        BorderPane.setMargin(keg, new Insets(0,5,0,30));
+
+        // FlowPane
         FlowPane root = new FlowPane();
-        root.getChildren().add(LeftCoffee);
-        root.getChildren().add(RightTemp);
+        root.getChildren().add(kegFrame);
         root.setAlignment(Pos.CENTER);
 
-        coffeepot.fitHeightProperty().bind(root.heightProperty());
-        coffee.heightProperty().bind(beerKeg.weightProperty().multiply(root.heightProperty()).divide(100));
-        coffee.widthProperty().bind(root.heightProperty().multiply(0.87));
-
-        thermo.fitHeightProperty().bind(root.heightProperty());
-        temp.heightProperty().bind(beerKeg.tempProperty().multiply(root.heightProperty()).divide(100));
-        temp.widthProperty().bind(root.heightProperty().multiply(0.28));
-
-        Scene scene = new Scene(root, 400, 300);
+        Scene scene = new Scene(root, 445, 450);
         window.setScene(scene);
         window.show();
     }
