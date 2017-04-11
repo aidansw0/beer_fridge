@@ -1,3 +1,4 @@
+package gui;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
@@ -22,7 +23,8 @@ public class Main extends Application {
         Stage window;
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        BeerKeg beerKeg = new BeerKeg();
+        //BeerKeg beerKeg = new BeerKeg();
+        KegManager beerKeg = new KegManager();
 
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
