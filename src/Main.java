@@ -22,21 +22,21 @@ public class Main extends Application {
         Stage window;
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        CoffeePot coffeePot = new CoffeePot();
+        BeerKeg beerKeg = new BeerKeg();
 
         window = primaryStage;
-        window.setTitle("Coffee Pot Monitor");
+        window.setTitle("Beer Keg Monitor");
 
         Rectangle coffee = new Rectangle(600,600,Color.rgb(76,65,61));
         Rectangle temp = new Rectangle(178,250,Color.rgb(192,38,38));
 
-        Image image1 = new Image("coffeepot.png");
+        Image image1 = new Image("img/coffeepot.png");
         ImageView coffeepot = new ImageView();
         coffeepot.setImage(image1);
         coffeepot.setFitHeight(bounds.getHeight());
         coffeepot.setPreserveRatio(true);
 
-        Image image2 = new Image("thermo.png");
+        Image image2 = new Image("img/thermo.png");
         ImageView thermo = new ImageView();
         thermo.setImage(image2);
         thermo.setFitHeight(bounds.getHeight());
@@ -58,11 +58,11 @@ public class Main extends Application {
         root.setAlignment(Pos.CENTER);
 
         coffeepot.fitHeightProperty().bind(root.heightProperty());
-        coffee.heightProperty().bind(coffeePot.weightProperty().multiply(root.heightProperty()).divide(100));
+        coffee.heightProperty().bind(beerKeg.weightProperty().multiply(root.heightProperty()).divide(100));
         coffee.widthProperty().bind(root.heightProperty().multiply(0.87));
 
         thermo.fitHeightProperty().bind(root.heightProperty());
-        temp.heightProperty().bind(coffeePot.tempProperty().multiply(root.heightProperty()).divide(100));
+        temp.heightProperty().bind(beerKeg.tempProperty().multiply(root.heightProperty()).divide(100));
         temp.widthProperty().bind(root.heightProperty().multiply(0.28));
 
         Scene scene = new Scene(root, 400, 300);

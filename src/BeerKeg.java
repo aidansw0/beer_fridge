@@ -8,7 +8,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.util.Duration;
 
-class CoffeePot {
+class BeerKeg {
     private static final Duration REFRESH_FREQUENCY = Duration.seconds(2);
 
     private final ReadOnlyIntegerWrapper weight;
@@ -23,7 +23,7 @@ class CoffeePot {
         return temperature.getReadOnlyProperty();
     }
 
-    public CoffeePot() {
+    public BeerKeg() {
         probe       = new GetData();
         weight      = new ReadOnlyIntegerWrapper(probe.readWeight());
         temperature = new ReadOnlyIntegerWrapper(probe.readTemp());
