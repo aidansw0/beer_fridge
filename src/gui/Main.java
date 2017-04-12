@@ -21,6 +21,7 @@ import javafx.scene.shape.Polygon;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import java.util.Random;
@@ -63,10 +64,12 @@ public class Main extends Application {
         Stage window;
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        KegManager beerKeg = new KegManager();
+        //KegManager beerKeg = new KegManager();
 
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
+        window.isFullScreen();
+        window.initStyle(StageStyle.UNDECORATED);
 
         //Animated Temperature Chart
         animation = new Timeline();
@@ -120,7 +123,7 @@ public class Main extends Application {
         kegMeterStack.getChildren().add(kegVolume);
 
         StackPane.setAlignment(kegVolume, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(kegVolume, new Insets(0,0,20,60));
+        StackPane.setMargin(kegVolume, new Insets(0,0,20,65));
         StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
         StackPane.setMargin(kegMeter, new Insets(50,0,48,5));
 
@@ -132,7 +135,7 @@ public class Main extends Application {
         kegFrame.setCenter(kegMeterStack);
 
         BorderPane.setAlignment(keg, Pos.BOTTOM_LEFT);
-        BorderPane.setMargin(keg, new Insets(15,5,15,30));
+        BorderPane.setMargin(keg, new Insets(15,10,15,30));
 
         // Temperature Frame
         Image img3 = new Image("img/tempheader.png");
@@ -141,7 +144,7 @@ public class Main extends Application {
         tempheader.setFitHeight(53);
         tempheader.setPreserveRatio(true);
 
-        Label temperature = new Label("273K");
+        Label temperature = new Label("273\u00B0K");
         temperature.setTextFill(Color.web("cacaca"));
         temperature.setStyle("-fx-font-family: 'Rajdhani'; -fx-font-size: 80;");
 
@@ -187,11 +190,28 @@ public class Main extends Application {
         footerheader.setFitHeight(53);
         footerheader.setPreserveRatio(true);
 
+        Image img6 = new Image("img/teralogo.png");
+        ImageView teralogo = new ImageView();
+        teralogo.setImage(img6);
+        teralogo.setFitHeight(146);
+        teralogo.setPreserveRatio(true);
+
+        Label currentKeg = new Label("Steamworks IPA");
+        currentKeg.setTextFill(Color.web("cacaca"));
+        currentKeg.setStyle("-fx-font-family: 'Rajdhani'; -fx-font-size: 100;");
+
         BorderPane footerFrame = new BorderPane();
         footerFrame.setPrefSize(1190,220);
         footerFrame.setMaxWidth(1190);
         footerFrame.setStyle("-fx-background-color: #2d2d2d");
         footerFrame.setTop(footerheader);
+        footerFrame.setLeft(currentKeg);
+        footerFrame.setRight(teralogo);
+
+        BorderPane.setAlignment(currentKeg, Pos.BOTTOM_LEFT);
+        BorderPane.setMargin(currentKeg, new Insets(5,0,0,12));
+        BorderPane.setAlignment(teralogo, Pos.BOTTOM_RIGHT);
+        BorderPane.setMargin(teralogo, new Insets(5,0,15,0));
 
         // Full Scene
         BorderPane root = new BorderPane();
