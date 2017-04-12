@@ -15,7 +15,6 @@ import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
-import javafx.stage.StageStyle;
 
 public class Main extends Application {
 
@@ -28,13 +27,14 @@ public class Main extends Application {
         Stage window;
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
-        //KegManager beerKeg = new KegManager();
-        TemperatureChart tempChart = new TemperatureChart();
+
+        KegManager beerKeg = new KegManager();
+        DataManager temperatureData = new DataManager(beerKeg);
 
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-        window.initStyle(StageStyle.UNDECORATED);
+        //window.initStyle(StageStyle.UNDECORATED);
 
         Font fontLato = Font.loadFont(getClass()
                         .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
@@ -52,14 +52,10 @@ public class Main extends Application {
         kegheader.setFitHeight(53);
         kegheader.setPreserveRatio(true);
 
-        Polygon kegMeter = new Polygon();
+        Polygon kegMeter = temperatureData.createWeightMeter();
         kegMeter.setFill(Color.web("06d3ce"));
-        kegMeter.getPoints().addAll(4.7, 0.0,
-                                    71.8, 0.0,
-                                    30.6, 232.1,
-                                    0.0, 232.3);
 
-        Label kegVolume = new Label ("25L");
+        Label kegVolume = temperatureData.createWeightLabel();
         kegVolume.setTextFill(Color.web("cacaca"));
         kegVolume.setFont(fontLato);
 
@@ -89,16 +85,16 @@ public class Main extends Application {
         tempheader.setFitHeight(53);
         tempheader.setPreserveRatio(true);
 
-        Label temperature = new Label("273\u00B0K");
+        Label temperature = temperatureData.createTempLabel();
         temperature.setTextFill(Color.web("cacaca"));
         temperature.setFont(fontLato);
 
         BorderPane tempFrame = new BorderPane();
         tempFrame.setPrefSize(715,270);
-        tempFrame.setMaxWidth(715);
+        //tempFrame.setMaxWidth(715);
         tempFrame.setStyle("-fx-background-color: #2d2d2d");
         tempFrame.setTop(tempheader);
-        tempFrame.setCenter(tempChart.createContent());
+        tempFrame.setCenter(temperatureData.createChart());
         tempFrame.setRight(temperature);
 
         BorderPane.setAlignment(temperature, Pos.TOP_RIGHT);
@@ -113,7 +109,7 @@ public class Main extends Application {
 
         BorderPane votingFrame = new BorderPane();
         votingFrame.setPrefSize(715,150);
-        votingFrame.setMaxWidth(715);
+        //votingFrame.setMaxWidth(715);
         votingFrame.setStyle("-fx-background-color: #2d2d2d");
         votingFrame.setTop(votingheader);
 
@@ -147,7 +143,7 @@ public class Main extends Application {
 
         BorderPane footerFrame = new BorderPane();
         footerFrame.setPrefSize(1190,220);
-        footerFrame.setMaxWidth(1190);
+        //footerFrame.setMaxWidth(1190);
         footerFrame.setStyle("-fx-background-color: #2d2d2d");
         footerFrame.setTop(footerheader);
         footerFrame.setLeft(currentKeg);
@@ -173,7 +169,7 @@ public class Main extends Application {
         BorderPane.setAlignment(footerFrame, Pos.TOP_LEFT);
         BorderPane.setMargin(footerFrame, new Insets(15,50,45,50));
 
-        Scene scene = new Scene(root, 1280, 800);
+        Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
         window.setScene(scene);
         window.show();
