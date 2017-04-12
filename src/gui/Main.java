@@ -1,15 +1,8 @@
 package gui;
 import backend.KegManager;
-import javafx.animation.Animation;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -23,41 +16,11 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
-import javafx.util.Duration;
-
-import java.util.Random;
 
 public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
-    }
-    private LineChart<Number, Number> chart;
-    private XYChart.Series<Number, Number> dataSeries;
-    private NumberAxis xAxis;
-    private Timeline animation;
-    private double sequence = 0;
-    private double y = 10;
-    private final int MAX_DATA_POINTS = 50, MAX = 280, MIN = 270;
-
-    private void plotTime() {
-        dataSeries.getData().add(new XYChart.Data<Number, Number>(++sequence, getNextValue()));
-
-        // delete old data
-        if (sequence > MAX_DATA_POINTS) {
-            dataSeries.getData().remove(0);
-        }
-
-        // move x axis
-        if (sequence > MAX_DATA_POINTS - 1) {
-            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
-            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
-        }
-    }
-
-    private int getNextValue(){
-        Random rand = new Random();
-        return rand.nextInt((MAX - MIN) + 1) + MIN;
     }
 
     @Override
@@ -66,6 +29,7 @@ public class Main extends Application {
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
         //KegManager beerKeg = new KegManager();
+        TemperatureChart tempChart = new TemperatureChart();
 
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
@@ -74,29 +38,6 @@ public class Main extends Application {
 
         Font fontLato = Font.loadFont(getClass()
                         .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
-
-        //Animated Temperature Chart
-        animation = new Timeline();
-        animation.getKeyFrames().add(new KeyFrame(Duration.millis(200),
-                        (ActionEvent actionEvent) -> plotTime()));
-        animation.setCycleCount(Animation.INDEFINITE);
-        animation.play();
-
-        xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 2);
-        final NumberAxis yAxis = new NumberAxis(MIN - 1, MAX + 1, 1);
-        chart = new LineChart<>(xAxis, yAxis);
-
-        // setup chart
-        chart.setAnimated(false);
-        chart.setLegendVisible(false);
-        xAxis.setForceZeroInRange(false);
-
-        // add starting data
-        dataSeries = new XYChart.Series<>();
-
-        // create some starting data
-        dataSeries.getData().add(new XYChart.Data<Number, Number>(++sequence, y));
-        chart.getData().add(dataSeries);
 
         //Keg Frame
         Image img1 = new Image("img/keg.png");
@@ -157,7 +98,7 @@ public class Main extends Application {
         tempFrame.setMaxWidth(715);
         tempFrame.setStyle("-fx-background-color: #2d2d2d");
         tempFrame.setTop(tempheader);
-        tempFrame.setCenter(chart);
+        tempFrame.setCenter(tempChart.createContent());
         tempFrame.setRight(temperature);
 
         BorderPane.setAlignment(temperature, Pos.TOP_RIGHT);
