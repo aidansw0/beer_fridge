@@ -19,13 +19,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+/**
+ * This class is responsible for reading and writing data to and from the local
+ * file system. All data is stored in JSON format.
+ * 
+ * @author Aidan
+ *
+ */
 public class SaveData {
 
-    private final String JSON_FILE = "beers_json_test.json";
-    private final String fullJSONFilePath; // directory where JSON_FILE should
-                                           // be
-    // stored
-    // (same as .jar file)
+    private final String JSON_FILE = "beers_json_test.json"; // file name, NOT
+                                                             // file location
+    private final String fullJSONFilePath;
+    // directory for JSON_FILE to be stored, same as location as the .jar
 
     private final Map<String, Integer> beerRatings;
     private final List<String> beers;
@@ -33,18 +39,21 @@ public class SaveData {
     public SaveData(Map<String, Integer> map, List<String> list) {
         beerRatings = map;
         beers = list;
-        fullJSONFilePath = getJarPath() + "\"" + JSON_FILE;
+        fullJSONFilePath = getJarPath() + "data" + System.getProperty("file.separator") + JSON_FILE;
 
         if (!checkFileExists()) {
             createJSONDirectory();
             writeJSON();
         } else {
-
+            readJSON();
         }
-
     }
 
-    private void writeJSON() {
+    /**
+     * This method updates JSON_FILE with the most recent data stored in
+     * beerRatings. JSON_FILE is completely overwritten during the process.
+     */
+    public void writeJSON() {
         if (beerRatings.keySet().size() > 0) {
             JSONObject jsonToWrite = new JSONObject();
             JSONArray jsonBeerList = new JSONArray();
@@ -58,16 +67,20 @@ public class SaveData {
 
                 jsonToWrite.put("beers", jsonBeerList);
                 FileWriter writer = new FileWriter(fullJSONFilePath);
+                System.out.println(fullJSONFilePath);
                 writer.write(jsonToWrite.toString());
                 writer.close();
 
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
+
         } else {
-            FileWriter writer;
             try {
-                writer = new FileWriter(fullJSONFilePath);
+                // if beerRatings is empty then either readJSON() couldn't read
+                // the data file or the file was deleted, in either case a new
+                // empty file is created
+                FileWriter writer = new FileWriter(fullJSONFilePath);
                 writer.write("");
                 writer.close();
             } catch (IOException e) {
@@ -76,12 +89,16 @@ public class SaveData {
         }
     }
 
+    /**
+     * Reads and parses JSON_FILE and loads the data into beerRatings and beers.
+     * Does not modify JSON_FILE in any way.
+     */
     private void readJSON() {
         StringBuilder jsonText = new StringBuilder();
         BufferedReader reader;
 
         try {
-            reader = new BufferedReader(new FileReader(JSON_FILE));
+            reader = new BufferedReader(new FileReader(fullJSONFilePath));
             String line = reader.readLine();
 
             while (line != null) {
@@ -108,21 +125,29 @@ public class SaveData {
         }
     }
 
-    private String createJSONDirectory() {
+    /**
+     * Creates a new directory for the JSON_FILE to be stored in. The new
+     * directory will be in the same location as the .jar file for this
+     * application.
+     */
+    private void createJSONDirectory() {
         String newDir = "";
-
         String path = getJarPath();
 
         String fileSeparator = System.getProperty("file.separator");
-        newDir = path + fileSeparator + "data" + fileSeparator;
+        newDir = path + "data" + fileSeparator;
         JOptionPane.showMessageDialog(null, newDir);
 
         File file = new File(newDir);
         file.mkdir();
-
-        return newDir;
     }
 
+    /**
+     * Locates the directory in which the .jar executable file for this
+     * application exits.
+     * 
+     * @return String giving the full path of the .jar executable
+     */
     private String getJarPath() {
         URL url = SaveData.class.getProtectionDomain().getCodeSource().getLocation();
         String jarPath = "";
@@ -132,14 +157,17 @@ public class SaveData {
             e.printStackTrace();
         }
         String parentPath = new File(jarPath).getParentFile().getPath();
-        System.out.println(parentPath);
-        return parentPath;
+        return parentPath + System.getProperty("file.separator");
     }
 
+    /**
+     * Checks weather fullJSONFilePath exists.
+     * 
+     * @return true if fullJSONFilePath exists and false if otherwise.
+     */
     private boolean checkFileExists() {
         File testFile = null;
         testFile = new File(fullJSONFilePath);
-        System.out.println(testFile.exists());
         return testFile.exists();
     }
 }
