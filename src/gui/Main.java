@@ -1,8 +1,15 @@
 package gui;
 import backend.KegManager;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -11,15 +18,44 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Polygon;
-import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
+import javafx.util.Duration;
+
+import java.util.Random;
 
 public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+    private LineChart<Number, Number> chart;
+    private XYChart.Series<Number, Number> dataSeries;
+    private NumberAxis xAxis;
+    private Timeline animation;
+    private double sequence = 0;
+    private double y = 10;
+    private final int MAX_DATA_POINTS = 50, MAX = 280, MIN = 270;
+
+    private void plotTime() {
+        dataSeries.getData().add(new XYChart.Data<Number, Number>(++sequence, getNextValue()));
+
+        // delete old data
+        if (sequence > MAX_DATA_POINTS) {
+            dataSeries.getData().remove(0);
+        }
+
+        // move x axis
+        if (sequence > MAX_DATA_POINTS - 1) {
+            xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+        }
+    }
+
+    private int getNextValue(){
+        Random rand = new Random();
+        return rand.nextInt((MAX - MIN) + 1) + MIN;
     }
 
     @Override
@@ -31,6 +67,29 @@ public class Main extends Application {
 
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
+
+        //Animated Temperature Chart
+        animation = new Timeline();
+        animation.getKeyFrames().add(new KeyFrame(Duration.millis(200),
+                        (ActionEvent actionEvent) -> plotTime()));
+        animation.setCycleCount(Animation.INDEFINITE);
+        animation.play();
+
+        xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 2);
+        final NumberAxis yAxis = new NumberAxis(MIN - 1, MAX + 1, 1);
+        chart = new LineChart<>(xAxis, yAxis);
+
+        // setup chart
+        chart.setAnimated(false);
+        chart.setLegendVisible(false);
+        xAxis.setForceZeroInRange(false);
+
+        // add starting data
+        dataSeries = new XYChart.Series<>();
+
+        // create some starting data
+        dataSeries.getData().add(new XYChart.Data<Number, Number>(++sequence, y));
+        chart.getData().add(dataSeries);
 
         //Keg Frame
         Image img1 = new Image("img/keg.png");
@@ -52,18 +111,18 @@ public class Main extends Application {
                                     30.6, 232.1,
                                     0.0, 232.3);
 
-        Label kegVolume = new Label ("33L");
-        kegVolume.setTextFill(Color.web("ffffff"));
-        kegVolume.setFont(new Font("Helvetica Neue UltraLight", 80));
+        Label kegVolume = new Label ("25L");
+        kegVolume.setTextFill(Color.web("cacaca"));
+        kegVolume.setStyle("-fx-font-family: 'Rajdhani'; -fx-font-size: 80;");
 
         StackPane kegMeterStack = new StackPane();
         kegMeterStack.getChildren().add(kegMeter);
         kegMeterStack.getChildren().add(kegVolume);
 
         StackPane.setAlignment(kegVolume, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(kegVolume, new Insets(0,0,40,60));
+        StackPane.setMargin(kegVolume, new Insets(0,0,20,60));
         StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(kegMeter, new Insets(50,0,58,5));
+        StackPane.setMargin(kegMeter, new Insets(50,0,48,5));
 
         BorderPane kegFrame = new BorderPane();
         kegFrame.setPrefSize(445,450);
@@ -73,7 +132,7 @@ public class Main extends Application {
         kegFrame.setCenter(kegMeterStack);
 
         BorderPane.setAlignment(keg, Pos.BOTTOM_LEFT);
-        BorderPane.setMargin(keg, new Insets(20,5,30,30));
+        BorderPane.setMargin(keg, new Insets(15,5,15,30));
 
         // Temperature Frame
         Image img3 = new Image("img/tempheader.png");
@@ -82,11 +141,20 @@ public class Main extends Application {
         tempheader.setFitHeight(53);
         tempheader.setPreserveRatio(true);
 
+        Label temperature = new Label("273K");
+        temperature.setTextFill(Color.web("cacaca"));
+        temperature.setStyle("-fx-font-family: 'Rajdhani'; -fx-font-size: 80;");
+
         BorderPane tempFrame = new BorderPane();
         tempFrame.setPrefSize(715,270);
         tempFrame.setMaxWidth(715);
         tempFrame.setStyle("-fx-background-color: #2d2d2d");
         tempFrame.setTop(tempheader);
+        tempFrame.setCenter(chart);
+        tempFrame.setRight(temperature);
+
+        BorderPane.setAlignment(temperature, Pos.TOP_RIGHT);
+        BorderPane.setMargin(temperature, new Insets(0,30,0,0));
 
         // Voting Frame
         Image img4 = new Image("img/votingheader.png");
@@ -141,6 +209,8 @@ public class Main extends Application {
         BorderPane.setMargin(footerFrame, new Insets(15,50,45,50));
 
         Scene scene = new Scene(root, 1280, 800);
+        scene.getStylesheets().add("https://fonts.googleapis.com/css?family=Rajdhani");
+        scene.getStylesheets().add("css/linechart.css");
         window.setScene(scene);
         window.show();
     }
