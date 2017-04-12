@@ -18,6 +18,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Polygon;
+import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
@@ -71,6 +72,9 @@ public class Main extends Application {
         window.isFullScreen();
         window.initStyle(StageStyle.UNDECORATED);
 
+        Font fontLato = Font.loadFont(getClass()
+                        .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
+
         //Animated Temperature Chart
         animation = new Timeline();
         animation.getKeyFrames().add(new KeyFrame(Duration.millis(200),
@@ -116,14 +120,14 @@ public class Main extends Application {
 
         Label kegVolume = new Label ("25L");
         kegVolume.setTextFill(Color.web("cacaca"));
-        kegVolume.setStyle("-fx-font-family: 'Rajdhani'; -fx-font-size: 80;");
+        kegVolume.setFont(fontLato);
 
         StackPane kegMeterStack = new StackPane();
         kegMeterStack.getChildren().add(kegMeter);
         kegMeterStack.getChildren().add(kegVolume);
 
         StackPane.setAlignment(kegVolume, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(kegVolume, new Insets(0,0,20,65));
+        StackPane.setMargin(kegVolume, new Insets(0,0,25,60));
         StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
         StackPane.setMargin(kegMeter, new Insets(50,0,48,5));
 
@@ -146,7 +150,7 @@ public class Main extends Application {
 
         Label temperature = new Label("273\u00B0K");
         temperature.setTextFill(Color.web("cacaca"));
-        temperature.setStyle("-fx-font-family: 'Rajdhani'; -fx-font-size: 80;");
+        temperature.setFont(fontLato);
 
         BorderPane tempFrame = new BorderPane();
         tempFrame.setPrefSize(715,270);
@@ -157,7 +161,7 @@ public class Main extends Application {
         tempFrame.setRight(temperature);
 
         BorderPane.setAlignment(temperature, Pos.TOP_RIGHT);
-        BorderPane.setMargin(temperature, new Insets(0,30,0,0));
+        BorderPane.setMargin(temperature, new Insets(5,30,0,0));
 
         // Voting Frame
         Image img4 = new Image("img/votingheader.png");
@@ -198,7 +202,7 @@ public class Main extends Application {
 
         Label currentKeg = new Label("Steamworks IPA");
         currentKeg.setTextFill(Color.web("cacaca"));
-        currentKeg.setStyle("-fx-font-family: 'Rajdhani'; -fx-font-size: 100;");
+        currentKeg.setFont(fontLato);
 
         BorderPane footerFrame = new BorderPane();
         footerFrame.setPrefSize(1190,220);
@@ -209,7 +213,7 @@ public class Main extends Application {
         footerFrame.setRight(teralogo);
 
         BorderPane.setAlignment(currentKeg, Pos.BOTTOM_LEFT);
-        BorderPane.setMargin(currentKeg, new Insets(5,0,0,12));
+        BorderPane.setMargin(currentKeg, new Insets(5,0,0,14));
         BorderPane.setAlignment(teralogo, Pos.BOTTOM_RIGHT);
         BorderPane.setMargin(teralogo, new Insets(5,0,15,0));
 
@@ -229,7 +233,6 @@ public class Main extends Application {
         BorderPane.setMargin(footerFrame, new Insets(15,50,45,50));
 
         Scene scene = new Scene(root, 1280, 800);
-        scene.getStylesheets().add("https://fonts.googleapis.com/css?family=Rajdhani");
         scene.getStylesheets().add("css/linechart.css");
         window.setScene(scene);
         window.show();
