@@ -1,0 +1,46 @@
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+.chart-vertical-grid-lines {
+    -fx-stroke: transparent;
+}
+.chart-horizontal-grid-lines {
+    -fx-stroke: transparent;
+}
+
+.axis-tick-mark {
+    -fx-stroke: transparent;
+}
+.axis-minor-tick-mark {
+    -fx-stroke: transparent;
+}
+
+.axis {
+    -fx-tick-label-fill: transparent;
+}
+
+.axis:bottom {
+    -fx-border-color: transparent transparent transparent transparent;
+}
+.axis:left {
+    -fx-border-color: transparent transparent transparent transparent;
+}
+
+.chart-vertical-zero-line {
+    -fx-stroke: transparent;
+}
+.chart-horizontal-zero-line {
+    -fx-stroke: transparent;
+}
+
+.chart-line-symbol {
+    -fx-background-color: transparent, transparent;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+}
+
+.chart-series-line {
+    -fx-stroke: #06D3CE;
+    -fx-stroke-width: 2px;
+}
