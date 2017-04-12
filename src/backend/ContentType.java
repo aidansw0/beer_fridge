@@ -1,4 +1,4 @@
-package dweetHandler;
+package backend;
 
 /**
  * Types of content that can be polled from Dweet.io

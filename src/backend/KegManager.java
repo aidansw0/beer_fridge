@@ -1,4 +1,4 @@
-package gui;
+package backend;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import dweetHandler.ContentType;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 
