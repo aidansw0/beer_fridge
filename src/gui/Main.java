@@ -63,10 +63,10 @@ public class Main extends Application {
         kegMeterStack.getChildren().add(kegMeter);
         kegMeterStack.getChildren().add(kegVolume);
 
-        StackPane.setAlignment(kegVolume, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(kegVolume, new Insets(0,0,25,60));
-        StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(kegMeter, new Insets(50,0,48,5));
+        StackPane.setAlignment(kegVolume, Pos.CENTER_LEFT);
+        StackPane.setMargin(kegVolume, new Insets(230,0,0,60));
+        StackPane.setAlignment(kegMeter, Pos.CENTER_LEFT);
+        StackPane.setMargin(kegMeter, new Insets(77,0,0,5));
 
         BorderPane kegFrame = new BorderPane();
         kegFrame.setPrefSize(445,450);
@@ -75,7 +75,7 @@ public class Main extends Application {
         kegFrame.setLeft(keg);
         kegFrame.setCenter(kegMeterStack);
 
-        BorderPane.setAlignment(keg, Pos.BOTTOM_LEFT);
+        BorderPane.setAlignment(keg, Pos.CENTER_LEFT);
         BorderPane.setMargin(keg, new Insets(15,10,15,30));
 
         // Temperature Frame
