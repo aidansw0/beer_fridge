@@ -18,8 +18,8 @@
 #define SCALE         454
 
 // Your network SSID and password
-char ssid[] = "your-ssid";
-char password[] = "your-pass";
+char ssid[] = "AndroidAP";
+char password[] = "testpassword"; // test
 
 // HTTP Request
 #define HTTP_PORT           80
@@ -91,9 +91,9 @@ void setup() {
 
 void loop() {
   int weight = round(scale.get_units(1));
-  #ifdef DEBUG_SCALE
-    Serial.println(weight);
-  #endif
+#ifdef DEBUG_SCALE
+  Serial.println(weight);
+#endif
 
   // Add new data to queue for averaging
   enqueue_data(weight);
@@ -109,18 +109,18 @@ void loop() {
     new_pot = false;
   }
 
-  #ifdef UPDATE_DWEET
-    if (update_request > 0) {
-      if (millis() - last_update > REQUEST_INTERVAL) {
-        Serial.println("Updating dweet.io: someone is pouring");
-        postToDweet(average_weight, true);
-        read_received_data();
-        check_received_data();
-        last_update = millis();
-        update_request--;
-      }
+#ifdef UPDATE_DWEET
+  if (update_request > 0) {
+    if (millis() - last_update > REQUEST_INTERVAL) {
+      Serial.println("Updating dweet.io: someone is pouring");
+      postToDweet(average_weight, true);
+      read_received_data();
+      check_received_data();
+      last_update = millis();
+      update_request--;
     }
-  #endif
+  }
+#endif
 
   // If standard deviation is high, someone must be pouring a cup
   if (stdev() > STDEV_POUR_THRESH || pouring == true) {
@@ -128,11 +128,11 @@ void loop() {
       Serial.println("Someone is pouring a cup...");
       update_request = 1;
     }
-    
+
     pouring = true;
 
     if (weight <= average_weight + 100) {
-      pouring = false; 
+      pouring = false;
     }
   }
   // Weight only valid if standard deviation is less than threshold
@@ -147,17 +147,17 @@ void loop() {
 
     average_weight = mean();
 
-    #ifdef UPDATE_DWEET
-        if (update_request == 0) {
-          if (millis() - last_update > REQUEST_INTERVAL) {
-            postToDweet(average_weight, pouring);
-            read_received_data();
-            check_received_data();
-            last_update = millis();
-          }
-        }
-    #endif
-    
+#ifdef UPDATE_DWEET
+    if (update_request == 0) {
+      if (millis() - last_update > REQUEST_INTERVAL) {
+        postToDweet(average_weight, pouring);
+        read_received_data();
+        check_received_data();
+        last_update = millis();
+      }
+    }
+#endif
+
   } else {
     //Serial.println("[Exception]");
   }
@@ -242,10 +242,10 @@ void postToDweet(int weight, bool pouring) {
   }
 
   if (client.connect(dweet_server, HTTP_PORT)) {
-    #ifdef DEBUG_HTTP
-        Serial.print("Sending ");
-        Serial.println(weight);
-    #endif
+#ifdef DEBUG_HTTP
+    Serial.print("Sending ");
+    Serial.println(weight);
+#endif
 
     client.print(F("GET /dweet/for/"));
     client.print(THING_NAME);
@@ -268,21 +268,21 @@ void postToDweet(int weight, bool pouring) {
 }
 
 bool postToSlack(int retries) {
-  for (int i=0; i<retries; i++) {
+  for (int i = 0; i < retries; i++) {
     if (client.connect(thingspeak_server, HTTP_PORT)) {
       Serial.println("Posting to slack");
       client.print(F("GET /apps/thinghttp/send_request?api_key=F901JQEU48SBZ7VL"));
       client.println(F(" HTTP/1.1"));
-  
+
       client.println(F("Host: api.thingspeak.com"));
       client.println(F("Connection: close"));
       client.println(F(""));
-  
+
       return true;
     }
     else {
       Serial.print("Posting failed.. attempt #");
-      Serial.println(i+1);
+      Serial.println(i + 1);
       read_received_data();
     }
   }
@@ -293,7 +293,7 @@ bool postMessageToSlack(String msg) {
   const char* host = "hooks.slack.com";
   String slack_username = "coffeepot";
   String slack_hook_url = "/services/T4VQS0ZMM/B4V6J3WKU/SCP8SnUAQagbEmlMTGui1A8p";
-  
+
   Serial.print("Connecting to ");
   Serial.println(host);
 
@@ -310,16 +310,16 @@ bool postMessageToSlack(String msg) {
   Serial.print("Posting to URL: ");
   Serial.println(slack_hook_url);
 
-  String postData="payload={\"link_names\": 1, \"username\": \"" + 
-                slack_username + "\", \"text\": \"" + msg + "\"}";
+  String postData = "payload={\"link_names\": 1, \"username\": \"" +
+                    slack_username + "\", \"text\": \"" + msg + "\"}";
 
   // This will send the request to the server
   client.print(String("POST ") + slack_hook_url + " HTTP/1.1\r\n" +
-                "Host: " + host + "\r\n" +
-                "Content-Type: application/x-www-form-urlencoded\r\n" +
-                "Connection: close" + "\r\n" +
-                "Content-Length:" + postData.length() + "\r\n" +
-                "\r\n" + postData);
+               "Host: " + host + "\r\n" +
+               "Content-Type: application/x-www-form-urlencoded\r\n" +
+               "Connection: close" + "\r\n" +
+               "Content-Length:" + postData.length() + "\r\n" +
+               "\r\n" + postData);
   Serial.println("Request sent");
   String line = client.readStringUntil('\n');
   Serial.print("Response code was: ");
