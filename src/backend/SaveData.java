@@ -12,8 +12,6 @@ import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JOptionPane;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,7 +19,11 @@ import org.json.JSONTokener;
 
 /**
  * This class is responsible for reading and writing data to and from the local
- * file system. All data is stored in JSON format.
+ * file system. All data is stored in JSON format. This class should be
+ * instantiated only once at the beginning of the program execution at which
+ * point it will look for data files and load their contents into memory. If the
+ * data files cannot be found then empty files will be created. From this point
+ * new data can be written whenever needed.
  * 
  * @author Aidan
  *
@@ -31,10 +33,12 @@ public class SaveData {
     private final String JSON_FILE = "beers_json_test.json"; // file name, NOT
                                                              // file location
     private final String fullJSONFilePath;
-    // directory for JSON_FILE to be stored, same as location as the .jar
+    // directory for JSON_FILE to be stored (includes file name), same as
+    // location as the .jar
 
     private final Map<String, Integer> beerRatings;
     private final List<String> beers;
+    private boolean dataReady = false;
 
     public SaveData(Map<String, Integer> map, List<String> list) {
         beerRatings = map;
@@ -43,49 +47,54 @@ public class SaveData {
 
         if (!checkFileExists()) {
             createJSONDirectory();
-            writeJSON();
+            try {
+                writeData();
+            } catch (JSONException | IOException e) {
+                e.printStackTrace();
+            }
         } else {
-            readJSON();
+            readData();
         }
+        dataReady = true;
+    }
+
+    /**
+     * @return true if data has been loaded into memory and false if otherwise.
+     */
+    public boolean isDataReady() {
+        return dataReady;
     }
 
     /**
      * This method updates JSON_FILE with the most recent data stored in
      * beerRatings. JSON_FILE is completely overwritten during the process.
+     * 
+     * @throws JSONException if data could not be written in JSON format.
+     * @throws IOException if data could not be written.  
      */
-    public void writeJSON() {
+    public void writeData() throws JSONException, IOException {
         if (beerRatings.keySet().size() > 0) {
             JSONObject jsonToWrite = new JSONObject();
             JSONArray jsonBeerList = new JSONArray();
 
-            try {
-                for (String beerName : beerRatings.keySet()) {
-                    JSONObject jsonBeer = new JSONObject();
-                    jsonBeer.put(beerName, beerRatings.get(beerName));
-                    jsonBeerList.put(jsonBeer);
-                }
-
-                jsonToWrite.put("beers", jsonBeerList);
-                FileWriter writer = new FileWriter(fullJSONFilePath);
-                System.out.println(fullJSONFilePath);
-                writer.write(jsonToWrite.toString());
-                writer.close();
-
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
+            for (String beerName : beerRatings.keySet()) {
+                JSONObject jsonBeer = new JSONObject();
+                jsonBeer.put(beerName, beerRatings.get(beerName));
+                jsonBeerList.put(jsonBeer);
             }
+
+            jsonToWrite.put("beers", jsonBeerList);
+            FileWriter writer = new FileWriter(fullJSONFilePath);
+            writer.write(jsonToWrite.toString());
+            writer.close();
 
         } else {
-            try {
-                // if beerRatings is empty then either readJSON() couldn't read
-                // the data file or the file was deleted, in either case a new
-                // empty file is created
-                FileWriter writer = new FileWriter(fullJSONFilePath);
-                writer.write("");
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            // if beerRatings is empty then either readJSON() couldn't read
+            // the data file or the file was deleted, in either case a new
+            // empty file is created
+            FileWriter writer = new FileWriter(fullJSONFilePath);
+            writer.write("");
+            writer.close();
         }
     }
 
@@ -93,7 +102,7 @@ public class SaveData {
      * Reads and parses JSON_FILE and loads the data into beerRatings and beers.
      * Does not modify JSON_FILE in any way.
      */
-    private void readJSON() {
+    private void readData() {
         StringBuilder jsonText = new StringBuilder();
         BufferedReader reader;
 
@@ -136,7 +145,7 @@ public class SaveData {
 
         String fileSeparator = System.getProperty("file.separator");
         newDir = path + "data" + fileSeparator;
-        JOptionPane.showMessageDialog(null, newDir);
+        //JOptionPane.showMessageDialog(null, newDir);
 
         File file = new File(newDir);
         file.mkdir();
