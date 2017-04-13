@@ -4,8 +4,10 @@ import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.application.Application;
@@ -13,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
@@ -21,6 +24,7 @@ import javafx.stage.WindowEvent;
 public class Main extends Application {
 
     private DataManager dataManager;
+    private ButtonManager buttons;
     private Stage window;
     private Font fontLato;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame;
@@ -35,12 +39,13 @@ public class Main extends Application {
 
     private void init(Stage primaryStage) {
         KegManager beerKeg = new KegManager();
+        buttons = new ButtonManager();
         dataManager = new DataManager(beerKeg);
 
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-        window.initStyle(StageStyle.UNDECORATED);
+        //window.initStyle(StageStyle.UNDECORATED);
 
         fontLato = Font.loadFont(getClass()
                 .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
@@ -124,17 +129,52 @@ public class Main extends Application {
 
     private BorderPane createVotingFrame() {
         BorderPane votingFrame = new BorderPane();
-        Image img4 = new Image("img/votingheader.png");
+        BorderPane navPane = new BorderPane();
+        Text beerDisplay = new Text(buttons.getCurrent());
+
+        Image img1 = new Image("img/votingheader.png");
+        Image img2 = new Image("img/navleft.png");
+        Image img3 = new Image("img/navright.png");
 
         ImageView votingheader = new ImageView();
-        votingheader.setImage(img4);
+        votingheader.setImage(img1);
         votingheader.setFitHeight(53);
         votingheader.setPreserveRatio(true);
+
+        ImageView navleft = new ImageView();
+        navleft.setImage(img2);
+        navleft.setFitHeight(60);
+        navleft.setPreserveRatio(true);
+
+        ImageView navright = new ImageView();
+        navright.setImage(img3);
+        navright.setFitHeight(60);
+        navright.setPreserveRatio(true);
+
+        beerDisplay.setStyle("-fx-font-family:'Lato Hairline'; -fx-font-size:40");
+        beerDisplay.setFill(Color.web("cacaca"));
+
+        Button left = buttons.createLeftButton(beerDisplay);
+        Button right = buttons.createRightButton(beerDisplay);
+        left.setGraphic(navleft);
+        right.setGraphic(navright);
+        left.setBackground(Background.EMPTY);
+        right.setBackground(Background.EMPTY);
 
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);
         votingFrame.setStyle("-fx-background-color: #2d2d2d");
         votingFrame.setTop(votingheader);
+
+        navPane.setLeft(left);
+        navPane.setRight(right);
+        navPane.setCenter(beerDisplay);
+        navPane.setPrefSize(490,90);
+        votingFrame.setRight(navPane);
+
+        BorderPane.setAlignment(left, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
+        BorderPane.setMargin(navPane, new Insets(5,10,5,10));
 
         return votingFrame;
     }
@@ -205,7 +245,7 @@ public class Main extends Application {
         BorderPane.setAlignment(footerFrame, Pos.TOP_LEFT);
         BorderPane.setMargin(footerFrame, new Insets(15,50,45,50));
 
-        Scene scene = new Scene(root, 1280, 1024);
+        Scene scene = new Scene(root, 1280, 600);
         scene.getStylesheets().add("css/linechart.css");
         window.setScene(scene);
         window.show();

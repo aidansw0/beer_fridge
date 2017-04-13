@@ -146,7 +146,7 @@ public class DataManager {
             URL url = new URL(DWEET_URL + "?weight=" + weight + "&temp=" + temp);
             url.openStream();
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 }

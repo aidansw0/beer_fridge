@@ -164,9 +164,9 @@ class DweetParser extends TimerTask {
             sendToManager(ContentType.TEMP, content.getDouble("temp"));
 
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         } catch (JSONException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 
