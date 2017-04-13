@@ -17,7 +17,6 @@ public class ButtonManager {
         beerTypeLikes.put("beer2", 0);
         beerTypeLikes.put("beer3", 0);
         
-        
         beerTypes.add("beer0");
         beerTypes.add("beer1");
         beerTypes.add("beer2");
