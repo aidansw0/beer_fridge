@@ -13,8 +13,10 @@ import javafx.scene.control.Label;
 import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * This class gets data from KegManager
@@ -39,7 +41,7 @@ public class DataManager {
     private final KegManager beerKeg;
 
     public DataManager(KegManager kegManager) {
-        final int CHART_REFRESH_RATE = 1000; // time in ms
+        final int CHART_REFRESH_RATE = 2100; // time in ms
         beerKeg = kegManager;
 
         Timeline animation;
@@ -72,6 +74,7 @@ public class DataManager {
 
     public Label createTempLabel() {
         tempLabel = new Label("273\u00B0K");
+        tempLabel.onMouseClickedProperty().setValue(event -> System.out.println("Pressed"));
         return tempLabel;
     }
 
@@ -110,7 +113,7 @@ public class DataManager {
         List <Double> updatedCoord;
 
         tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, beerKeg.tempProperty().doubleValue()));
-        tempLabel.setText(beerKeg.tempProperty().intValue() + "\u00B0K");
+        tempLabel.setText(beerKeg.tempProperty().intValue() + tempUnits);
         weightLabel.setText(beerKeg.weightProperty().intValue() + "L");
 
         updatedCoord = calculateCoordinates(beerKeg.weightProperty().intValue());
@@ -128,6 +131,22 @@ public class DataManager {
         if (sequence > MAX_DATA_POINTS - 1) {
             xAxis.setLowerBound(xAxis.getLowerBound() + 1);
             xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+        }
+
+        simulateNewData();
+    }
+
+    private void simulateNewData() {
+        final String DWEET_URL = "https://dweet.io/dweet/for/teradici-beer-fridge";
+        Random rnd = new Random();
+        int weight = rnd.nextInt(30);
+        int temp = 260 + rnd.nextInt(20);
+
+        try {
+            URL url = new URL(DWEET_URL + "?weight=" + weight + "&temp=" + temp);
+            url.openStream();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
