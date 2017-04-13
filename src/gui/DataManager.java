@@ -113,7 +113,7 @@ public class DataManager {
         List <Double> updatedCoord;
 
         tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, beerKeg.tempProperty().doubleValue()));
-        tempLabel.setText(beerKeg.tempProperty().intValue() + tempUnits);
+        tempLabel.setText(beerKeg.tempProperty().intValue() + "\u00B0K");
         weightLabel.setText(beerKeg.weightProperty().intValue() + "L");
 
         updatedCoord = calculateCoordinates(beerKeg.weightProperty().intValue());
