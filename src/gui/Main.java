@@ -16,6 +16,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextBoundsType;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import javafx.stage.WindowEvent;

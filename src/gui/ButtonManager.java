@@ -22,8 +22,12 @@ public class ButtonManager {
     private final List<String> beerTypes = new ArrayList<String>();
     private final Map<String,Rectangle> beerVotesBar = new HashMap<String,Rectangle>();
     private final HBox pollsPane = new HBox();
-    private final int maxBarHeight = 100;
-    private Text likesDisplay;
+
+    private final int MAX_BAR_HEIGHT = 100;
+    private final Color unselectedColour = Color.web("006B68");
+    private final Color selectedColour = Color.web("06D3CE");
+
+    private Text display, likesDisplay;
     private int currentBeer = 0;
     private int highestVote = 0;
 
@@ -32,13 +36,12 @@ public class ButtonManager {
         addBeer("2. Blue Buck",10);
         addBeer("3. Red Truck",12);
         addBeer("4. Post Mark",3);
-        addBeer("5. Stanley Park Brewery", 5);
-        addBeer("6. Blue Buck",10);
-        addBeer("7. Red Truck",12);
-        addBeer("8. Post Mark",3);
-        addBeer("9. Red Truck",12);
-        addBeer("10. Post Mark",3);
-
+        addBeer("5. Guinness", 5);
+        addBeer("6. Yellow Dog",10);
+        addBeer("7. Kokanee",12);
+        addBeer("8. Bud Light",3);
+        addBeer("9. Corona",12);
+        addBeer("10. Stella Artois",3);
     }
 
     public String getCurrentBeer() { return beerTypes.get(currentBeer); }
@@ -46,59 +49,49 @@ public class ButtonManager {
     public String getCurrentVotes() { return beerTypeLikes.get(beerTypes.get(currentBeer)).toString(); }
 
     public void addBeer(String newBeer, int votes) {
-        beerTypeLikes.put(newBeer, votes);
+        beerTypeLikes.put(newBeer,votes);
         beerTypes.add(newBeer);
     }
 
-    public Button createLeftButton(Text display, ImageView img) {
+    public Button createLeftButton(Text textObject, ImageView img) {
+        display = textObject;
         Button left = new Button("", img);
         left.setBackground(Background.EMPTY);
         left.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                beerVotesBar.get(beerTypes.get(currentBeer)).setFill(Color.web("06D3CE"));
-
                 if (currentBeer > 0) {
-                    currentBeer--;
+                    goToElement(currentBeer - 1);
                 } else if (currentBeer == 0) {
-                    currentBeer = beerTypes.size() - 1;
+                    goToElement(beerTypes.size() - 1);
                 }
-
-                beerVotesBar.get(beerTypes.get(currentBeer)).setFill(Color.web("008A87"));
-                display.setText(beerTypes.get(currentBeer));
-                likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
             }
         });
         return left;
     }
 
-    public Button createRightButton(Text display, ImageView img) {
+    public Button createRightButton(Text textObject, ImageView img) {
+        display = textObject;
         Button right = new Button("", img);
         right.setBackground(Background.EMPTY);
         right.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
-                beerVotesBar.get(beerTypes.get(currentBeer)).setFill(Color.web("06D3CE"));
-
                 if (currentBeer < beerTypes.size() - 1) {
-                    currentBeer++;
+                    goToElement((currentBeer + 1));
                 } else if (currentBeer == beerTypes.size() - 1) {
-                    currentBeer = 0;
+                    goToElement(0);
                 }
-
-                beerVotesBar.get(beerTypes.get(currentBeer)).setFill(Color.web("008A87"));
-                display.setText(beerTypes.get(currentBeer));
-                likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
             }
         });
         return right;
     }
 
     public Button createLikeButton(ImageView img, Text likes) {
-        Button like = new Button("", img);
+        Button likeButton = new Button("", img);
         likesDisplay = likes;
-        like.setBackground(Background.EMPTY);
+        likeButton.setBackground(Background.EMPTY);
 
         for (int i=0; i<beerTypeLikes.size(); i++) {
             if (beerTypeLikes.get(beerTypes.get(i)) > highestVote) {
@@ -106,7 +99,7 @@ public class ButtonManager {
             }
         }
 
-        like.setOnAction(new EventHandler<ActionEvent>() {
+        likeButton.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
@@ -123,7 +116,7 @@ public class ButtonManager {
                 }
             }
         });
-        return like;
+        return likeButton;
     }
 
     public HBox createPollChart(){
@@ -137,17 +130,43 @@ public class ButtonManager {
         }
 
         for (int i=0; i<beersToDisplay; i++) {
-            int rectHeight = beerTypeLikes.get(beerTypes.get(i)) * maxBarHeight / highestVote;
-            beerVotesBar.put(beerTypes.get(i), new Rectangle(fixedWeight,rectHeight));
-            beerVotesBar.get(beerTypes.get(i)).setFill(Color.web("06D3CE"));
+            int rectHeight = beerTypeLikes.get(beerTypes.get(i)) * MAX_BAR_HEIGHT / highestVote;
+            String current = beerTypes.get(i);
+            beerVotesBar.put(current, new Rectangle(fixedWeight,rectHeight));
+            beerVotesBar.get(current).setFill(unselectedColour);
+
+            // Update current beer and highlight
+            beerVotesBar.get(current).setOnMouseClicked(event -> goToElement(current));
+
+            // Add all chart elements to pane
             pollsPane.getChildren().add(beerVotesBar.get(beerTypes.get(i)));
         }
 
-        beerVotesBar.get(beerTypes.get(currentBeer)).setFill(Color.web("008A87"));
+        beerVotesBar.get(beerTypes.get(currentBeer)).setFill(selectedColour);
 
         pollsPane.setSpacing(10);
         pollsPane.setAlignment(Pos.CENTER);
         return pollsPane;
+    }
+
+    private void goToElement(String newIndex) {
+        System.out.println(newIndex);
+        beerVotesBar.get(beerTypes.get(currentBeer)).setFill(unselectedColour);
+        beerVotesBar.get(newIndex).setFill(selectedColour);
+        currentBeer = beerTypes.indexOf(newIndex);
+
+        display.setText(beerTypes.get(currentBeer));
+        likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+    }
+
+    private void goToElement(int newIndex) {
+        System.out.println(newIndex);
+        beerVotesBar.get(beerTypes.get(currentBeer)).setFill(unselectedColour);
+        beerVotesBar.get(beerTypes.get(newIndex)).setFill(selectedColour);
+        currentBeer = newIndex;
+
+        display.setText(beerTypes.get(currentBeer));
+        likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
     }
 
     private void updatePollChart(String beerToUpdate, boolean updateAll) {
@@ -161,12 +180,12 @@ public class ButtonManager {
         if (updateAll) {
             for (int i=0; i<beersToDisplay; i++) {
                 String updateBeer = beerTypes.get(i);
-                int newHeight = beerTypeLikes.get(updateBeer) * maxBarHeight / highestVote;
+                int newHeight = beerTypeLikes.get(updateBeer) * MAX_BAR_HEIGHT / highestVote;
                 beerVotesBar.get(updateBeer).setHeight(newHeight);
             }
         }
         else {
-            int newHeight = beerTypeLikes.get(beerToUpdate) * maxBarHeight / highestVote;
+            int newHeight = beerTypeLikes.get(beerToUpdate) * MAX_BAR_HEIGHT / highestVote;
             beerVotesBar.get(beerToUpdate).setHeight(newHeight);
         }
     }
