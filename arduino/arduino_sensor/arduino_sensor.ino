@@ -5,6 +5,7 @@
 #include <Energia.h>
 #include <Wire.h>
 #include <HX711.h>
+#include <Adafruit_TMP006.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 
@@ -23,7 +24,7 @@ char password[] = "testpassword"; // test
 
 // HTTP Request
 #define HTTP_PORT           80
-#define THING_NAME          "richardscoffeepot"
+#define THING_NAME          "teradici-beer-fridge"
 #define REQUEST_INTERVAL    2000
 
 WiFiClient client;
@@ -36,6 +37,9 @@ String received_data_string;
 
 // Create HX711 object by passing the pin used on the launchpad
 HX711 scale(DOUT, CLK);
+
+// Create temp senseor object by passing i2c address]
+Adafruit_TMP006 tmp006(0x41);
 
 // Signal processing
 #define WINDOW_SIZE         20
@@ -87,6 +91,13 @@ void setup() {
   //Initialize button interrupt for taring
   pinMode(PUSH1, INPUT_PULLUP);
   attachInterrupt(PUSH1, scale_tare, FALLING);
+
+  // Start temperature sensor
+  if (!tmp006.begin()) {
+    Serial.println("TMP006 sensor not found!");
+  } else {
+    Serial.println("Starting temperature sensor");
+  }
 }
 
 void loop() {
@@ -161,8 +172,15 @@ void loop() {
   } else {
     //Serial.println("[Exception]");
   }
-
   delay(500);
+}
+
+float getTemperature() {
+  tmp006.wake();
+  float temp =  tmp006.readObjTempC();
+  Serial.print("Temperature: "); 
+  Serial.println(temp);
+  tmp006.sleep();
 }
 
 void printWifiData() {
@@ -224,11 +242,11 @@ void printCurrentNet() {
 
 void postToDweet(int weight, bool pouring) {
   int age_in_min;
-  float temperature;
+  //float temperature;
   bool new_pot;
 
   age_in_min = (millis() - coffee_age) / 1000 / 60;
-  temperature = -0.0505 * age_in_min + 83.47;
+  //temperature = -0.0505 * age_in_min + 83.47;
 
   if (weight < 0) {
     weight = 0;
@@ -251,14 +269,15 @@ void postToDweet(int weight, bool pouring) {
     client.print(THING_NAME);
     client.print(F("?weight="));
     client.print(weight);
-    client.print(F("&pouring="));
-    client.print(pouring);
-    client.print(F("&age="));
-    client.print(age_in_min);
+//    client.print(F("&pouring="));
+//    client.print(pouring);
+//    client.print(F("&age="));
+//    client.print(age_in_min);
     client.print(F("&temp="));
-    client.print(temperature, 1);
-    client.print(F("&newpot="));
-    client.print(new_pot);
+    //client.print(temperature, 1);
+    client.print(getTemperature() + 273.15, 1);
+//    client.print(F("&newpot="));
+//    client.print(new_pot);
     client.println(F(" HTTP/1.1"));
 
     client.println(F("Host: dweet.io"));
