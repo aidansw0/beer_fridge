@@ -16,15 +16,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextBoundsType;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
+import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public class Main extends Application {
 
     private DataManager dataManager;
-    private ButtonManager buttons;
+    private VoteManager buttons;
     private Stage window;
     private Font latoHairline;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame;
@@ -39,13 +39,13 @@ public class Main extends Application {
 
     private void init(Stage primaryStage) {
         KegManager beerKeg = new KegManager();
-        buttons = new ButtonManager();
+        buttons = new VoteManager();
         dataManager = new DataManager(beerKeg);
 
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-        //isFullScreenwindow.initStyle(StageStyle.UNDECORATED);
+        //window.initStyle(StageStyle.UNDECORATED);
 
         latoHairline = Font.loadFont(getClass()
                 .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
@@ -172,7 +172,7 @@ public class Main extends Application {
 
         Button left = buttons.createLeftButton(beerDisplay,navleft);
         Button right = buttons.createRightButton(beerDisplay,navright);
-        Button like = buttons.createLikeButton(thumb, votes);
+        Button like = buttons.createLikeButton(votes, thumb);
 
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);

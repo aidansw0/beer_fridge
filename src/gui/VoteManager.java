@@ -16,7 +16,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ButtonManager {
+/**
+ * This class manages button events in the voting pane
+ * and updates the text labels in the GUI front-end
+ *
+ * TODO: Allow scrolling through poll chart when more than 10 items are displayed
+ * TODO: Add support for loading and saving data
+ * TODO: Add support for adding new entries
+ *
+ * @author Richard
+ *
+ */
+
+public class VoteManager {
     
     private final Map<String, Integer> beerTypeLikes = new HashMap<String, Integer>();
     private final List<String> beerTypes = new ArrayList<String>();
@@ -31,7 +43,7 @@ public class ButtonManager {
     private int currentBeer = 0;
     private int highestVote = 0;
 
-    public ButtonManager() {
+    public VoteManager() {
         addBeer("1. Stanley Park Brewery", 5);
         addBeer("2. Blue Buck",10);
         addBeer("3. Red Truck",12);
@@ -44,19 +56,41 @@ public class ButtonManager {
         addBeer("10. Stella Artois",3);
     }
 
+    /**
+     * @return String of current beer displayed.
+     */
     public String getCurrentBeer() { return beerTypes.get(currentBeer); }
 
+    /**
+     * @return Number of votes for the current beer.
+     */
     public String getCurrentVotes() { return beerTypeLikes.get(beerTypes.get(currentBeer)).toString(); }
 
+    /**
+     * Adds beer to list with current number of votes
+     *
+     * @param newBeer,
+     *            String containing name of new beer
+     * @param votes,
+     *            Number of votes associated with beer
+     */
     public void addBeer(String newBeer, int votes) {
         beerTypeLikes.put(newBeer,votes);
         beerTypes.add(newBeer);
     }
 
+    /**
+     * Sets up the navigation button to scroll left through the list
+     *
+     * @param textObject, Text object that displays the current beer
+     * @param img, Graphic used to represent the button
+     * @return returns Button left
+     */
     public Button createLeftButton(Text textObject, ImageView img) {
         display = textObject;
         Button left = new Button("", img);
         left.setBackground(Background.EMPTY);
+
         left.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -70,12 +104,19 @@ public class ButtonManager {
         return left;
     }
 
+    /**
+     * Sets up the navigation button to scroll right through the list
+     *
+     * @param textObject, Text object that displays the current beer
+     * @param img, Graphic used to represent the button
+     * @return returns Button right
+     */
     public Button createRightButton(Text textObject, ImageView img) {
         display = textObject;
         Button right = new Button("", img);
         right.setBackground(Background.EMPTY);
-        right.setOnAction(new EventHandler<ActionEvent>() {
 
+        right.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 if (currentBeer < beerTypes.size() - 1) {
@@ -88,11 +129,19 @@ public class ButtonManager {
         return right;
     }
 
-    public Button createLikeButton(ImageView img, Text likes) {
+    /**
+     * Sets up the like button used to upvote
+     *
+     * @param likes, Text object that displays number of votes
+     * @param img, Graphic used to represent the button
+     * @return returns Button likesButton
+     */
+    public Button createLikeButton(Text likes, ImageView img) {
         Button likeButton = new Button("", img);
         likesDisplay = likes;
         likeButton.setBackground(Background.EMPTY);
 
+        // Find the highest vote and set the global variable used for drawing
         for (int i=0; i<beerTypeLikes.size(); i++) {
             if (beerTypeLikes.get(beerTypes.get(i)) > highestVote) {
                 highestVote = beerTypeLikes.get(beerTypes.get(i));
@@ -108,10 +157,12 @@ public class ButtonManager {
                 likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
 
                 if (beerTypeLikes.get(beerToUpvote) > highestVote) {
+                    // Update all chart elements if highestVote increases
                     highestVote = beerTypeLikes.get(beerToUpvote);
                     updatePollChart(beerToUpvote,true);
                 }
                 else {
+                    // Chart element is still within range, only update one element
                     updatePollChart(beerToUpvote,false);
                 }
             }
@@ -119,29 +170,38 @@ public class ButtonManager {
         return likeButton;
     }
 
+    /**
+     * Sets the poll chart to visualize the current number of votes.
+     * The chart scales to the max number of votes for a beer.
+     * MAX_BAR_HEIGHT defines the heighest bar
+     * FIXED_BAR_WIDTH defines the width of each bar
+     *
+     * @return returns an HBox container
+     */
     public HBox createPollChart(){
-        final int fixedWeight = 55;
+        final int FIXED_BAR_WIDTH = 55;
+        final int MAX_BEERS_DISPLAYED = 10;
 
-        final int maxBeersDisplayed = 10;
         int beersToDisplay = beerTypes.size();
 
-        if (beersToDisplay > maxBeersDisplayed) {
-            beersToDisplay = maxBeersDisplayed;
+        if (beersToDisplay > MAX_BEERS_DISPLAYED) {
+            beersToDisplay = MAX_BEERS_DISPLAYED;
         }
 
         for (int i=0; i<beersToDisplay; i++) {
             int rectHeight = beerTypeLikes.get(beerTypes.get(i)) * MAX_BAR_HEIGHT / highestVote;
             String current = beerTypes.get(i);
-            beerVotesBar.put(current, new Rectangle(fixedWeight,rectHeight));
+            beerVotesBar.put(current, new Rectangle(FIXED_BAR_WIDTH,rectHeight));
             beerVotesBar.get(current).setFill(unselectedColour);
 
-            // Update current beer and highlight
+            // Set action event for when the chart element is clicked
             beerVotesBar.get(current).setOnMouseClicked(event -> goToElement(current));
 
             // Add all chart elements to pane
             pollsPane.getChildren().add(beerVotesBar.get(beerTypes.get(i)));
         }
 
+        // Highlight the current element
         beerVotesBar.get(beerTypes.get(currentBeer)).setFill(selectedColour);
 
         pollsPane.setSpacing(10);
@@ -149,8 +209,13 @@ public class ButtonManager {
         return pollsPane;
     }
 
+    /**
+     * Changes the current beer displayed to the index provided and
+     * updates all display values in the GUI front-end
+     *
+     * @param newIndex, a String value used to look up the next beer
+     */
     private void goToElement(String newIndex) {
-        System.out.println(newIndex);
         beerVotesBar.get(beerTypes.get(currentBeer)).setFill(unselectedColour);
         beerVotesBar.get(newIndex).setFill(selectedColour);
         currentBeer = beerTypes.indexOf(newIndex);
@@ -159,8 +224,13 @@ public class ButtonManager {
         likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
     }
 
+    /**
+     * Changes the current beer displayed to the index provided and
+     * updates all display values in the GUI front-end
+     *
+     * @param newIndex, an int index used to look up the next beer
+     */
     private void goToElement(int newIndex) {
-        System.out.println(newIndex);
         beerVotesBar.get(beerTypes.get(currentBeer)).setFill(unselectedColour);
         beerVotesBar.get(beerTypes.get(newIndex)).setFill(selectedColour);
         currentBeer = newIndex;
@@ -169,6 +239,12 @@ public class ButtonManager {
         likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
     }
 
+    /**
+     * Updates the poll chart elements to its new heights.
+     *
+     * @param beerToUpdate, String value used to look up the beer to update
+     * @param updateAll, Boolean that will trigger the method to update all elements
+     */
     private void updatePollChart(String beerToUpdate, boolean updateAll) {
         final int maxBeersDisplayed = 10;
         int beersToDisplay = beerTypes.size();
