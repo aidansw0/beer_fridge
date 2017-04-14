@@ -190,12 +190,14 @@ public class Main extends Application {
         votingFrame.setRight(navPane);
         votingFrame.setCenter(like);
         votingFrame.setLeft(likePane);
+        votingFrame.setBottom(buttons.createPollChart());
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
         BorderPane.setAlignment(like, Pos.CENTER_LEFT);
         BorderPane.setMargin(likePane, new Insets(0,5,0,20));
         BorderPane.setMargin(navPane, new Insets(5,10,5,10));
+        BorderPane.setMargin(votingFrame.getBottom(), new Insets(5,5,20,5));
 
         return votingFrame;
     }

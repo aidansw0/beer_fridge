@@ -139,8 +139,8 @@ public class DataManager {
     private void simulateNewData() {
         final String DWEET_URL = "https://dweet.io/dweet/for/teradici-beer-fridge";
         Random rnd = new Random();
-        int weight = rnd.nextInt(30);
-        int temp = 260 + rnd.nextInt(20);
+        int weight = 15 + rnd.nextInt(5);
+        int temp = 260 + rnd.nextInt(10);
 
         try {
             URL url = new URL(DWEET_URL + "?weight=" + weight + "&temp=" + temp);
