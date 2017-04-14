@@ -52,7 +52,7 @@ public class DataManager {
         animation.play();
     }
 
-    public Parent createChart() {
+    public Parent createLineChart() {
         xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 2);
         final NumberAxis yAxis = new NumberAxis(Y_MIN - 1, Y_MAX + 1, 1);
 

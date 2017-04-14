@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -17,7 +18,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
-import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public class Main extends Application {
@@ -44,7 +44,7 @@ public class Main extends Application {
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-        window.initStyle(StageStyle.UNDECORATED);
+        //isFullScreenwindow.initStyle(StageStyle.UNDECORATED);
 
         latoHairline = Font.loadFont(getClass()
                 .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
@@ -120,7 +120,7 @@ public class Main extends Application {
         tempFrame.setMaxWidth(715);
         tempFrame.setStyle("-fx-background-color: #2d2d2d");
         tempFrame.setTop(tempheader);
-        tempFrame.setCenter(dataManager.createChart());
+        tempFrame.setCenter(dataManager.createLineChart());
         tempFrame.setRight(temperature);
 
         BorderPane.setAlignment(temperature, Pos.TOP_RIGHT);
@@ -132,8 +132,10 @@ public class Main extends Application {
     private BorderPane createVotingFrame() {
         BorderPane votingFrame = new BorderPane();
         BorderPane navPane = new BorderPane();
+        VBox likePane = new VBox();
         Text beerDisplay = new Text(buttons.getCurrentBeer());
         Text votes = new Text(buttons.getCurrentVotes() + " Votes");
+        Text pressToVote = new Text("Press to Vote");
 
         Image img1 = new Image("img/votingheader.png");
         Image img2 = new Image("img/navleft.png");
@@ -164,6 +166,8 @@ public class Main extends Application {
         beerDisplay.setFill(Color.web("cacaca"));
         votes.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:20");
         votes.setFill(Color.web("cacaca"));
+        pressToVote.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:15");
+        pressToVote.setFill(Color.web("cacaca"));
 
         Button left = buttons.createLeftButton(beerDisplay,navleft);
         Button right = buttons.createRightButton(beerDisplay,navright);
@@ -178,15 +182,19 @@ public class Main extends Application {
         navPane.setRight(right);
         navPane.setCenter(beerDisplay);
         navPane.setPrefSize(490,90);
+
+        likePane.getChildren().add(pressToVote);
+        likePane.getChildren().add(votes);
+        likePane.alignmentProperty().set(Pos.CENTER);
+
         votingFrame.setRight(navPane);
         votingFrame.setCenter(like);
-        votingFrame.setLeft(votes);
+        votingFrame.setLeft(likePane);
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
         BorderPane.setAlignment(like, Pos.CENTER_LEFT);
-        BorderPane.setAlignment(votes, Pos.CENTER_LEFT);
-        BorderPane.setMargin(votes, new Insets(40,5,0,20));
+        BorderPane.setMargin(likePane, new Insets(0,5,0,20));
         BorderPane.setMargin(navPane, new Insets(5,10,5,10));
 
         return votingFrame;
