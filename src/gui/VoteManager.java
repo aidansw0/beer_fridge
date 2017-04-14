@@ -69,10 +69,8 @@ public class VoteManager {
     /**
      * Adds beer to list with current number of votes
      *
-     * @param newBeer,
-     *            String containing name of new beer
-     * @param votes,
-     *            Number of votes associated with beer
+     * @param newBeer, String containing name of new beer
+     * @param votes, Number of votes associated with beer
      */
     public void addBeer(String newBeer, int votes) {
         beerTypeLikes.put(newBeer,votes);

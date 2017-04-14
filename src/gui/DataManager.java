@@ -52,6 +52,9 @@ public class DataManager {
         animation.play();
     }
 
+    /**
+     * Creates line chart for visualizing temperature
+     */
     public Parent createLineChart() {
         xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 2);
         final NumberAxis yAxis = new NumberAxis(Y_MIN - 1, Y_MAX + 1, 1);
@@ -72,17 +75,26 @@ public class DataManager {
         return chart;
     }
 
+    /**
+     * Create label used to display temperature
+     */
     public Label createTempLabel() {
         tempLabel = new Label("273\u00B0K");
         tempLabel.onMouseClickedProperty().setValue(event -> System.out.println("Pressed"));
         return tempLabel;
     }
 
+    /**
+     * Create label used to display weight/volume
+     */
     public Label createWeightLabel() {
         weightLabel = new Label("30L");
         return weightLabel;
     }
 
+    /**
+     * Creates polygon used to visualize weight/volume
+     */
     public Polygon createWeightMeter() {
         weightMeter = new Polygon();
         weightMeter.getPoints().addAll(4.7, 0.0,
@@ -93,6 +105,11 @@ public class DataManager {
         return weightMeter;
     }
 
+    /**
+     * Calculates new polygon coordinates used for redrawing
+     *
+     * @param weight, weight used to calculate percentage of beer left
+     */
     private List calculateCoordinates (int weight) {
         List <Double> coords = new ArrayList<Double>();
         double newY = METER_HEIGHT - METER_HEIGHT * weight / MAX_KEG_WEIGHT;
@@ -109,6 +126,9 @@ public class DataManager {
         return coords;
     }
 
+    /**
+     * Method used by timeline to periodically update GUI
+     */
     private void updateData() {
         List <Double> updatedCoord;
 
@@ -136,6 +156,10 @@ public class DataManager {
         simulateNewData();
     }
 
+    /**
+     * Method simulates data being posted to dweet.io
+     * Only used for testing purposes.
+     */
     private void simulateNewData() {
         final String DWEET_URL = "https://dweet.io/dweet/for/teradici-beer-fridge";
         Random rnd = new Random();
