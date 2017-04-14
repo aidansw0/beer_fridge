@@ -7,7 +7,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.application.Application;
@@ -26,7 +25,7 @@ public class Main extends Application {
     private DataManager dataManager;
     private ButtonManager buttons;
     private Stage window;
-    private Font fontLato;
+    private Font latoHairline;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame;
 
     public static void main(String[] args) { launch(args); }
@@ -45,10 +44,13 @@ public class Main extends Application {
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-        //window.initStyle(StageStyle.UNDECORATED);
+        window.initStyle(StageStyle.UNDECORATED);
 
-        fontLato = Font.loadFont(getClass()
+        latoHairline = Font.loadFont(getClass()
                 .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
+
+        Font.loadFont(getClass()
+                .getResourceAsStream("/css/Lato-Light.ttf"), 20);
 
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -81,7 +83,7 @@ public class Main extends Application {
 
         kegMeter.setFill(Color.web("06d3ce"));
         kegVolume.setTextFill(Color.web("cacaca"));
-        kegVolume.setFont(fontLato);
+        kegVolume.setFont(latoHairline);
 
         kegMeterStack.getChildren().add(kegMeter);
         kegMeterStack.getChildren().add(kegVolume);
@@ -112,7 +114,7 @@ public class Main extends Application {
         tempheader.setPreserveRatio(true);
 
         temperature.setTextFill(Color.web("cacaca"));
-        temperature.setFont(fontLato);
+        temperature.setFont(latoHairline);
 
         tempFrame.setPrefSize(715,270);
         tempFrame.setMaxWidth(715);
@@ -130,11 +132,13 @@ public class Main extends Application {
     private BorderPane createVotingFrame() {
         BorderPane votingFrame = new BorderPane();
         BorderPane navPane = new BorderPane();
-        Text beerDisplay = new Text(buttons.getCurrent());
+        Text beerDisplay = new Text(buttons.getCurrentBeer());
+        Text votes = new Text(buttons.getCurrentVotes() + " Votes");
 
         Image img1 = new Image("img/votingheader.png");
         Image img2 = new Image("img/navleft.png");
         Image img3 = new Image("img/navright.png");
+        Image img4 = new Image("img/like.png");
 
         ImageView votingheader = new ImageView();
         votingheader.setImage(img1);
@@ -151,15 +155,19 @@ public class Main extends Application {
         navright.setFitHeight(60);
         navright.setPreserveRatio(true);
 
-        beerDisplay.setStyle("-fx-font-family:'Lato Hairline'; -fx-font-size:40");
-        beerDisplay.setFill(Color.web("cacaca"));
+        ImageView thumb = new ImageView();
+        thumb.setImage(img4);
+        thumb.setFitHeight(60);
+        thumb.setPreserveRatio(true);
 
-        Button left = buttons.createLeftButton(beerDisplay);
-        Button right = buttons.createRightButton(beerDisplay);
-        left.setGraphic(navleft);
-        right.setGraphic(navright);
-        left.setBackground(Background.EMPTY);
-        right.setBackground(Background.EMPTY);
+        beerDisplay.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:40");
+        beerDisplay.setFill(Color.web("cacaca"));
+        votes.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:20");
+        votes.setFill(Color.web("cacaca"));
+
+        Button left = buttons.createLeftButton(beerDisplay,navleft);
+        Button right = buttons.createRightButton(beerDisplay,navright);
+        Button like = buttons.createLikeButton(thumb, votes);
 
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);
@@ -171,9 +179,14 @@ public class Main extends Application {
         navPane.setCenter(beerDisplay);
         navPane.setPrefSize(490,90);
         votingFrame.setRight(navPane);
+        votingFrame.setCenter(like);
+        votingFrame.setLeft(votes);
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
+        BorderPane.setAlignment(like, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(votes, Pos.CENTER_LEFT);
+        BorderPane.setMargin(votes, new Insets(40,5,0,20));
         BorderPane.setMargin(navPane, new Insets(5,10,5,10));
 
         return votingFrame;
@@ -211,7 +224,7 @@ public class Main extends Application {
         teralogo.setPreserveRatio(true);
 
         currentKeg.setTextFill(Color.web("cacaca"));
-        currentKeg.setFont(fontLato);
+        currentKeg.setFont(latoHairline);
 
         footerFrame.setPrefSize(1190, 220);
         footerFrame.setMaxWidth(1190);
@@ -245,7 +258,7 @@ public class Main extends Application {
         BorderPane.setAlignment(footerFrame, Pos.TOP_LEFT);
         BorderPane.setMargin(footerFrame, new Insets(15,50,45,50));
 
-        Scene scene = new Scene(root, 1280, 600);
+        Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
         window.setScene(scene);
         window.show();
