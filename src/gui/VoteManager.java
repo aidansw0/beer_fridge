@@ -216,21 +216,6 @@ public class VoteManager {
      * Changes the current beer displayed to the index provided and
      * updates all display values in the GUI front-end
      *
-     * @param newIndex, a String value used to look up the next beer
-     */
-//    private void goToElement(String newIndex) {
-//        beerVotesBar.get(beerTypes.get(currentBeer)).setFill(unselectedColour);
-//        beerVotesBar.get(newIndex).setFill(selectedColour);
-//        currentBeer = beerTypes.indexOf(newIndex);
-//
-//        display.setText(beerTypes.get(currentBeer));
-//        likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-//    }
-
-    /**
-     * Changes the current beer displayed to the index provided and
-     * updates all display values in the GUI front-end
-     *
      * @param newIndex, an int index used to look up the next beer
      */
     private void goToElement(int newIndex, boolean wrapAround) {
@@ -263,7 +248,7 @@ public class VoteManager {
     /**
      * Updates the poll chart elements to its new heights.
      *
-     * @param beerToUpdate, String value used to look up the beer to update
+     * @param beerToUpdate, an int value used to look up the index of the beer to update
      * @param updateAll, Boolean that will trigger the method to update all elements
      */
     private void updatePollChart(int beerToUpdate, boolean updateAll) {
