@@ -153,7 +153,7 @@ public class DataManager {
             xAxis.setUpperBound(xAxis.getUpperBound() + 1);
         }
 
-        simulateNewData();
+        //simulateNewData();
     }
 
     /**
