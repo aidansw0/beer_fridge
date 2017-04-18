@@ -1,11 +1,13 @@
 package gui;
 import backend.KegManager;
+import backend.VirtualKeyboard;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -17,6 +19,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
@@ -29,6 +32,7 @@ public class Main extends Application {
     private Stage window;
     private Font latoHairline;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame;
+    private final Stage popUpStage = new Stage();
 
     public static void main(String[] args) { launch(args); }
 
@@ -234,6 +238,7 @@ public class Main extends Application {
         teralogo.setImage(img6);
         teralogo.setFitHeight(146);
         teralogo.setPreserveRatio(true);
+        teralogo.onMouseClickedProperty().setValue(event -> showKeyboard());
 
         currentKeg.setTextFill(Color.web("cacaca"));
         currentKeg.setFont(latoHairline);
@@ -255,6 +260,7 @@ public class Main extends Application {
         createKegFrame();
         createTempAndVotingFrame();
         createFooterFrame();
+        createKeyboardPopUp();
 
         BorderPane root = new BorderPane();
         root.setPrefSize(1190,450);
@@ -272,8 +278,28 @@ public class Main extends Application {
 
         Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
-        scene.setCursor(Cursor.NONE);
+        //scene.setCursor(Cursor.NONE);
         window.setScene(scene);
         window.show();
+    }
+
+    private void createKeyboardPopUp () {
+        VBox keyboard = new VBox();
+        VirtualKeyboard vkb = new VirtualKeyboard();
+        TextField textField = new TextField();
+
+        keyboard.getChildren().add(textField);
+        keyboard.getChildren().add(vkb.view());
+
+        Scene popUp = new Scene(keyboard,600,200);
+        popUp.getStylesheets().add("css/keyboard.css");
+
+        popUpStage.setScene(popUp);
+        popUpStage.initModality(Modality.APPLICATION_MODAL);
+        popUpStage.initStyle(StageStyle.UNDECORATED);
+    }
+
+    private void showKeyboard() {
+        popUpStage.showAndWait();
     }
 }
