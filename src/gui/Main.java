@@ -32,7 +32,11 @@ public class Main extends Application {
     private Stage window;
     private Font latoHairline;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame;
-    private final Stage popUpStage = new Stage();
+    private final VBox keyboard = new VBox();
+
+    private boolean keyboardOn = false;
+    private Label currentKeg;
+    private ImageView teralogo;
 
     public static void main(String[] args) { launch(args); }
 
@@ -152,6 +156,7 @@ public class Main extends Application {
         votingheader.setImage(img1);
         votingheader.setFitHeight(53);
         votingheader.setPreserveRatio(true);
+        votingheader.onMouseClickedProperty().set(event -> showKeyboard());
 
         ImageView navleft = new ImageView();
         navleft.setImage(img2);
@@ -225,7 +230,7 @@ public class Main extends Application {
 
     private void createFooterFrame() {
         footerFrame = new BorderPane();
-        Label currentKeg = new Label("Steamworks IPA");
+        currentKeg = new Label("Steamworks IPA");
         Image img5 = new Image("img/footerheader.png");
         Image img6 = new Image("img/teralogo.png");
 
@@ -234,16 +239,15 @@ public class Main extends Application {
         footerheader.setFitHeight(53);
         footerheader.setPreserveRatio(true);
 
-        ImageView teralogo = new ImageView();
+        teralogo = new ImageView();
         teralogo.setImage(img6);
         teralogo.setFitHeight(146);
         teralogo.setPreserveRatio(true);
-        teralogo.onMouseClickedProperty().setValue(event -> showKeyboard());
 
         currentKeg.setTextFill(Color.web("cacaca"));
         currentKeg.setFont(latoHairline);
 
-        footerFrame.setPrefSize(1190, 220);
+        footerFrame.setPrefWidth(1190);
         footerFrame.setMaxWidth(1190);
         footerFrame.setStyle("-fx-background-color: #2d2d2d");
         footerFrame.setTop(footerheader);
@@ -278,28 +282,34 @@ public class Main extends Application {
 
         Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
+        scene.getStylesheets().add("css/keyboard.css");
         //scene.setCursor(Cursor.NONE);
         window.setScene(scene);
         window.show();
     }
 
     private void createKeyboardPopUp () {
-        VBox keyboard = new VBox();
+
         VirtualKeyboard vkb = new VirtualKeyboard();
         TextField textField = new TextField();
 
-        keyboard.getChildren().add(textField);
         keyboard.getChildren().add(vkb.view());
-
-        Scene popUp = new Scene(keyboard,600,200);
-        popUp.getStylesheets().add("css/keyboard.css");
-
-        popUpStage.setScene(popUp);
-        popUpStage.initModality(Modality.APPLICATION_MODAL);
-        popUpStage.initStyle(StageStyle.UNDECORATED);
+        keyboard.setMaxWidth(800);
+        BorderPane.setAlignment(keyboard, Pos.CENTER);
     }
 
     private void showKeyboard() {
-        popUpStage.showAndWait();
+        if (keyboardOn) {
+            footerFrame.setLeft(currentKeg);
+            footerFrame.setRight(teralogo);
+            footerFrame.setBottom(null);
+            keyboardOn = !keyboardOn;
+        }
+        else {
+            footerFrame.setLeft(null);
+            footerFrame.setRight(null);
+            footerFrame.setBottom(keyboard);
+            keyboardOn = !keyboardOn;
+        }
     }
 }

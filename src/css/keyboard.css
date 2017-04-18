@@ -1,25 +1,21 @@
-.root {
-    -fx-background: #1e1e1e;
-}
-
-.button {
-    -fx-background-color: #2d2d2d;
+.virtual-keyboard-button {
+    -fx-background-color: #1f1f1f;
     -fx-text-fill: #ffffff;
+    -fx-font-size: 20;
+    -fx-font-family: 'Lato Light';
 }
 
-.button:hover {
+.virtual-keyboard-button:hover {
     -fx-background-color: #404040;
 }
 
-.toggle-button {
-    -fx-background-color: #2d2d2d;
+.modifier-keys {
+    -fx-background-color: #1f1f1f;
     -fx-text-fill: #ffffff;
+    -fx-font-size: 20;
+    -fx-font-family: 'Lato Light';
 }
 
-.toggle-button:hover {
-    -fx-background-color: #404040;
-}
-
-.toggle-button:selected {
+.modifier-keys:selected {
     -fx-background-color: #404040;
 }

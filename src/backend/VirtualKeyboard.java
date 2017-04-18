@@ -233,6 +233,7 @@ public class VirtualKeyboard {
 
         private ToggleButton createToggle(final String text) {
             final ToggleButton tb = new ToggleButton(text);
+            tb.getStyleClass().add("modifier-keys");
             tb.setFocusTraversable(false);
             return tb;
         }
