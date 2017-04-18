@@ -54,7 +54,7 @@ public class Main extends Application {
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-        //window.initStyle(StageStyle.UNDECORATED);
+        window.initStyle(StageStyle.UNDECORATED);
 
         latoHairline = Font.loadFont(getClass()
                 .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
@@ -318,7 +318,7 @@ public class Main extends Application {
         Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
         scene.getStylesheets().add("css/keyboard.css");
-        //scene.setCursor(Cursor.NONE);
+        scene.setCursor(Cursor.NONE);
         window.setScene(scene);
         window.show();
     }
