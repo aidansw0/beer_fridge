@@ -1,13 +1,19 @@
 package gui;
 import backend.KegManager;
+import backend.VirtualKeyboard;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -28,7 +34,9 @@ public class Main extends Application {
     private VoteManager buttons;
     private Stage window;
     private Font latoHairline;
-    private BorderPane kegFrame, tempAndVotingFrame, footerFrame;
+    private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
+
+    private boolean keyboardOn = false;
 
     public static void main(String[] args) { launch(args); }
 
@@ -46,7 +54,7 @@ public class Main extends Application {
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-        //window.initStyle(StageStyle.UNDECORATED);
+        window.initStyle(StageStyle.UNDECORATED);
 
         latoHairline = Font.loadFont(getClass()
                 .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
@@ -132,22 +140,58 @@ public class Main extends Application {
     }
 
     private BorderPane createVotingFrame() {
+        StackPane votingHeader = new StackPane();
         BorderPane votingFrame = new BorderPane();
         BorderPane navPane = new BorderPane();
         VBox likePane = new VBox();
         Text beerDisplay = new Text(buttons.getCurrentBeer());
         Text votes = new Text(buttons.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
+        TextField addBeer = new TextField();
+        Button addButton = new Button();
 
         Image img1 = new Image("img/votingheader.png");
         Image img2 = new Image("img/navleft.png");
         Image img3 = new Image("img/navright.png");
         Image img4 = new Image("img/like.png");
+        Image img5 = new Image("img/add.png");
 
-        ImageView votingheader = new ImageView();
-        votingheader.setImage(img1);
-        votingheader.setFitHeight(53);
-        votingheader.setPreserveRatio(true);
+        addBeer.getStyleClass().add("new-beer-field");
+        addBeer.setOnKeyPressed((KeyEvent event) -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                buttons.addBeer(addBeer.getText(), 0);
+                addBeer.clear();
+                votingFrame.setBottom(buttons.getPollChart());
+                toggleKeyboard();
+            }
+        });
+
+        ImageView plusimg = new ImageView();
+        plusimg.setImage(img5);
+        plusimg.setFitHeight(30);
+        plusimg.setPreserveRatio(true);
+        addButton.setGraphic(plusimg);
+        addButton.setBackground(Background.EMPTY);
+        addButton.setOnAction(event -> {
+            if (keyboardOn) {
+                votingFrame.setBottom(buttons.getPollChart());
+            }
+            else {
+                votingFrame.setBottom(addBeer);
+                addBeer.requestFocus();
+            }
+            toggleKeyboard();
+        });
+
+        ImageView votingheaderimg = new ImageView();
+        votingheaderimg.setImage(img1);
+        votingheaderimg.setFitHeight(53);
+        votingheaderimg.setPreserveRatio(true);
+
+        votingHeader.getChildren().add(votingheaderimg);
+        votingHeader.getChildren().add(addButton);
+        StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
+        StackPane.setMargin(addButton, new Insets(0,15,0,0));
 
         ImageView navleft = new ImageView();
         navleft.setImage(img2);
@@ -178,7 +222,6 @@ public class Main extends Application {
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);
         votingFrame.setStyle("-fx-background-color: #2d2d2d");
-        votingFrame.setTop(votingheader);
 
         navPane.setLeft(left);
         navPane.setRight(right);
@@ -189,6 +232,7 @@ public class Main extends Application {
         likePane.getChildren().add(votes);
         likePane.alignmentProperty().set(Pos.CENTER);
 
+        votingFrame.setTop(votingHeader);
         votingFrame.setRight(navPane);
         votingFrame.setCenter(like);
         votingFrame.setLeft(likePane);
@@ -238,7 +282,7 @@ public class Main extends Application {
         currentKeg.setTextFill(Color.web("cacaca"));
         currentKeg.setFont(latoHairline);
 
-        footerFrame.setPrefSize(1190, 220);
+        footerFrame.setPrefWidth(1190);
         footerFrame.setMaxWidth(1190);
         footerFrame.setStyle("-fx-background-color: #2d2d2d");
         footerFrame.setTop(footerheader);
@@ -255,8 +299,9 @@ public class Main extends Application {
         createKegFrame();
         createTempAndVotingFrame();
         createFooterFrame();
+        createKeyboardPopUp();
 
-        BorderPane root = new BorderPane();
+        root = new BorderPane();
         root.setPrefSize(1190,450);
         root.setStyle("-fx-background-color: #1e1e1e");
         root.setLeft(kegFrame);
@@ -272,8 +317,33 @@ public class Main extends Application {
 
         Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
+        scene.getStylesheets().add("css/keyboard.css");
         scene.setCursor(Cursor.NONE);
         window.setScene(scene);
         window.show();
+    }
+
+    private void createKeyboardPopUp () {
+        VirtualKeyboard vkb = new VirtualKeyboard();
+        Node keys = vkb.view();
+
+        keyboardFrame = new BorderPane();
+        keyboardFrame.setCenter(keys);
+        keyboardFrame.setPrefWidth(1190);
+        keyboardFrame.setMaxWidth(1190);
+
+        BorderPane.setAlignment(keyboardFrame, Pos.TOP_LEFT);
+        BorderPane.setMargin(keyboardFrame, new Insets(15,50,45,50));
+    }
+
+    private void toggleKeyboard() {
+        if (keyboardOn) {
+            root.setBottom(footerFrame);
+            keyboardOn = !keyboardOn;
+        }
+        else {
+            root.setBottom(keyboardFrame);
+            keyboardOn = !keyboardOn;
+        }
     }
 }

@@ -35,6 +35,7 @@ public class VoteManager {
     private final HBox pollsPane                        = new HBox();
 
     private final int MAX_BAR_HEIGHT                    = 100;
+    private final int MIN_BAR_HEIGHT                    = 4;
     private final int MAX_BEERS_DISPLAYED               = 10;
     private final Color UNSELECTED                      = Color.web("006B68");
     private final Color SELECTED                        = Color.web("06D3CE");
@@ -55,8 +56,8 @@ public class VoteManager {
         addBeer("8. Bud Light",3);
         addBeer("9. Corona",12);
         addBeer("10. Stella Artois",3);
-        addBeer("11. Stella Artois",5);
-        addBeer("12. Stella Artois",7);
+        addBeer("11. Kronenberg",5);
+        addBeer("12. Steamworks IPA",7);
     }
 
     /**
@@ -68,6 +69,11 @@ public class VoteManager {
      * @return Number of votes for the current beer.
      */
     public String getCurrentVotes() { return beerTypeLikes.get(beerTypes.get(currentBeer)).toString(); }
+
+    /**
+     * @return Returns the chart
+     */
+    public HBox getPollChart() { return pollsPane; }
 
     /**
      * Adds beer to list with current number of votes
@@ -191,7 +197,7 @@ public class VoteManager {
         }
 
         for (int i=0; i<beersToDisplay; i++) {
-            int rectHeight = beerTypeLikes.get(beerTypes.get(i)) * MAX_BAR_HEIGHT / highestVote;
+            int rectHeight = beerTypeLikes.get(beerTypes.get(i)) * (MAX_BAR_HEIGHT-MIN_BAR_HEIGHT) / highestVote + MIN_BAR_HEIGHT;
             beerVotesBar.add(new Rectangle(FIXED_BAR_WIDTH,rectHeight));
             beerVotesBar.get(i).setFill(UNSELECTED);
 
@@ -274,12 +280,12 @@ public class VoteManager {
         if (updateAll) {
             for (int i=0; i<beersToDisplay; i++) {
                 int relativeIndex = lowestIndexed + i;
-                int newHeight = beerTypeLikes.get(beerTypes.get(relativeIndex)) * MAX_BAR_HEIGHT / highestVote;
+                int newHeight = beerTypeLikes.get(beerTypes.get(relativeIndex)) * (MAX_BAR_HEIGHT-MIN_BAR_HEIGHT) / highestVote + MIN_BAR_HEIGHT;
                 beerVotesBar.get(i).setHeight(newHeight);
             }
         }
         else {
-            int newHeight = beerTypeLikes.get(beerTypes.get(beerToUpdate)) * MAX_BAR_HEIGHT / highestVote;
+            int newHeight = beerTypeLikes.get(beerTypes.get(beerToUpdate)) * (MAX_BAR_HEIGHT-MIN_BAR_HEIGHT) / highestVote + MIN_BAR_HEIGHT;
             beerVotesBar.get(beerToUpdate-lowestIndexed).setHeight(newHeight);
         }
     }
