@@ -1,5 +1,5 @@
 .virtual-keyboard-button {
-    -fx-background-color: #1f1f1f;
+    -fx-background-color: #252525;
     -fx-text-fill: #ffffff;
     -fx-font-size: 20;
     -fx-font-family: 'Lato Light';
@@ -10,7 +10,7 @@
 }
 
 .modifier-keys {
-    -fx-background-color: #1f1f1f;
+    -fx-background-color: #252525;
     -fx-text-fill: #ffffff;
     -fx-font-size: 20;
     -fx-font-family: 'Lato Light';
