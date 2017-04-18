@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -271,6 +272,7 @@ public class Main extends Application {
 
         Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
+        scene.setCursor(Cursor.NONE);
         window.setScene(scene);
         window.show();
     }
