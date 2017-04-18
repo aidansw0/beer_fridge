@@ -29,15 +29,15 @@ import java.util.Map;
 
 public class VoteManager {
     
-    private final Map<String, Integer> beerTypeLikes = new HashMap<String, Integer>();
-    private final List<String> beerTypes = new ArrayList<String>();
-    private final List<Rectangle> beerVotesBar = new ArrayList<>();
-    private final HBox pollsPane = new HBox();
+    private final Map<String, Integer> beerTypeLikes    = new HashMap<String, Integer>();
+    private final List<String> beerTypes                = new ArrayList<String>();
+    private final List<Rectangle> beerVotesBar          = new ArrayList<>();
+    private final HBox pollsPane                        = new HBox();
 
-    private final int MAX_BAR_HEIGHT = 100;
-    private final int MAX_BEERS_DISPLAYED = 10;
-    private final Color unselectedColour = Color.web("006B68");
-    private final Color selectedColour = Color.web("06D3CE");
+    private final int MAX_BAR_HEIGHT                    = 100;
+    private final int MAX_BEERS_DISPLAYED               = 10;
+    private final Color UNSELECTED                      = Color.web("006B68");
+    private final Color SELECTED                        = Color.web("06D3CE");
 
     private Text display, likesDisplay;
     private int currentBeer = 0;
@@ -193,7 +193,7 @@ public class VoteManager {
         for (int i=0; i<beersToDisplay; i++) {
             int rectHeight = beerTypeLikes.get(beerTypes.get(i)) * MAX_BAR_HEIGHT / highestVote;
             beerVotesBar.add(new Rectangle(FIXED_BAR_WIDTH,rectHeight));
-            beerVotesBar.get(i).setFill(unselectedColour);
+            beerVotesBar.get(i).setFill(UNSELECTED);
 
             // Set action event for when the chart element is clicked
             int finalI = i;
@@ -204,7 +204,7 @@ public class VoteManager {
         }
 
         // Highlight the current element
-        beerVotesBar.get(currentBeer).setFill(selectedColour);
+        beerVotesBar.get(currentBeer).setFill(SELECTED);
 
         pollsPane.setSpacing(10);
         pollsPane.setAlignment(Pos.CENTER);
@@ -217,24 +217,36 @@ public class VoteManager {
      * updates all display values in the GUI front-end
      *
      * @param newIndex, an int index used to look up the next beer
+     * @param wrapAround, a boolean to specify if the list has reached
+     *                    the end, and will start from the beginning
      */
     private void goToElement(int newIndex, boolean wrapAround) {
-        if (wrapAround == true) {
+        if (wrapAround) {
+            // Shift charts, must update all elements in chart
             updatePollChart(currentBeer,true);
+
+            // Swap highlighted element from last to first
             if (lowestIndexed == 0) {
-                beerVotesBar.get(MAX_BEERS_DISPLAYED-1).setFill(unselectedColour);
-                beerVotesBar.get(0).setFill(selectedColour);
+                beerVotesBar.get(MAX_BEERS_DISPLAYED-1).setFill(UNSELECTED);
+                beerVotesBar.get(0).setFill(SELECTED);
             }
+            // Swap highlighted element from first to last
             else {
-                beerVotesBar.get(0).setFill(unselectedColour);
-                beerVotesBar.get(MAX_BEERS_DISPLAYED-1).setFill(selectedColour);
+                beerVotesBar.get(0).setFill(UNSELECTED);
+                beerVotesBar.get(MAX_BEERS_DISPLAYED-1).setFill(SELECTED);
             }
+
+        // Next element is within the range that is currently displayed
         } else if (newIndex >= lowestIndexed && newIndex < lowestIndexed + MAX_BEERS_DISPLAYED) {
-            beerVotesBar.get(currentBeer-lowestIndexed).setFill(unselectedColour);
-            beerVotesBar.get(newIndex-lowestIndexed).setFill(selectedColour);
+            beerVotesBar.get(currentBeer-lowestIndexed).setFill(UNSELECTED);
+            beerVotesBar.get(newIndex-lowestIndexed).setFill(SELECTED);
+
+        // Next element is lower than the range that is currently displayed
         } else if (newIndex < lowestIndexed) {
             lowestIndexed--;
             updatePollChart(currentBeer,true);
+
+        // Next element is higher than the range that is currently displayed
         } else if (newIndex >= lowestIndexed + MAX_BEERS_DISPLAYED) {
             lowestIndexed++;
             updatePollChart(currentBeer,true);
