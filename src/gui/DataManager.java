@@ -146,7 +146,7 @@ public class DataManager {
             tempLabel.setText(beerKeg.tempProperty().intValue() + "\u00B0K");
         }
         else {
-            int celsius = beerKeg.tempProperty().intValue() - 271;
+            int celsius = beerKeg.tempProperty().intValue() - 273;
             tempLabel.setText(celsius + "\u00B0C");
         }
 
