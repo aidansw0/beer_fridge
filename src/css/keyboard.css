@@ -1,7 +1,7 @@
 .virtual-keyboard-button {
-    -fx-background-color: #252525;
+    -fx-background-color: #343434;
     -fx-text-fill: #ffffff;
-    -fx-font-size: 20;
+    -fx-font-size: 28;
     -fx-font-family: 'Lato Light';
 }
 
@@ -10,12 +10,22 @@
 }
 
 .modifier-keys {
-    -fx-background-color: #252525;
+    -fx-background-color: #343434;
     -fx-text-fill: #ffffff;
-    -fx-font-size: 20;
+    -fx-font-size: 28;
     -fx-font-family: 'Lato Light';
 }
 
 .modifier-keys:selected {
     -fx-background-color: #404040;
+}
+
+.new-beer-field {
+    -fx-background-color: #343434;
+    -fx-padding: 10 10 10 10;
+    -fx-text-fill: #a0a0a0;
+    -fx-alignment: CENTER;
+    -fx-font-size: 24;
+    -fx-font-family: 'Lato Light';
+    -fx-cursor: text;
 }

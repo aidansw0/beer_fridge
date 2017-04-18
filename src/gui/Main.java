@@ -6,10 +6,14 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -19,7 +23,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
@@ -31,12 +34,9 @@ public class Main extends Application {
     private VoteManager buttons;
     private Stage window;
     private Font latoHairline;
-    private BorderPane kegFrame, tempAndVotingFrame, footerFrame;
-    private final VBox keyboard = new VBox();
+    private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
 
     private boolean keyboardOn = false;
-    private Label currentKeg;
-    private ImageView teralogo;
 
     public static void main(String[] args) { launch(args); }
 
@@ -140,23 +140,58 @@ public class Main extends Application {
     }
 
     private BorderPane createVotingFrame() {
+        StackPane votingHeader = new StackPane();
         BorderPane votingFrame = new BorderPane();
         BorderPane navPane = new BorderPane();
         VBox likePane = new VBox();
         Text beerDisplay = new Text(buttons.getCurrentBeer());
         Text votes = new Text(buttons.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
+        TextField addBeer = new TextField();
+        Button addButton = new Button();
 
         Image img1 = new Image("img/votingheader.png");
         Image img2 = new Image("img/navleft.png");
         Image img3 = new Image("img/navright.png");
         Image img4 = new Image("img/like.png");
+        Image img5 = new Image("img/add.png");
 
-        ImageView votingheader = new ImageView();
-        votingheader.setImage(img1);
-        votingheader.setFitHeight(53);
-        votingheader.setPreserveRatio(true);
-        votingheader.onMouseClickedProperty().set(event -> showKeyboard());
+        addBeer.getStyleClass().add("new-beer-field");
+        addBeer.setOnKeyPressed((KeyEvent event) -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                buttons.addBeer(addBeer.getText(), 0);
+                addBeer.clear();
+                votingFrame.setBottom(buttons.getPollChart());
+                toggleKeyboard();
+            }
+        });
+
+        ImageView plusimg = new ImageView();
+        plusimg.setImage(img5);
+        plusimg.setFitHeight(30);
+        plusimg.setPreserveRatio(true);
+        addButton.setGraphic(plusimg);
+        addButton.setBackground(Background.EMPTY);
+        addButton.setOnAction(event -> {
+            if (keyboardOn) {
+                votingFrame.setBottom(buttons.getPollChart());
+            }
+            else {
+                votingFrame.setBottom(addBeer);
+                addBeer.requestFocus();
+            }
+            toggleKeyboard();
+        });
+
+        ImageView votingheaderimg = new ImageView();
+        votingheaderimg.setImage(img1);
+        votingheaderimg.setFitHeight(53);
+        votingheaderimg.setPreserveRatio(true);
+
+        votingHeader.getChildren().add(votingheaderimg);
+        votingHeader.getChildren().add(addButton);
+        StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
+        StackPane.setMargin(addButton, new Insets(0,15,0,0));
 
         ImageView navleft = new ImageView();
         navleft.setImage(img2);
@@ -187,7 +222,6 @@ public class Main extends Application {
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);
         votingFrame.setStyle("-fx-background-color: #2d2d2d");
-        votingFrame.setTop(votingheader);
 
         navPane.setLeft(left);
         navPane.setRight(right);
@@ -198,6 +232,7 @@ public class Main extends Application {
         likePane.getChildren().add(votes);
         likePane.alignmentProperty().set(Pos.CENTER);
 
+        votingFrame.setTop(votingHeader);
         votingFrame.setRight(navPane);
         votingFrame.setCenter(like);
         votingFrame.setLeft(likePane);
@@ -230,7 +265,7 @@ public class Main extends Application {
 
     private void createFooterFrame() {
         footerFrame = new BorderPane();
-        currentKeg = new Label("Steamworks IPA");
+        Label currentKeg = new Label("Steamworks IPA");
         Image img5 = new Image("img/footerheader.png");
         Image img6 = new Image("img/teralogo.png");
 
@@ -239,7 +274,7 @@ public class Main extends Application {
         footerheader.setFitHeight(53);
         footerheader.setPreserveRatio(true);
 
-        teralogo = new ImageView();
+        ImageView teralogo = new ImageView();
         teralogo.setImage(img6);
         teralogo.setFitHeight(146);
         teralogo.setPreserveRatio(true);
@@ -266,7 +301,7 @@ public class Main extends Application {
         createFooterFrame();
         createKeyboardPopUp();
 
-        BorderPane root = new BorderPane();
+        root = new BorderPane();
         root.setPrefSize(1190,450);
         root.setStyle("-fx-background-color: #1e1e1e");
         root.setLeft(kegFrame);
@@ -289,26 +324,25 @@ public class Main extends Application {
     }
 
     private void createKeyboardPopUp () {
-
         VirtualKeyboard vkb = new VirtualKeyboard();
-        TextField textField = new TextField();
+        Node keys = vkb.view();
 
-        keyboard.getChildren().add(vkb.view());
-        keyboard.setMaxWidth(800);
-        BorderPane.setAlignment(keyboard, Pos.CENTER);
+        keyboardFrame = new BorderPane();
+        keyboardFrame.setCenter(keys);
+        keyboardFrame.setPrefWidth(1190);
+        keyboardFrame.setMaxWidth(1190);
+
+        BorderPane.setAlignment(keyboardFrame, Pos.TOP_LEFT);
+        BorderPane.setMargin(keyboardFrame, new Insets(15,50,45,50));
     }
 
-    private void showKeyboard() {
+    private void toggleKeyboard() {
         if (keyboardOn) {
-            footerFrame.setLeft(currentKeg);
-            footerFrame.setRight(teralogo);
-            footerFrame.setBottom(null);
+            root.setBottom(footerFrame);
             keyboardOn = !keyboardOn;
         }
         else {
-            footerFrame.setLeft(null);
-            footerFrame.setRight(null);
-            footerFrame.setBottom(keyboard);
+            root.setBottom(keyboardFrame);
             keyboardOn = !keyboardOn;
         }
     }

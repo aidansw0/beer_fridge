@@ -186,6 +186,10 @@ public class VirtualKeyboard {
                         targetNode.fireEvent(keyTypedEvent);
                     }
                     modifiers.releaseKeys();
+
+                    if (code == KeyCode.SPACE) {
+                        modifiers.shift.setSelected(true);
+                    }
                 }
             }
         });
@@ -222,6 +226,7 @@ public class VirtualKeyboard {
 
         Modifiers() {
             this.shift = createToggle("Shift");
+            shift.setSelected(true);
             this.shift2 = createToggle("Shift");
             this.ctrl = createToggle("Ctrl");
             this.alt = createToggle("Alt");
