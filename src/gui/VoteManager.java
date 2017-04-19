@@ -90,6 +90,9 @@ public class VoteManager {
         beerTypeLikes.put(newBeer,votes);
         beerTypes.add(newBeer);
 
+        if (saveData.isDataReady()) {
+        }
+
         saveToFile();
     }
 
@@ -119,11 +122,13 @@ public class VoteManager {
         left.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (currentBeer > 0) {
-                    goToElement(currentBeer - 1,false);
-                } else if (currentBeer == 0) {
-                    lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
-                    goToElement(beerTypes.size() - 1,true);
+                if (saveData.isDataReady()) {
+                    if (currentBeer > 0) {
+                        goToElement(currentBeer - 1, false);
+                    } else if (currentBeer == 0) {
+                        lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
+                        goToElement(beerTypes.size() - 1, true);
+                    }
                 }
             }
         });
@@ -145,11 +150,13 @@ public class VoteManager {
         right.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (currentBeer < beerTypes.size() - 1) {
-                    goToElement(currentBeer + 1,false);
-                } else if (currentBeer == beerTypes.size() - 1) {
-                    lowestIndexed = 0;
-                    goToElement(0,true);
+                if (saveData.isDataReady()) {
+                    if (currentBeer < beerTypes.size() - 1) {
+                        goToElement(currentBeer + 1, false);
+                    } else if (currentBeer == beerTypes.size() - 1) {
+                        lowestIndexed = 0;
+                        goToElement(0, true);
+                    }
                 }
             }
         });
@@ -179,18 +186,19 @@ public class VoteManager {
 
             @Override
             public void handle(ActionEvent event) {
-                String beerToUpvote = beerTypes.get(currentBeer);
-                beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
-                likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+                if (saveData.isDataReady()) {
+                    String beerToUpvote = beerTypes.get(currentBeer);
+                    beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
+                    likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
 
-                if (beerTypeLikes.get(beerToUpvote) > highestVote) {
-                    // Update all chart elements if highestVote increases
-                    highestVote = beerTypeLikes.get(beerToUpvote);
-                    updatePollChart(currentBeer,true);
-                }
-                else {
-                    // Chart element is still within range, only update one element
-                    updatePollChart(currentBeer,false);
+                    if (beerTypeLikes.get(beerToUpvote) > highestVote) {
+                        // Update all chart elements if highestVote increases
+                        highestVote = beerTypeLikes.get(beerToUpvote);
+                        updatePollChart(currentBeer, true);
+                    } else {
+                        // Chart element is still within range, only update one element
+                        updatePollChart(currentBeer, false);
+                    }
                 }
             }
         });
