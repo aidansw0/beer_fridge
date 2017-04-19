@@ -1,6 +1,6 @@
 /*
-  This file is to watch and report the amount of coffee
-  left in the coffee pot for every minute.
+  This file tracks the amount of beer left in the keg
+  and the temperature of the fridge.
 */
 #include <Energia.h>
 #include <Wire.h>
@@ -10,13 +10,14 @@
 #include <WiFiClient.h>
 
 //#define DEBUG_HTTP
-//#define DEBUG_SCALE
+#define DEBUG_SCALE
 #define UPDATE_DWEET
 
 // This is for the scale HX711
 #define DOUT          8 //PIN_62
 #define CLK           30 //PIN_50
 #define SCALE         454
+#define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
 // Your network SSID and password
 char ssid[] = "AndroidAP";
@@ -24,11 +25,13 @@ char password[] = "testpassword"; // test
 
 // HTTP Request
 #define HTTP_PORT           80
-#define THING_NAME          "teradici-beer-fridge"
-#define REQUEST_INTERVAL    2000
+#define THING_NAME          "test-beer"
+#define REQUEST_INTERVAL    2000    // dweet update interval in ms
+#define WIFI_CHECK_INTERVAL 60000   // check wifi interval in ms
 
 WiFiClient client;
 unsigned long last_update = 0;
+unsigned long last_wifi_check = 0;
 char dweet_server[] = "dweet.io";
 char thingspeak_server[] = "api.thingspeak.com";
 char slack_server[] = "hooks.slack.com";
@@ -41,16 +44,8 @@ HX711 scale(DOUT, CLK);
 // Create temp senseor object by passing i2c address]
 Adafruit_TMP006 tmp006(0x41);
 
-// Signal processing
-#define WINDOW_SIZE         20
-#define STDEV_POUR_THRESH   300
-#define STDEV_STABLE_THRESH 10
-#define FULL_POT            1650 // in grams
-unsigned long coffee_age = 0;
 int data[WINDOW_SIZE];
 int average_weight = 0;
-bool pouring = false;
-bool new_pot = false;
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -86,7 +81,6 @@ void setup() {
   printWifiData();
 
   last_update = millis();
-  coffee_age = millis();
 
   //Initialize button interrupt for taring
   pinMode(PUSH1, INPUT_PULLUP);
@@ -102,85 +96,34 @@ void setup() {
 
 void loop() {
   int weight = round(scale.get_units(1));
+  float temp = getTemperature();
 #ifdef DEBUG_SCALE
-  Serial.println(weight);
+  Serial.print("weight: ");
+  Serial.print(weight);
+  Serial.print(" Temp: ");
+  Serial.println(temp);
 #endif
 
-  // Add new data to queue for averaging
   enqueue_data(weight);
+  average_weight = mean();
 
-  if (average_weight > FULL_POT && new_pot == false) {
-    Serial.println("New pot brewed");
-    postToSlack(10);
+#ifdef UPDATE_DWEET
+  if (millis() - last_update > REQUEST_INTERVAL) {
+    postToDweet(average_weight, temp);
     read_received_data();
-    coffee_age = millis();
-    new_pot = true;
-  }
-  else if (average_weight < FULL_POT - 50) {
-    new_pot = false;
-  }
-
-#ifdef UPDATE_DWEET
-  if (update_request > 0) {
-    if (millis() - last_update > REQUEST_INTERVAL) {
-      Serial.println("Updating dweet.io: someone is pouring");
-      postToDweet(average_weight, true);
-      read_received_data();
-      check_received_data();
-      last_update = millis();
-      update_request--;
-    }
+    check_received_data();
+    last_update = millis();
   }
 #endif
 
-  // If standard deviation is high, someone must be pouring a cup
-  if (stdev() > STDEV_POUR_THRESH || pouring == true) {
-    if (pouring == false) {
-      Serial.println("Someone is pouring a cup...");
-      update_request = 1;
-    }
-
-    pouring = true;
-
-    if (weight <= average_weight + 100) {
-      pouring = false;
-    }
-  }
-  // Weight only valid if standard deviation is less than threshold
-  else if (stdev() < STDEV_STABLE_THRESH) {
-    if (pouring == true) {
-      pouring = false;
-      Serial.print("Someone poured a cup: there was ");
-      Serial.print(average_weight);
-      Serial.print(", now there's ");
-      Serial.println(mean());
-    }
-
-    average_weight = mean();
-
-#ifdef UPDATE_DWEET
-    if (update_request == 0) {
-      if (millis() - last_update > REQUEST_INTERVAL) {
-        postToDweet(average_weight, pouring);
-        read_received_data();
-        check_received_data();
-        last_update = millis();
-      }
-    }
-#endif
-
-  } else {
-    //Serial.println("[Exception]");
-  }
   delay(500);
 }
 
 float getTemperature() {
-  tmp006.wake();
-  float temp =  tmp006.readObjTempC();
-  Serial.print("Temperature: "); 
-  Serial.println(temp);
-  tmp006.sleep();
+  //tmp006.wake();
+  float temp =  tmp006.readDieTempC();
+  //tmp006.sleep();
+  return temp;
 }
 
 void printWifiData() {
@@ -240,44 +183,26 @@ void printCurrentNet() {
   Serial.println();
 }
 
-void postToDweet(int weight, bool pouring) {
+void postToDweet(int weight, float temp) {
   int age_in_min;
-  //float temperature;
-  bool new_pot;
-
-  age_in_min = (millis() - coffee_age) / 1000 / 60;
-  //temperature = -0.0505 * age_in_min + 83.47;
 
   if (weight < 0) {
     weight = 0;
   }
 
-  if (age_in_min < 5) {
-    new_pot = true;
-  }
-  else {
-    new_pot = false;
-  }
-
   if (client.connect(dweet_server, HTTP_PORT)) {
 #ifdef DEBUG_HTTP
-    Serial.print("Sending ");
+    Serial.print("Sending: ");
     Serial.println(weight);
+    Serial.println(temp);
 #endif
 
     client.print(F("GET /dweet/for/"));
     client.print(THING_NAME);
     client.print(F("?weight="));
     client.print(weight);
-//    client.print(F("&pouring="));
-//    client.print(pouring);
-//    client.print(F("&age="));
-//    client.print(age_in_min);
     client.print(F("&temp="));
-    //client.print(temperature, 1);
-    client.print(getTemperature() + 273.15, 1);
-//    client.print(F("&newpot="));
-//    client.print(new_pot);
+    client.print(temp, 2);
     client.println(F(" HTTP/1.1"));
 
     client.println(F("Host: dweet.io"));
@@ -412,23 +337,6 @@ void enqueue_data(int new_data) {
   else {
     pointer = 0;
   }
-}
-
-float stdev() {
-  float sum = 0.0;
-  float mean = 0.0;
-  float std = 0.0;
-
-  for (int i = 0; i < WINDOW_SIZE; i++) {
-    sum += data[i];
-  }
-  mean = sum / WINDOW_SIZE;
-
-  for (int i = 0; i < WINDOW_SIZE; i++) {
-    std += pow(data[i] - mean, 2);
-  }
-
-  return sqrt(std / WINDOW_SIZE);
 }
 
 float mean() {
