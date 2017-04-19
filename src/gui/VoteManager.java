@@ -21,9 +21,6 @@ import java.util.Map;
  * This class manages button events in the voting pane
  * and updates the text labels in the GUI front-end
  *
- * TODO: Add support for loading and saving data
- * TODO: Add support for adding new entries
- *
  * @author Richard
  *
  */
@@ -81,10 +78,13 @@ public class VoteManager {
     public HBox getPollChart() { return pollsPane; }
 
     /**
-     * Adds beer to list with current number of votes
+     * Adds beer to list with current number of votes and redraw
+     * rectangles. Will also check if duplicates are found and
+     * return a boolean.
      *
      * @param newBeer, String containing name of new beer
      * @param votes, Number of votes associated with beer
+     * @return a boolean to describe whether the entry exists
      */
     public boolean addBeer(String newBeer, int votes) {
         int index = beerTypes.size();
