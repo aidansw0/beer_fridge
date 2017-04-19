@@ -26,19 +26,19 @@ import java.util.Random;
  */
 
 public class DataManager {
+    private final int MAX_DATA_POINTS   = 100, Y_MIN = 250, Y_MAX = 290;
+    private final double METER_HEIGHT   = 232.0;
+    private final int MAX_KEG_WEIGHT    = 30;
 
-    private Label tempLabel;
-    private Label weightLabel;
-    private Polygon weightMeter;
-    private LineChart<Number, Number> chart;
-    private XYChart.Series<Number, Number> tempData;
-    private NumberAxis xAxis;
+    private final Label tempLabel = new Label("273\u00B0K");
+    private final Label weightLabel = new Label("30L");
+    private final Polygon weightMeter = new Polygon();
+    private final XYChart.Series<Number, Number> tempData = new XYChart.Series<>();
+    private final NumberAxis xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 2);
+    private final KegManager beerKeg;
 
     private double sequence = 0;
-    private final int MAX_DATA_POINTS = 100, Y_MIN = 250, Y_MAX = 290;
-    private final double METER_HEIGHT = 232.0;
-    private final int MAX_KEG_WEIGHT = 30;
-    private final KegManager beerKeg;
+    private boolean displayKelvin = true;
 
     public DataManager(KegManager kegManager) {
         final int CHART_REFRESH_RATE = 2100; // time in ms
@@ -52,8 +52,13 @@ public class DataManager {
         animation.play();
     }
 
-    public Parent createChart() {
-        xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 2);
+    /**
+     * Creates line chart for visualizing temperature
+     *
+     * @return chart object
+     */
+    public Parent createLineChart() {
+        LineChart<Number, Number> chart;
         final NumberAxis yAxis = new NumberAxis(Y_MIN - 1, Y_MAX + 1, 1);
 
         // setup chart
@@ -62,9 +67,6 @@ public class DataManager {
         chart.setLegendVisible(false);
         xAxis.setForceZeroInRange(false);
 
-        // add starting data
-        tempData = new XYChart.Series<>();
-
         // create some starting data
         tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, 273));
         chart.getData().add(tempData);
@@ -72,19 +74,34 @@ public class DataManager {
         return chart;
     }
 
+    /**
+     * Create label used to display temperature
+     *
+     * @return Label for temperature
+     */
     public Label createTempLabel() {
-        tempLabel = new Label("273\u00B0K");
-        tempLabel.onMouseClickedProperty().setValue(event -> System.out.println("Pressed"));
+        tempLabel.onMouseClickedProperty().setValue(event -> {
+            displayKelvin = !displayKelvin;
+            tempLabel.setText("...");
+        } );
         return tempLabel;
     }
 
+    /**
+     * Create label used to display weight/volume
+     *
+     * @return Label for weight
+     */
     public Label createWeightLabel() {
-        weightLabel = new Label("30L");
         return weightLabel;
     }
 
+    /**
+     * Creates polygon used to visualize weight/volume
+     *
+     * @return Polygon used to visualize weight
+     */
     public Polygon createWeightMeter() {
-        weightMeter = new Polygon();
         weightMeter.getPoints().addAll(4.7, 0.0,
                                         71.8, 0.0,
                                         30.6, METER_HEIGHT,
@@ -93,6 +110,12 @@ public class DataManager {
         return weightMeter;
     }
 
+    /**
+     * Calculates new polygon coordinates used for redrawing
+     *
+     * @param weight, weight used to calculate percentage of beer left
+     * @return List with updated coordinates
+     */
     private List calculateCoordinates (int weight) {
         List <Double> coords = new ArrayList<Double>();
         double newY = METER_HEIGHT - METER_HEIGHT * weight / MAX_KEG_WEIGHT;
@@ -109,15 +132,26 @@ public class DataManager {
         return coords;
     }
 
+    /**
+     * Method used by timeline to periodically update GUI
+     */
     private void updateData() {
         List <Double> updatedCoord;
 
         tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, beerKeg.tempProperty().doubleValue()));
-        tempLabel.setText(beerKeg.tempProperty().intValue() + "\u00B0K");
         weightLabel.setText(beerKeg.weightProperty().intValue() + "L");
 
-        updatedCoord = calculateCoordinates(beerKeg.weightProperty().intValue());
+        // Switch between Kelvin and Celsius
+        if (displayKelvin) {
+            tempLabel.setText(beerKeg.tempProperty().intValue() + "\u00B0K");
+        }
+        else {
+            int celsius = beerKeg.tempProperty().intValue() - 273;
+            tempLabel.setText(celsius + "\u00B0C");
+        }
 
+        // Update coordinates for weight polygon
+        updatedCoord = calculateCoordinates(beerKeg.weightProperty().intValue());
         for (int i=0; i<4; i++) {
             weightMeter.getPoints().set(i,updatedCoord.get(i));
         }
@@ -132,15 +166,17 @@ public class DataManager {
             xAxis.setLowerBound(xAxis.getLowerBound() + 1);
             xAxis.setUpperBound(xAxis.getUpperBound() + 1);
         }
-
-        simulateNewData();
     }
 
+    /**
+     * Method simulates data being posted to dweet.io
+     * Only used for testing purposes.
+     */
     private void simulateNewData() {
         final String DWEET_URL = "https://dweet.io/dweet/for/teradici-beer-fridge";
         Random rnd = new Random();
-        int weight = rnd.nextInt(30);
-        int temp = 260 + rnd.nextInt(20);
+        int weight = 15 + rnd.nextInt(5);
+        int temp = 260 + rnd.nextInt(10);
 
         try {
             URL url = new URL(DWEET_URL + "?weight=" + weight + "&temp=" + temp);

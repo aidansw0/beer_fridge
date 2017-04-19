@@ -65,56 +65,11 @@ public class KegManager {
      */
     public void updateContent(ContentType type, double val) {
         if (type == ContentType.WEIGHT) {
-            weight.set(convertWeightToHeight(val));
+            weight.set((int) val);
         } else if (type == ContentType.TEMP) {
-            temp.set(convertTempToHeight(val));
+            temp.set((int) val);
         }
     }
-
-    /**
-     * Converts the value polled from Dweet into an int value which represents the height of the respective GUI element.
-     * 
-     * @param weight, double value polled from Dweet.
-     * @return an int which gives the height.
-     */
-    private int convertWeightToHeight(double weight) {
-//        double percentage = weight / 1750 * 100;
-//
-//        if (percentage > 100) {
-//            percentage = 100;
-//        } else if (percentage < 0) {
-//            percentage = 0;
-//        }
-
-        // Range in pixels is between empty and full pot is 150px and 460px out
-        // of 600px
-        // Translates to between 25% to 77%
-
-        return (int) weight;
-    }
-
-    /**
-     * Converts the value polled from Dweet into an int value which represents the height of the respective GUI element.
-     * 
-     * @param temp, double value polled from Dweet.
-     * @return an int which gives the height.
-     */
-    private int convertTempToHeight(double temp) {
-//        double percentage = temp / 83.5 * 100;
-
-//        if (percentage > 100) {
-//            percentage = 100;
-//        } else if (percentage < 0) {
-//            percentage = 0;
-//        }
-
-        // Range in pixels is between empty and full pot is 150px and 460px out
-        // of 600px
-        // Translates to between 25% to 77%
-
-        return (int) temp;
-    }
-
 }
 
 
