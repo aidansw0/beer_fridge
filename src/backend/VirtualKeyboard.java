@@ -187,7 +187,8 @@ public class VirtualKeyboard {
                     }
                     modifiers.releaseKeys();
 
-                    if (code == KeyCode.SPACE) {
+                    // Automatically capitalize next word/entry
+                    if (code == KeyCode.SPACE || code == KeyCode.ENTER) {
                         modifiers.shift.setSelected(true);
                     }
                 }

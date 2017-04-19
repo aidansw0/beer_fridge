@@ -147,7 +147,7 @@ public class Main extends Application {
         Text beerDisplay = new Text(buttons.getCurrentBeer());
         Text votes = new Text(buttons.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
-        TextField addBeer = new TextField();
+        TextField newBeerField = new TextField();
         Button addButton = new Button();
 
         Image img1 = new Image("img/votingheader.png");
@@ -156,11 +156,11 @@ public class Main extends Application {
         Image img4 = new Image("img/like.png");
         Image img5 = new Image("img/add.png");
 
-        addBeer.getStyleClass().add("new-beer-field");
-        addBeer.setOnKeyPressed((KeyEvent event) -> {
+        newBeerField.getStyleClass().add("new-beer-field");
+        newBeerField.setOnKeyPressed((KeyEvent event) -> {
             if (event.getCode() == KeyCode.ENTER) {
-                buttons.addBeer(addBeer.getText(), 0);
-                addBeer.clear();
+                buttons.addBeer(newBeerField.getText(), 0);
+                newBeerField.clear();
                 votingFrame.setBottom(buttons.getPollChart());
                 toggleKeyboard();
             }
@@ -177,8 +177,8 @@ public class Main extends Application {
                 votingFrame.setBottom(buttons.getPollChart());
             }
             else {
-                votingFrame.setBottom(addBeer);
-                addBeer.requestFocus();
+                votingFrame.setBottom(newBeerField);
+                newBeerField.requestFocus();
             }
             toggleKeyboard();
         });
