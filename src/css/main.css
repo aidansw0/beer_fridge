@@ -1,11 +1,48 @@
+// Frames
+
+.main-window {
+    -fx-background-color: #1e1e1e;
+}
+
+.all-frames {
+    -fx-background-color: #2d2d2d;
+}
+
+.keg-frame {
+    -fx-padding: 45.0 15.0 15.0 50.0;
+    -fx-background-insets: 45.0 15.0 15.0 50.0;
+}
+
+.temp-frame {
+    -fx-padding: 0.0 0.0 15.0 0.0;
+    -fx-background-insets: 0.0 0.0 15.0 0.0;
+}
+
+.voting-frame {
+    -fx-padding: 15.0 0.0 0.0 0.0;
+    -fx-background-insets: 15.0 0.0 0.0 0.0;
+}
+
+.temp-voting-frame {
+    -fx-padding: 45.0 50.0 15.0 15.0;
+}
+
+.footer-frame {
+    -fx-padding: 15.0 50.0 45.0 50.0;
+    -fx-background-insets: 15.0 50.0 45.0 50.0;
+}
+
+
+// Elements
+
+.keg-meter {
+    -fx-fill: #06d3ce;
+}
+
 .data-labels {
     -fx-font-family: 'Lato Hairline';
     -fx-font-size: 80;
     -fx-text-fill: #cacaca;
-}
-
-.keg-meter {
-    -fx-fill: #06d3ce;
 }
 
 .beer-display {
