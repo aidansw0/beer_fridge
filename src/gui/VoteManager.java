@@ -1,5 +1,6 @@
 package gui;
 
+import backend.SaveData;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -33,6 +34,7 @@ public class VoteManager {
     private final List<String> beerTypes                = new ArrayList<String>();
     private final List<Rectangle> beerVotesBar          = new ArrayList<>();
     private final HBox pollsPane                        = new HBox();
+    private SaveData saveData;
 
     private final int MAX_BAR_HEIGHT                    = 100;
     private final int MIN_BAR_HEIGHT                    = 4;
@@ -46,29 +48,32 @@ public class VoteManager {
     private int highestVote = 0;
 
     public VoteManager() {
-        addBeer("1. Stanley Park Brewery", 5);
-        addBeer("2. Blue Buck",10);
-        addBeer("3. Red Truck",12);
-        addBeer("4. Post Mark",3);
-        addBeer("5. Guinness", 5);
-        addBeer("6. Yellow Dog",10);
-        addBeer("7. Kokanee",12);
-        addBeer("8. Bud Light",3);
-        addBeer("9. Corona",12);
-        addBeer("10. Stella Artois",3);
-        addBeer("11. Kronenberg",5);
-        addBeer("12. Steamworks IPA",7);
+        // Read data from saved file
+        saveData = new SaveData(beerTypeLikes, beerTypes);
+        System.out.println(saveData.isDataReady());
     }
 
     /**
      * @return String of current beer displayed.
      */
-    public String getCurrentBeer() { return beerTypes.get(currentBeer); }
+    public String getCurrentBeer() {
+        String retval = " ";
+        if (saveData.isDataReady()) {
+            retval = beerTypes.get(currentBeer);
+        }
+        return retval;
+    }
 
     /**
      * @return Number of votes for the current beer.
      */
-    public String getCurrentVotes() { return beerTypeLikes.get(beerTypes.get(currentBeer)).toString(); }
+    public String getCurrentVotes() {
+        String retval = " ";
+        if (saveData.isDataReady()) {
+            retval = beerTypeLikes.get(beerTypes.get(currentBeer)).toString();
+        }
+        return retval;
+    }
 
     /**
      * @return Returns the chart
@@ -84,6 +89,19 @@ public class VoteManager {
     public void addBeer(String newBeer, int votes) {
         beerTypeLikes.put(newBeer,votes);
         beerTypes.add(newBeer);
+
+        saveToFile();
+    }
+
+    /**
+     * Attempts to save to file
+     */
+    public void saveToFile() {
+        try {
+            saveData.writeData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -210,7 +228,9 @@ public class VoteManager {
         }
 
         // Highlight the current element
-        beerVotesBar.get(currentBeer).setFill(SELECTED);
+        if (saveData.isDataReady()) {
+            beerVotesBar.get(currentBeer).setFill(SELECTED);
+        }
 
         pollsPane.setSpacing(10);
         pollsPane.setAlignment(Pos.CENTER);

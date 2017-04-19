@@ -65,6 +65,7 @@ public class Main extends Application {
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
+                buttons.saveToFile();
                 Platform.exit();
                 System.exit(0);
             }
@@ -159,8 +160,10 @@ public class Main extends Application {
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setOnKeyPressed((KeyEvent event) -> {
             if (event.getCode() == KeyCode.ENTER) {
-                buttons.addBeer(newBeerField.getText(), 0);
-                newBeerField.clear();
+                if (!newBeerField.getText().isEmpty()) {
+                    buttons.addBeer(newBeerField.getText(), 0);
+                    newBeerField.clear();
+                }
                 votingFrame.setBottom(buttons.getPollChart());
                 toggleKeyboard();
             }
@@ -318,7 +321,7 @@ public class Main extends Application {
         Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
         scene.getStylesheets().add("css/keyboard.css");
-        scene.setCursor(Cursor.NONE);
+        //scene.setCursor(Cursor.NONE);
         window.setScene(scene);
         window.show();
     }
