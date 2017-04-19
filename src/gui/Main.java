@@ -252,8 +252,8 @@ public class Main extends Application {
         scene.getStylesheets().add("css/linechart.css");
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
-        //scene.setCursor(Cursor.NONE);
-        //window.initStyle(StageStyle.UNDECORATED);
+        scene.setCursor(Cursor.NONE);
+        window.initStyle(StageStyle.UNDECORATED);
         window.setScene(scene);
         window.show();
     }
