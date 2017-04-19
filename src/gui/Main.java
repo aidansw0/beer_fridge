@@ -33,7 +33,6 @@ public class Main extends Application {
     private DataManager dataManager;
     private VoteManager buttons;
     private Stage window;
-    private Font latoHairline;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
 
     private boolean keyboardOn = false;
@@ -55,11 +54,8 @@ public class Main extends Application {
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
 
-        latoHairline = Font.loadFont(getClass()
-                .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
-
-        Font.loadFont(getClass()
-                .getResourceAsStream("/css/Lato-Light.ttf"), 20);
+        Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
+        Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
 
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -81,8 +77,8 @@ public class Main extends Application {
         ImageView kegheader = importImage("img/kegheader.png",53);
 
         kegMeter.setFill(Color.web("06d3ce"));
-        kegVolume.setTextFill(Color.web("cacaca"));
-        kegVolume.setFont(latoHairline);
+
+        kegVolume.getStyleClass().add("data-labels");
 
         kegMeterStack.getChildren().add(kegMeter);
         kegMeterStack.getChildren().add(kegVolume);
@@ -107,8 +103,7 @@ public class Main extends Application {
         Label temperature = dataManager.createTempLabel();
         ImageView tempheader = importImage("img/tempheader.png",53);
 
-        temperature.setTextFill(Color.web("cacaca"));
-        temperature.setFont(latoHairline);
+        temperature.getStyleClass().add("data-labels");
 
         tempFrame.setPrefSize(715,270);
         tempFrame.setMaxWidth(715);
@@ -232,8 +227,7 @@ public class Main extends Application {
         ImageView footerheader = importImage("img/footerheader.png",53);
         ImageView teralogo = importImage("img/teralogo.png",146);
 
-        currentKeg.setTextFill(Color.web("cacaca"));
-        currentKeg.setFont(latoHairline);
+        currentKeg.getStyleClass().add("data-label");
 
         footerFrame.setPrefWidth(1190);
         footerFrame.setMaxWidth(1190);
