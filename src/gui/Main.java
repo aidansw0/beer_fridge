@@ -13,13 +13,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -30,10 +27,10 @@ import javafx.stage.WindowEvent;
 
 public class Main extends Application {
 
-    private DataManager dataManager;
-    private VoteManager buttons;
+    private final KegManager beerKeg = new KegManager();
+    private final DataManager dataManager = new DataManager(beerKeg);
+    private final VoteManager buttons = new VoteManager();
     private Stage window;
-    private Font latoHairline;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
 
     private boolean keyboardOn = false;
@@ -47,27 +44,16 @@ public class Main extends Application {
     }
 
     private void init(Stage primaryStage) {
-        KegManager beerKeg = new KegManager();
-        buttons = new VoteManager();
-        dataManager = new DataManager(beerKeg);
-
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-        window.initStyle(StageStyle.UNDECORATED);
 
-        latoHairline = Font.loadFont(getClass()
-                .getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
+        Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
+        Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
 
-        Font.loadFont(getClass()
-                .getResourceAsStream("/css/Lato-Light.ttf"), 20);
-
-        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
+        primaryStage.setOnCloseRequest(event -> {
                 Platform.exit();
                 System.exit(0);
-            }
         });
     }
 
@@ -78,22 +64,11 @@ public class Main extends Application {
         Label kegVolume = dataManager.createWeightLabel();
 
         // Import images
-        Image img1 = new Image("img/keg.png");
-        Image img2 = new Image("img/kegheader.png");
+        ImageView keg = importImage("img/keg.png",345);
+        ImageView kegheader = importImage("img/kegheader.png",53);
 
-        ImageView keg = new ImageView();
-        keg.setImage(img1);
-        keg.setFitHeight(345);
-        keg.setPreserveRatio(true);
-
-        ImageView kegheader = new ImageView();
-        kegheader.setImage(img2);
-        kegheader.setFitHeight(53);
-        kegheader.setPreserveRatio(true);
-
-        kegMeter.setFill(Color.web("06d3ce"));
-        kegVolume.setTextFill(Color.web("cacaca"));
-        kegVolume.setFont(latoHairline);
+        kegMeter.getStyleClass().add("keg-meter");
+        kegVolume.getStyleClass().add("data-labels");
 
         kegMeterStack.getChildren().add(kegMeter);
         kegMeterStack.getChildren().add(kegVolume);
@@ -103,8 +78,8 @@ public class Main extends Application {
         StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
         StackPane.setMargin(kegMeter, new Insets(0,0,43,5));
 
+        kegFrame.getStyleClass().addAll("all-frames","keg-frame");
         kegFrame.setPrefSize(445,450);
-        kegFrame.setStyle("-fx-background-color: #2d2d2d");
         kegFrame.setTop(kegheader);
         kegFrame.setLeft(keg);
         kegFrame.setCenter(kegMeterStack);
@@ -116,19 +91,13 @@ public class Main extends Application {
     private BorderPane createTempFrame() {
         BorderPane tempFrame = new BorderPane();
         Label temperature = dataManager.createTempLabel();
-        Image img3 = new Image("img/tempheader.png");
+        ImageView tempheader = importImage("img/tempheader.png",53);
 
-        ImageView tempheader = new ImageView();
-        tempheader.setImage(img3);
-        tempheader.setFitHeight(53);
-        tempheader.setPreserveRatio(true);
+        temperature.getStyleClass().add("data-labels");
 
-        temperature.setTextFill(Color.web("cacaca"));
-        temperature.setFont(latoHairline);
-
+        tempFrame.getStyleClass().addAll("all-frames","temp-frame");
         tempFrame.setPrefSize(715,270);
         tempFrame.setMaxWidth(715);
-        tempFrame.setStyle("-fx-background-color: #2d2d2d");
         tempFrame.setTop(tempheader);
         tempFrame.setCenter(dataManager.createLineChart());
         tempFrame.setRight(temperature);
@@ -150,11 +119,12 @@ public class Main extends Application {
         TextField newBeerField = new TextField();
         Button addButton = new Button();
 
-        Image img1 = new Image("img/votingheader.png");
-        Image img2 = new Image("img/navleft.png");
-        Image img3 = new Image("img/navright.png");
-        Image img4 = new Image("img/like.png");
-        Image img5 = new Image("img/add.png");
+        // Import images
+        ImageView votingheaderimg = importImage("img/votingheader.png",53);
+        ImageView thumb = importImage("img/like.png",60);
+        ImageView navleft = importImage("img/navleft.png",60);
+        ImageView navright = importImage("img/navright.png",60);
+        ImageView plusimg = importImage("img/add.png",30);
 
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setOnKeyPressed((KeyEvent event) -> {
@@ -166,10 +136,6 @@ public class Main extends Application {
             }
         });
 
-        ImageView plusimg = new ImageView();
-        plusimg.setImage(img5);
-        plusimg.setFitHeight(30);
-        plusimg.setPreserveRatio(true);
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
         addButton.setOnAction(event -> {
@@ -183,45 +149,22 @@ public class Main extends Application {
             toggleKeyboard();
         });
 
-        ImageView votingheaderimg = new ImageView();
-        votingheaderimg.setImage(img1);
-        votingheaderimg.setFitHeight(53);
-        votingheaderimg.setPreserveRatio(true);
-
         votingHeader.getChildren().add(votingheaderimg);
         votingHeader.getChildren().add(addButton);
         StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
         StackPane.setMargin(addButton, new Insets(0,15,0,0));
 
-        ImageView navleft = new ImageView();
-        navleft.setImage(img2);
-        navleft.setFitHeight(60);
-        navleft.setPreserveRatio(true);
-
-        ImageView navright = new ImageView();
-        navright.setImage(img3);
-        navright.setFitHeight(60);
-        navright.setPreserveRatio(true);
-
-        ImageView thumb = new ImageView();
-        thumb.setImage(img4);
-        thumb.setFitHeight(60);
-        thumb.setPreserveRatio(true);
-
-        beerDisplay.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:40");
-        beerDisplay.setFill(Color.web("cacaca"));
-        votes.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:20");
-        votes.setFill(Color.web("cacaca"));
-        pressToVote.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:15");
-        pressToVote.setFill(Color.web("cacaca"));
-
         Button left = buttons.createLeftButton(beerDisplay,navleft);
         Button right = buttons.createRightButton(beerDisplay,navright);
-        Button like = buttons.createLikeButton(votes, thumb);
+        Button like = buttons.createLikeButton(votes,thumb);
 
+        beerDisplay.getStyleClass().add("beer-display");
+        votes.getStyleClass().add("votes-display");
+        pressToVote.getStyleClass().add("press-to-vote");
+
+        votingFrame.getStyleClass().addAll("all-frames","voting-frame");
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);
-        votingFrame.setStyle("-fx-background-color: #2d2d2d");
 
         navPane.setLeft(left);
         navPane.setRight(right);
@@ -253,38 +196,28 @@ public class Main extends Application {
         BorderPane votingFrame = createVotingFrame();
 
         tempAndVotingFrame = new BorderPane();
+        tempAndVotingFrame.getStyleClass().add("temp-voting-frame");
         tempAndVotingFrame.setPrefSize(715,450);
         tempAndVotingFrame.setTop(tempFrame);
         tempAndVotingFrame.setCenter(votingFrame);
 
-        BorderPane.setAlignment(tempFrame, Pos.TOP_LEFT);
-        BorderPane.setMargin(tempFrame, new Insets(0,0,15,0));
-        BorderPane.setAlignment(votingFrame, Pos.TOP_LEFT);
-        BorderPane.setMargin(votingFrame, new Insets(15,0,0,0));
+        BorderPane.setAlignment(votingFrame,Pos.TOP_LEFT);
+        BorderPane.setAlignment(tempFrame,Pos.TOP_LEFT);
     }
 
     private void createFooterFrame() {
         footerFrame = new BorderPane();
         Label currentKeg = new Label("Steamworks IPA");
-        Image img5 = new Image("img/footerheader.png");
-        Image img6 = new Image("img/teralogo.png");
 
-        ImageView footerheader = new ImageView();
-        footerheader.setImage(img5);
-        footerheader.setFitHeight(53);
-        footerheader.setPreserveRatio(true);
+        // Import images
+        ImageView footerheader = importImage("img/footerheader.png",53);
+        ImageView teralogo = importImage("img/teralogo.png",146);
 
-        ImageView teralogo = new ImageView();
-        teralogo.setImage(img6);
-        teralogo.setFitHeight(146);
-        teralogo.setPreserveRatio(true);
+        currentKeg.getStyleClass().add("data-labels");
 
-        currentKeg.setTextFill(Color.web("cacaca"));
-        currentKeg.setFont(latoHairline);
-
+        footerFrame.getStyleClass().addAll("all-frames","footer-frame");
         footerFrame.setPrefWidth(1190);
         footerFrame.setMaxWidth(1190);
-        footerFrame.setStyle("-fx-background-color: #2d2d2d");
         footerFrame.setTop(footerheader);
         footerFrame.setLeft(currentKeg);
         footerFrame.setRight(teralogo);
@@ -303,22 +236,21 @@ public class Main extends Application {
 
         root = new BorderPane();
         root.setPrefSize(1190,450);
-        root.setStyle("-fx-background-color: #1e1e1e");
+        root.getStyleClass().add("main-window");
         root.setLeft(kegFrame);
         root.setCenter(tempAndVotingFrame);
         root.setBottom(footerFrame);
 
         BorderPane.setAlignment(kegFrame, Pos.CENTER_RIGHT);
-        BorderPane.setMargin(kegFrame, new Insets(45,15,15,50));
         BorderPane.setAlignment(tempAndVotingFrame, Pos.CENTER_LEFT);
-        BorderPane.setMargin(tempAndVotingFrame, new Insets(45,50,15,15));
         BorderPane.setAlignment(footerFrame, Pos.TOP_LEFT);
-        BorderPane.setMargin(footerFrame, new Insets(15,50,45,50));
 
         Scene scene = new Scene(root, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
         scene.getStylesheets().add("css/keyboard.css");
-        scene.setCursor(Cursor.NONE);
+        scene.getStylesheets().add("css/main.css");
+        //scene.setCursor(Cursor.NONE);
+        //window.initStyle(StageStyle.UNDECORATED);
         window.setScene(scene);
         window.show();
     }
@@ -345,5 +277,13 @@ public class Main extends Application {
             root.setBottom(keyboardFrame);
             keyboardOn = !keyboardOn;
         }
+    }
+
+    private ImageView importImage (String imgPath, int fitHeight) {
+        ImageView imgView = new ImageView(imgPath);
+        imgView.setFitHeight(fitHeight);
+        imgView.setPreserveRatio(true);
+
+        return imgView;
     }
 }
