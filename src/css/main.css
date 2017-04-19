@@ -3,3 +3,25 @@
     -fx-font-size: 80;
     -fx-text-fill: #cacaca;
 }
+
+.keg-meter {
+    -fx-fill: #06d3ce;
+}
+
+.beer-display {
+    -fx-font-family: 'Lato Light';
+    -fx-font-size: 40;
+    -fx-fill: #cacaca;
+}
+
+.votes-display {
+    -fx-font-family: 'Lato Light';
+    -fx-font-size: 20;
+    -fx-fill: #cacaca;
+}
+
+.press-to-vote {
+    -fx-font-family: 'Lato Light';
+    -fx-font-size: 15;
+    -fx-fill: #cacaca;
+}

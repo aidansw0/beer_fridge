@@ -76,8 +76,7 @@ public class Main extends Application {
         ImageView keg = importImage("img/keg.png",345);
         ImageView kegheader = importImage("img/kegheader.png",53);
 
-        kegMeter.setFill(Color.web("06d3ce"));
-
+        kegMeter.getStyleClass().add("keg-meter");
         kegVolume.getStyleClass().add("data-labels");
 
         kegMeterStack.getChildren().add(kegMeter);
@@ -164,16 +163,13 @@ public class Main extends Application {
         StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
         StackPane.setMargin(addButton, new Insets(0,15,0,0));
 
-        beerDisplay.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:40");
-        beerDisplay.setFill(Color.web("cacaca"));
-        votes.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:20");
-        votes.setFill(Color.web("cacaca"));
-        pressToVote.setStyle("-fx-font-family:'Lato Light'; -fx-font-size:15");
-        pressToVote.setFill(Color.web("cacaca"));
-
         Button left = buttons.createLeftButton(beerDisplay,navleft);
         Button right = buttons.createRightButton(beerDisplay,navright);
-        Button like = buttons.createLikeButton(votes, thumb);
+        Button like = buttons.createLikeButton(votes,thumb);
+
+        beerDisplay.getStyleClass().add("beer-display");
+        votes.getStyleClass().add("votes-display");
+        pressToVote.getStyleClass().add("press-to-vote");
 
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);
