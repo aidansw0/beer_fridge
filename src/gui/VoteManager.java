@@ -37,6 +37,7 @@ public class VoteManager {
     private SaveData saveData;
 
     private final int MAX_BAR_HEIGHT                    = 100;
+    private final int FIXED_BAR_WIDTH                   = 55;
     private final int MIN_BAR_HEIGHT                    = 4;
     private final int MAX_BEERS_DISPLAYED               = 10;
     private final Color UNSELECTED                      = Color.web("006B68");
@@ -45,12 +46,11 @@ public class VoteManager {
     private Text display, likesDisplay;
     private int currentBeer = 0;
     private int lowestIndexed = 0;
-    private int highestVote = 0;
+    private int highestVote = 10;
 
     public VoteManager() {
         // Read data from saved file
         saveData = new SaveData(beerTypeLikes, beerTypes);
-        System.out.println(saveData.isDataReady());
     }
 
     /**
@@ -86,14 +86,42 @@ public class VoteManager {
      * @param newBeer, String containing name of new beer
      * @param votes, Number of votes associated with beer
      */
-    public void addBeer(String newBeer, int votes) {
+    public boolean addBeer(String newBeer, int votes) {
+        int index = beerTypes.size();
+
+        // Check if beer exists
+        if (beerTypeLikes.containsKey(newBeer)) {
+            for (int i=0; i<beerTypes.size(); i++) {
+                if (beerTypes.get(i).equals(newBeer)) {
+                    goToElement(i,false);
+                    break;
+                }
+            }
+            return false;
+        }
+
         beerTypeLikes.put(newBeer,votes);
         beerTypes.add(newBeer);
 
-        if (saveData.isDataReady()) {
+        if (beerTypes.size() <= MAX_BEERS_DISPLAYED) {
+            int rectHeight = votes * (MAX_BAR_HEIGHT-MIN_BAR_HEIGHT) / highestVote + MIN_BAR_HEIGHT;
+            beerVotesBar.add(new Rectangle(FIXED_BAR_WIDTH,rectHeight));
+
+            // Set action event for when the chart element is clicked
+            beerVotesBar.get(index).setOnMouseClicked(event -> goToElement(index+lowestIndexed,false));
+            beerVotesBar.get(index).setFill(UNSELECTED);
+
+            // Add all chart elements to pane
+            pollsPane.getChildren().add(beerVotesBar.get(index));
+
+            // Highlight the current element
+            beerVotesBar.get(currentBeer).setFill(SELECTED);
+            display.setText(beerTypes.get(currentBeer));
+            likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
         }
 
         saveToFile();
+        return true;
     }
 
     /**
@@ -122,11 +150,14 @@ public class VoteManager {
         left.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (saveData.isDataReady()) {
+                if (beerTypes.size() > 1) {
                     if (currentBeer > 0) {
                         goToElement(currentBeer - 1, false);
                     } else if (currentBeer == 0) {
-                        lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
+                        if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
+                            lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
+                        }
+
                         goToElement(beerTypes.size() - 1, true);
                     }
                 }
@@ -150,7 +181,7 @@ public class VoteManager {
         right.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (saveData.isDataReady()) {
+                if (beerTypes.size() > 1) {
                     if (currentBeer < beerTypes.size() - 1) {
                         goToElement(currentBeer + 1, false);
                     } else if (currentBeer == beerTypes.size() - 1) {
@@ -214,8 +245,6 @@ public class VoteManager {
      * @return returns an HBox container
      */
     public HBox createPollChart(){
-        final int FIXED_BAR_WIDTH = 55;
-
         int beersToDisplay = beerTypes.size();
 
         if (beersToDisplay > MAX_BEERS_DISPLAYED) {
@@ -261,13 +290,13 @@ public class VoteManager {
 
             // Swap highlighted element from last to first
             if (lowestIndexed == 0) {
-                beerVotesBar.get(MAX_BEERS_DISPLAYED-1).setFill(UNSELECTED);
+                beerVotesBar.get(beerVotesBar.size() - 1).setFill(UNSELECTED);
                 beerVotesBar.get(0).setFill(SELECTED);
             }
             // Swap highlighted element from first to last
             else {
                 beerVotesBar.get(0).setFill(UNSELECTED);
-                beerVotesBar.get(MAX_BEERS_DISPLAYED-1).setFill(SELECTED);
+                beerVotesBar.get(beerVotesBar.size() - 1).setFill(SELECTED);
             }
 
         // Next element is within the range that is currently displayed
