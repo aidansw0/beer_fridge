@@ -138,7 +138,7 @@ public class VirtualKeyboard {
                         .then(shifted)
                         .otherwise(unshifted);
         Button button = createButton(text, code, modifiers, target);
-        button.setMinWidth(70);
+        button.setMinWidth(65);
         return button;
     }
 
@@ -189,7 +189,7 @@ public class VirtualKeyboard {
                     modifiers.releaseKeys();
 
                     // Automatically capitalize next word/entry
-                    if (code == KeyCode.SPACE || code == KeyCode.ENTER) {
+                    if (code == KeyCode.SPACE || code == KeyCode.ENTER || code == KeyCode.ESCAPE) {
                         modifiers.shift.setSelected(true);
                     }
                 }
