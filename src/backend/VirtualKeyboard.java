@@ -138,6 +138,7 @@ public class VirtualKeyboard {
                         .then(shifted)
                         .otherwise(unshifted);
         Button button = createButton(text, code, modifiers, target);
+        button.setMinWidth(70);
         return button;
     }
 
