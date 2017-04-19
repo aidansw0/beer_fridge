@@ -127,17 +127,7 @@ public class Main extends Application {
         ImageView plusimg = importImage("img/add.png",30);
 
         newBeerField.getStyleClass().add("new-beer-field");
-        newBeerField.setOnKeyPressed((KeyEvent event) -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                if (!newBeerField.getText().isEmpty()) {
-                    if (buttons.addBeer(newBeerField.getText(), 0)) {
-                        votingFrame.setBottom(buttons.getPollChart());
-                        toggleKeyboard();
-                    }
-                    newBeerField.clear();
-                }
-            }
-        });
+        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,newBeerField,votingFrame));
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
@@ -279,6 +269,26 @@ public class Main extends Application {
         else {
             root.setBottom(keyboardFrame);
             keyboardOn = !keyboardOn;
+        }
+    }
+
+    private void keyboardEvents(KeyEvent event, TextField textField, BorderPane frame) {
+        switch (event.getCode()) {
+            case ENTER:
+                if (!textField.getText().isEmpty()) {
+                    if (buttons.addBeer(textField.getText(), 0)) {
+                        frame.setBottom(buttons.getPollChart());
+                        toggleKeyboard();
+                    }
+                    textField.clear();
+                }
+                break;
+
+            case ESCAPE:
+                textField.clear();
+                frame.setBottom(buttons.getPollChart());
+                toggleKeyboard();
+                break;
         }
     }
 
