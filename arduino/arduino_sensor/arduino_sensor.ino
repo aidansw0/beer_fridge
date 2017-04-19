@@ -20,14 +20,14 @@
 #define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
 // Your network SSID and password
-char ssid[] = "AndroidAP";
-char password[] = "testpassword"; // test
+char ssid[] =         "AndroidAP";
+char password[] =     "testpassword"; // test
 
 // HTTP Request
-#define HTTP_PORT           80
-#define THING_NAME          "test-beer"
-#define REQUEST_INTERVAL    2000    // dweet update interval in ms
-#define WIFI_CHECK_INTERVAL 60000   // check wifi interval in ms
+#define HTTP_PORT             80  
+#define THING_NAME            "test-beer"
+#define REQUEST_INTERVAL      2000    // dweet update interval in ms
+#define WIFI_CHECK_INTERVAL   60000   // check wifi interval in ms
 
 WiFiClient client;
 unsigned long last_update = 0;
