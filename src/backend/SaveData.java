@@ -52,10 +52,11 @@ public class SaveData {
             } catch (JSONException | IOException e) {
                 e.printStackTrace();
             }
-        } else {
-            readData();
         }
-        dataReady = true;
+        else {
+            readData();
+            dataReady = true;
+        }
     }
 
     /**
@@ -87,6 +88,7 @@ public class SaveData {
             FileWriter writer = new FileWriter(fullJSONFilePath);
             writer.write(jsonToWrite.toString());
             writer.close();
+            dataReady = true;
 
         } else {
             // if beerRatings is empty then either readJSON() couldn't read

@@ -1,5 +1,6 @@
 package gui;
 
+import backend.SaveData;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -20,9 +21,6 @@ import java.util.Map;
  * This class manages button events in the voting pane
  * and updates the text labels in the GUI front-end
  *
- * TODO: Add support for loading and saving data
- * TODO: Add support for adding new entries
- *
  * @author Richard
  *
  */
@@ -33,8 +31,10 @@ public class VoteManager {
     private final List<String> beerTypes                = new ArrayList<String>();
     private final List<Rectangle> beerVotesBar          = new ArrayList<>();
     private final HBox pollsPane                        = new HBox();
+    private SaveData saveData;
 
     private final int MAX_BAR_HEIGHT                    = 100;
+    private final int FIXED_BAR_WIDTH                   = 55;
     private final int MIN_BAR_HEIGHT                    = 4;
     private final int MAX_BEERS_DISPLAYED               = 10;
     private final Color UNSELECTED                      = Color.web("006B68");
@@ -43,32 +43,34 @@ public class VoteManager {
     private Text display, likesDisplay;
     private int currentBeer = 0;
     private int lowestIndexed = 0;
-    private int highestVote = 0;
+    private int highestVote = 10;
 
     public VoteManager() {
-        addBeer("1. Stanley Park Brewery", 5);
-        addBeer("2. Blue Buck",10);
-        addBeer("3. Red Truck",12);
-        addBeer("4. Post Mark",3);
-        addBeer("5. Guinness", 5);
-        addBeer("6. Yellow Dog",10);
-        addBeer("7. Kokanee",12);
-        addBeer("8. Bud Light",3);
-        addBeer("9. Corona",12);
-        addBeer("10. Stella Artois",3);
-        addBeer("11. Kronenberg",5);
-        addBeer("12. Steamworks IPA",7);
+        // Read data from saved file
+        saveData = new SaveData(beerTypeLikes, beerTypes);
     }
 
     /**
      * @return String of current beer displayed.
      */
-    public String getCurrentBeer() { return beerTypes.get(currentBeer); }
+    public String getCurrentBeer() {
+        String retval = " ";
+        if (saveData.isDataReady()) {
+            retval = beerTypes.get(currentBeer);
+        }
+        return retval;
+    }
 
     /**
      * @return Number of votes for the current beer.
      */
-    public String getCurrentVotes() { return beerTypeLikes.get(beerTypes.get(currentBeer)).toString(); }
+    public String getCurrentVotes() {
+        String retval = " ";
+        if (saveData.isDataReady()) {
+            retval = beerTypeLikes.get(beerTypes.get(currentBeer)).toString();
+        }
+        return retval;
+    }
 
     /**
      * @return Returns the chart
@@ -76,14 +78,61 @@ public class VoteManager {
     public HBox getPollChart() { return pollsPane; }
 
     /**
-     * Adds beer to list with current number of votes
+     * Adds beer to list with current number of votes and redraw
+     * rectangles. Will also check if duplicates are found and
+     * return a boolean.
      *
      * @param newBeer, String containing name of new beer
      * @param votes, Number of votes associated with beer
+     * @return a boolean to describe whether the entry exists
      */
-    public void addBeer(String newBeer, int votes) {
+    public boolean addBeer(String newBeer, int votes) {
+        int index = beerTypes.size();
+
+        // Check if beer exists
+        if (beerTypeLikes.containsKey(newBeer)) {
+            for (int i=0; i<beerTypes.size(); i++) {
+                if (beerTypes.get(i).equals(newBeer)) {
+                    goToElement(i,false);
+                    break;
+                }
+            }
+            return false;
+        }
+
         beerTypeLikes.put(newBeer,votes);
         beerTypes.add(newBeer);
+
+        if (beerTypes.size() <= MAX_BEERS_DISPLAYED) {
+            int rectHeight = votes * (MAX_BAR_HEIGHT-MIN_BAR_HEIGHT) / highestVote + MIN_BAR_HEIGHT;
+            beerVotesBar.add(new Rectangle(FIXED_BAR_WIDTH,rectHeight));
+
+            // Set action event for when the chart element is clicked
+            beerVotesBar.get(index).setOnMouseClicked(event -> goToElement(index+lowestIndexed,false));
+            beerVotesBar.get(index).setFill(UNSELECTED);
+
+            // Add all chart elements to pane
+            pollsPane.getChildren().add(beerVotesBar.get(index));
+
+            // Highlight the current element
+            beerVotesBar.get(currentBeer).setFill(SELECTED);
+            display.setText(beerTypes.get(currentBeer));
+            likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+        }
+
+        saveToFile();
+        return true;
+    }
+
+    /**
+     * Attempts to save to file
+     */
+    public void saveToFile() {
+        try {
+            saveData.writeData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -101,11 +150,16 @@ public class VoteManager {
         left.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (currentBeer > 0) {
-                    goToElement(currentBeer - 1,false);
-                } else if (currentBeer == 0) {
-                    lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
-                    goToElement(beerTypes.size() - 1,true);
+                if (beerTypes.size() > 1) {
+                    if (currentBeer > 0) {
+                        goToElement(currentBeer - 1, false);
+                    } else if (currentBeer == 0) {
+                        if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
+                            lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
+                        }
+
+                        goToElement(beerTypes.size() - 1, true);
+                    }
                 }
             }
         });
@@ -127,11 +181,13 @@ public class VoteManager {
         right.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (currentBeer < beerTypes.size() - 1) {
-                    goToElement(currentBeer + 1,false);
-                } else if (currentBeer == beerTypes.size() - 1) {
-                    lowestIndexed = 0;
-                    goToElement(0,true);
+                if (beerTypes.size() > 1) {
+                    if (currentBeer < beerTypes.size() - 1) {
+                        goToElement(currentBeer + 1, false);
+                    } else if (currentBeer == beerTypes.size() - 1) {
+                        lowestIndexed = 0;
+                        goToElement(0, true);
+                    }
                 }
             }
         });
@@ -161,18 +217,19 @@ public class VoteManager {
 
             @Override
             public void handle(ActionEvent event) {
-                String beerToUpvote = beerTypes.get(currentBeer);
-                beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
-                likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+                if (saveData.isDataReady()) {
+                    String beerToUpvote = beerTypes.get(currentBeer);
+                    beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
+                    likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
 
-                if (beerTypeLikes.get(beerToUpvote) > highestVote) {
-                    // Update all chart elements if highestVote increases
-                    highestVote = beerTypeLikes.get(beerToUpvote);
-                    updatePollChart(currentBeer,true);
-                }
-                else {
-                    // Chart element is still within range, only update one element
-                    updatePollChart(currentBeer,false);
+                    if (beerTypeLikes.get(beerToUpvote) > highestVote) {
+                        // Update all chart elements if highestVote increases
+                        highestVote = beerTypeLikes.get(beerToUpvote);
+                        updatePollChart(currentBeer, true);
+                    } else {
+                        // Chart element is still within range, only update one element
+                        updatePollChart(currentBeer, false);
+                    }
                 }
             }
         });
@@ -188,8 +245,6 @@ public class VoteManager {
      * @return returns an HBox container
      */
     public HBox createPollChart(){
-        final int FIXED_BAR_WIDTH = 55;
-
         int beersToDisplay = beerTypes.size();
 
         if (beersToDisplay > MAX_BEERS_DISPLAYED) {
@@ -210,7 +265,9 @@ public class VoteManager {
         }
 
         // Highlight the current element
-        beerVotesBar.get(currentBeer).setFill(SELECTED);
+        if (saveData.isDataReady()) {
+            beerVotesBar.get(currentBeer).setFill(SELECTED);
+        }
 
         pollsPane.setSpacing(10);
         pollsPane.setAlignment(Pos.CENTER);
@@ -233,13 +290,13 @@ public class VoteManager {
 
             // Swap highlighted element from last to first
             if (lowestIndexed == 0) {
-                beerVotesBar.get(MAX_BEERS_DISPLAYED-1).setFill(UNSELECTED);
+                beerVotesBar.get(beerVotesBar.size() - 1).setFill(UNSELECTED);
                 beerVotesBar.get(0).setFill(SELECTED);
             }
             // Swap highlighted element from first to last
             else {
                 beerVotesBar.get(0).setFill(UNSELECTED);
-                beerVotesBar.get(MAX_BEERS_DISPLAYED-1).setFill(SELECTED);
+                beerVotesBar.get(beerVotesBar.size() - 1).setFill(SELECTED);
             }
 
         // Next element is within the range that is currently displayed

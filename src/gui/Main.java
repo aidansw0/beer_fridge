@@ -129,10 +129,13 @@ public class Main extends Application {
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setOnKeyPressed((KeyEvent event) -> {
             if (event.getCode() == KeyCode.ENTER) {
-                buttons.addBeer(newBeerField.getText(), 0);
-                newBeerField.clear();
-                votingFrame.setBottom(buttons.getPollChart());
-                toggleKeyboard();
+                if (!newBeerField.getText().isEmpty()) {
+                    if (buttons.addBeer(newBeerField.getText(), 0)) {
+                        votingFrame.setBottom(buttons.getPollChart());
+                        toggleKeyboard();
+                    }
+                    newBeerField.clear();
+                }
             }
         });
 
