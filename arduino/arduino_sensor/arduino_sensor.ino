@@ -20,14 +20,14 @@
 #define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
 // Your network SSID and password
-char ssid[] = "AndroidAP";
-char password[] = "testpassword"; // test
+char ssid[] =         "AndroidAP";
+char password[] =     "testpassword"; // test
 
 // HTTP Request
-#define HTTP_PORT           80
-#define THING_NAME          "test-beer"
-#define REQUEST_INTERVAL    2000    // dweet update interval in ms
-#define WIFI_CHECK_INTERVAL 60000   // check wifi interval in ms
+#define HTTP_PORT             80  
+#define THING_NAME            "test-beer"
+#define REQUEST_INTERVAL      2000    // dweet update interval in ms
+#define WIFI_CHECK_INTERVAL   60000   // check wifi interval in ms
 
 WiFiClient client;
 unsigned long last_update = 0;
@@ -44,7 +44,7 @@ HX711 scale(DOUT, CLK);
 // Create temp senseor object by passing i2c address]
 Adafruit_TMP006 tmp006(0x41);
 
-int data[WINDOW_SIZE];
+int data[WINDOW_SIZE]; // array of weight readings for averaging
 int average_weight = 0;
 
 void setup() {
@@ -55,31 +55,9 @@ void setup() {
   scale.set_scale(SCALE);
   scale.tare(50);
 
-  // Connect to Wifi
-  Serial.print("Attempting to connect to Network named: ");
-  Serial.println(ssid);
+  connectWifi();
 
-  // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-  WiFi.begin(ssid, password);
-  while ( WiFi.status() != WL_CONNECTED) {
-    // print dots while we wait to connect
-    Serial.print(".");
-    delay(300);
-  }
-
-  Serial.println("\nYou're connected to the network");
-  Serial.println("Waiting for an ip address");
-  while (WiFi.localIP() == INADDR_NONE) {
-    // print dots while we wait for an ip addresss
-    Serial.print(".");
-    delay(300);
-  }
-
-  Serial.println("\nIP Address obtained");
-  // you're connected now, so print out the status
-  printCurrentNet();
-  printWifiData();
-
+  last_wifi_check = millis();
   last_update = millis();
 
   //Initialize button interrupt for taring
@@ -116,8 +94,19 @@ void loop() {
   }
 #endif
 
+  // check if wifi is still connected
+  if (millis() - last_wifi_check > WIFI_CHECK_INTERVAL) {
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("Wifi disconnecting, attempting to reconnect...");
+      connectWifi();
+      last_wifi_check = millis();
+    }
+  }
+
   delay(500);
 }
+
+
 
 float getTemperature() {
   //tmp006.wake();
@@ -125,6 +114,36 @@ float getTemperature() {
   //tmp006.sleep();
   return temp;
 }
+
+
+
+void connectWifi() {
+  Serial.print("Attempting to connect to Network named: ");
+  Serial.println(ssid);
+
+  // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+  WiFi.begin(ssid, password);
+  while ( WiFi.status() != WL_CONNECTED) {
+    // print dots while we wait to connect
+    Serial.print(".");
+    delay(300);
+  }
+
+  Serial.println("\nYou're connected to the network");
+  Serial.println("Waiting for an ip address");
+  while (WiFi.localIP() == INADDR_NONE) {
+    // print dots while we wait for an ip addresss
+    Serial.print(".");
+    delay(300);
+  }
+
+  Serial.println("\nIP Address obtained");
+  // you're connected now, so print out the status
+  printCurrentNet();
+  printWifiData();
+}
+
+
 
 void printWifiData() {
   // print your WiFi IP address:
@@ -149,6 +168,8 @@ void printWifiData() {
   Serial.print(":");
   Serial.println(mac[0], HEX);
 }
+
+
 
 void printCurrentNet() {
   // print the SSID of the network you're attached to:
@@ -183,6 +204,8 @@ void printCurrentNet() {
   Serial.println();
 }
 
+
+
 void postToDweet(int weight, float temp) {
   int age_in_min;
 
@@ -211,6 +234,8 @@ void postToDweet(int weight, float temp) {
   }
 }
 
+
+
 bool postToSlack(int retries) {
   for (int i = 0; i < retries; i++) {
     if (client.connect(thingspeak_server, HTTP_PORT)) {
@@ -232,6 +257,8 @@ bool postToSlack(int retries) {
   }
   return false;
 }
+
+
 
 bool postMessageToSlack(String msg) {
   const char* host = "hooks.slack.com";
@@ -275,6 +302,8 @@ bool postMessageToSlack(String msg) {
   }
 }
 
+
+
 boolean read_received_data() {
   boolean valid_data = false;
   /* if there is incoming data from the connection
@@ -292,8 +321,9 @@ boolean read_received_data() {
   return valid_data;
 }
 
-void check_received_data()
-{
+
+
+void check_received_data() {
   int string_index;
   int data_length;
 
@@ -322,10 +352,14 @@ void check_received_data()
   received_data_string.remove(0);
 }
 
+
+
 void scale_tare () {
   Serial.println("Taring!");
   scale.tare(50);
 }
+
+
 
 void enqueue_data(int new_data) {
   static int pointer = 0;
@@ -338,6 +372,8 @@ void enqueue_data(int new_data) {
     pointer = 0;
   }
 }
+
+
 
 float mean() {
   float sum = 0.0;
