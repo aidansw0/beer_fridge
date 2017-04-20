@@ -5,6 +5,7 @@ import backend.VirtualKeyboard;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -18,6 +19,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
+import javafx.stage.StageStyle;
 
 public class Main extends Application {
 
@@ -29,7 +31,6 @@ public class Main extends Application {
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
 
     private boolean keyboardOn = false;
-    private long keyStrokeTime;
 
     public static void main(String[] args) { launch(args); }
 
@@ -43,8 +44,6 @@ public class Main extends Application {
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
-
-        keyStrokeTime = System.nanoTime();
 
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
@@ -132,13 +131,14 @@ public class Main extends Application {
         addButton.setOnAction(event -> {
             if (keyboardOn) {
                 votingFrame.setBottom(voteManager.getPollChart());
+                toggleKeyboard();
             }
             else if (keyCardListener.checkKeyValidReadOnly()) {
                 newBeerField.clear();
                 votingFrame.setBottom(newBeerField);
                 newBeerField.requestFocus();
+                toggleKeyboard();
             }
-            toggleKeyboard();
         });
 
         votingHeader.getChildren().add(votingheaderimg);
@@ -273,20 +273,23 @@ public class Main extends Application {
     }
 
     private void keyboardEvents(KeyEvent event, TextField textField, BorderPane frame) {
-        long current = System.nanoTime();
-        long elapsed = current - keyStrokeTime;
-        keyStrokeTime = current;
-
         switch (event.getCode()) {
             case ENTER:
                 if (!textField.getText().isEmpty()) {
-                    if (keyCardListener.checkKeyValid())
+                    if (keyCardListener.checkKeyValidReadOnly()) {
                         if (voteManager.addBeer(textField.getText(), 0)) {
-                            textField.clear();
+                            keyCardListener.checkKeyValid();
                             frame.setBottom(voteManager.getPollChart());
                             toggleKeyboard();
                         }
-                    textField.clear();
+                        textField.clear();
+                    }
+                    // Access has expired
+                    else {
+                        frame.setBottom(voteManager.getPollChart());
+                        toggleKeyboard();
+                        textField.clear();
+                    }
                 }
                 break;
 

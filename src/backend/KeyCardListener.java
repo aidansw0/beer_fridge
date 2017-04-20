@@ -1,24 +1,26 @@
 package backend;
 
-import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
-import javafx.event.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.BorderPane;
-
-import java.awt.*;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by rchen on 2017-04-20.
+ * This class listens to the key access card scanner
+ * and verifies if the card is valid
+ *
+ * @author Richard
  */
 
 public class KeyCardListener {
     private final Set<String> keyCardID = new HashSet<>();
 
+    private long timeScanned;
     private String readInput = "";
     private boolean keyVerified = false;
+
+    private final int KEY_CARD_ID_LENGTH = 25;
+    private final int KEY_EXPIRY_TIME = 10000; // in ms
 
     public KeyCardListener() {
         // Added for testing - Richard's access card
@@ -28,13 +30,24 @@ public class KeyCardListener {
     /**
      * @return Returns true if key card was verified but does not toggle the variable
      */
-    public boolean checkKeyValidReadOnly() { return keyVerified; }
+    public boolean checkKeyValidReadOnly() {
+        long elapsed = System.currentTimeMillis() - timeScanned;
+
+        if (keyVerified && elapsed < KEY_EXPIRY_TIME) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     /**
      * @return Returns true if key card was verified and toggles to false
      */
     public boolean checkKeyValid() {
-        if (keyVerified) {
+        long elapsed = System.currentTimeMillis() - timeScanned;
+
+        if (keyVerified && elapsed < KEY_EXPIRY_TIME) {
             keyVerified = false;
             return true;
         }
@@ -50,10 +63,12 @@ public class KeyCardListener {
      * @param event, KeyEvent must be passed in to check the event code
      */
     public void handleEvent(KeyEvent event) {
-
         if (event.getCode() == KeyCode.SLASH) {
-            if (keyCardID.contains(readInput)) {
+            String keyCardRead = readInput.substring(readInput.length()-KEY_CARD_ID_LENGTH);
+
+            if (keyCardID.contains(keyCardRead)) {
                 System.out.print("Key Found: ");
+                timeScanned = System.currentTimeMillis();
                 keyVerified = true;
             }
             else {
@@ -61,7 +76,7 @@ public class KeyCardListener {
                 keyVerified = false;
             }
 
-            System.out.println(readInput);
+            System.out.println(keyCardRead);
             readInput = "";
         }
         else {
