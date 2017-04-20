@@ -1,6 +1,7 @@
 package backend;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -9,8 +10,17 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,9 +42,14 @@ public class SaveData {
 
     private final String JSON_FILE = "beers_json_test.json"; // file name, NOT
                                                              // file location
+    private final String RFID_FILE = "dont_open.dat";
+
     private final String fullJSONFilePath;
-    // directory for JSON_FILE to be stored (includes file name), same as
-    // location as the .jar
+    private final String fullRFIDFilePath;
+    // full paths for JSON_FILE and RFID_FILE to be stored (includes file name),
+    // dependent on location of .jar file
+
+    private final String KEY = "DES"; // Encryption key for RFID file
 
     private final Map<String, Integer> beerRatings;
     private final List<String> beers;
@@ -44,17 +59,19 @@ public class SaveData {
         beerRatings = map;
         beers = list;
         fullJSONFilePath = getJarPath() + "data" + System.getProperty("file.separator") + JSON_FILE;
+        fullRFIDFilePath = getJarPath() + "data" + System.getProperty("file.separator") + RFID_FILE;
 
-        if (!checkFileExists()) {
-            createJSONDirectory();
+        if (!checkFileExists(fullJSONFilePath)) {
+            createFileInDataDirectory(JSON_FILE);
             try {
                 writeData();
+                dataReady = true;
             } catch (JSONException | IOException e) {
                 e.printStackTrace();
+                dataReady = false;
             }
-        }
-        else {
-            readData();
+        } else {
+            readJSONData();
             dataReady = true;
         }
     }
@@ -67,14 +84,101 @@ public class SaveData {
     }
 
     /**
-     * This method updates JSON_FILE with the most recent data stored in
-     * beerRatings. JSON_FILE is completely overwritten during the process.
+     * Encrypts and appends rfid to RFID_FILE, does not overwrite RFID_FILE. If
+     * RFID_FILE cannot be located then a new file will be created and written
+     * to instead.
      * 
-     * @throws JSONException if data could not be written in JSON format.
-     * @throws IOException if data could not be written.  
+     * @param rfid,
+     *            String giving the RFID code to be written.
+     * @throws IOException
+     *             if there is a problem locating the RFID file.
+     */
+    public void addRFID(String rfid) throws IOException {
+        if (checkFileExists(RFID_FILE)) {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fullRFIDFilePath, true));
+            writer.write(encrypt(rfid.getBytes()));
+            writer.newLine();
+            writer.close();
+
+        } else {
+            createFileInDataDirectory(RFID_FILE);
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fullRFIDFilePath, true));
+            writer.write(encrypt(rfid.getBytes()));
+            writer.newLine();
+            writer.close();
+        }
+    }
+
+    /**
+     * Checks weather the given rfid string exists in RFID_FILE. If RFID_FILE
+     * cannot be located then a new file will be created.
+     * 
+     * @param rfid,
+     *            String to search for in RFID_FILE
+     * @return true if rfid exists in RFID_FILE and false if otherwise.
+     */
+    public boolean checkRFID(String rfid) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(fullRFIDFilePath));
+            String line = reader.readLine();
+
+            while (line != null) {
+                if (rfid.equals(line)) {
+                    return true;
+                }
+                line = reader.readLine();
+            }
+            reader.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            createFileInDataDirectory(RFID_FILE);
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * Encrypts text using KEY as an encryption key.
+     * 
+     * @param text,
+     *            byte[] to be encrypted
+     * @return String representation of the encrypted byte[]
+     */
+    private String encrypt(byte[] text) {
+        byte[] textEncrypted = null;
+
+        try {
+            KeyGenerator keyGen = KeyGenerator.getInstance(KEY);
+            SecretKey key = keyGen.generateKey();
+
+            Cipher cipher = Cipher.getInstance(KEY);
+            cipher.init(Cipher.ENCRYPT_MODE, key); // set cipher to encrypt mode
+
+            textEncrypted = cipher.doFinal(text);
+
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
+                | BadPaddingException e) {
+            e.printStackTrace();
+        }
+
+        return new String(textEncrypted);
+    }
+
+    /**
+     * This method updates JSON_FILE with the most recent data stored in
+     * beerRatings. JSON_FILE is completely overwritten during the process. If
+     * the JSON file cannot be found then a new file is created in the data
+     * directory.
+     * 
+     * @throws JSONException
+     *             if data could not be written in JSON format.
+     * @throws IOException
+     *             if data could not be written.
      */
     public void writeData() throws JSONException, IOException {
-        if (beerRatings.keySet().size() > 0) {
+        if (checkFileExists(JSON_FILE)) {
             JSONObject jsonToWrite = new JSONObject();
             JSONArray jsonBeerList = new JSONArray();
 
@@ -88,23 +192,32 @@ public class SaveData {
             FileWriter writer = new FileWriter(fullJSONFilePath);
             writer.write(jsonToWrite.toString());
             writer.close();
-            dataReady = true;
 
         } else {
-            // if beerRatings is empty then either readJSON() couldn't read
-            // the data file or the file was deleted, in either case a new
-            // empty file is created
+            createFileInDataDirectory(JSON_FILE);
+
+            JSONObject jsonToWrite = new JSONObject();
+            JSONArray jsonBeerList = new JSONArray();
+
+            for (String beerName : beerRatings.keySet()) {
+                JSONObject jsonBeer = new JSONObject();
+                jsonBeer.put(beerName, beerRatings.get(beerName));
+                jsonBeerList.put(jsonBeer);
+            }
+
+            jsonToWrite.put("beers", jsonBeerList);
             FileWriter writer = new FileWriter(fullJSONFilePath);
-            writer.write("");
+            writer.write(jsonToWrite.toString());
             writer.close();
         }
     }
 
     /**
      * Reads and parses JSON_FILE and loads the data into beerRatings and beers.
-     * Does not modify JSON_FILE in any way.
+     * Does not modify JSON_FILE in any way. If the JSON file cannot be located
+     * a new file is created.
      */
-    private void readData() {
+    private void readJSONData() {
         StringBuilder jsonText = new StringBuilder();
         BufferedReader reader;
 
@@ -130,7 +243,7 @@ public class SaveData {
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            createJSONDirectory();
+            createFileInDataDirectory(JSON_FILE);
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
@@ -141,23 +254,28 @@ public class SaveData {
      * directory will be in the same location as the .jar file for this
      * application.
      */
-    private void createJSONDirectory() {
+    private void createFileInDataDirectory(String fileName) {
         String newDir = "";
         String path = getJarPath();
 
         String fileSeparator = System.getProperty("file.separator");
         newDir = path + "data" + fileSeparator;
-        //JOptionPane.showMessageDialog(null, newDir);
+        // JOptionPane.showMessageDialog(null, newDir);
 
-        File file = new File(newDir);
-        file.mkdir();
+        File file = new File(newDir + fileName);
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * Locates the directory in which the .jar executable file for this
      * application exits.
      * 
-     * @return String giving the full path of the .jar executable
+     * @return String giving the full path of the .jar executable including a
+     *         system dependent file separator at the end of the path.
      */
     private String getJarPath() {
         URL url = SaveData.class.getProtectionDomain().getCodeSource().getLocation();
@@ -172,13 +290,13 @@ public class SaveData {
     }
 
     /**
-     * Checks weather fullJSONFilePath exists.
+     * Checks weather a file at fullPath exists
      * 
-     * @return true if fullJSONFilePath exists and false if otherwise.
+     * @return true if a file at fullPath exists and false if otherwise.
      */
-    private boolean checkFileExists() {
+    private boolean checkFileExists(String fullPath) {
         File testFile = null;
-        testFile = new File(fullJSONFilePath);
+        testFile = new File(fullPath);
         return testFile.exists();
     }
 }
