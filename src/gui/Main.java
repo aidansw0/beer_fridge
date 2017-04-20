@@ -1,5 +1,6 @@
 package gui;
 import backend.KegManager;
+import backend.KeyCardListener;
 import backend.VirtualKeyboard;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -23,10 +24,12 @@ public class Main extends Application {
     private final KegManager beerKeg = new KegManager();
     private final DataManager dataManager = new DataManager(beerKeg);
     private final VoteManager voteManager = new VoteManager();
+    private final KeyCardListener keyCardListener = new KeyCardListener();
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
 
     private boolean keyboardOn = false;
+    private long keyStrokeTime;
 
     public static void main(String[] args) { launch(args); }
 
@@ -40,6 +43,8 @@ public class Main extends Application {
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
         window.isFullScreen();
+
+        keyStrokeTime = System.nanoTime();
 
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
@@ -128,7 +133,8 @@ public class Main extends Application {
             if (keyboardOn) {
                 votingFrame.setBottom(voteManager.getPollChart());
             }
-            else {
+            else if (keyCardListener.checkKeyValidReadOnly()) {
+                newBeerField.clear();
                 votingFrame.setBottom(newBeerField);
                 newBeerField.requestFocus();
             }
@@ -142,7 +148,7 @@ public class Main extends Application {
 
         Button left = voteManager.createLeftButton(beerDisplay,navleft);
         Button right = voteManager.createRightButton(beerDisplay,navright);
-        Button like = voteManager.createLikeButton(votes,thumb);
+        Button like = voteManager.createLikeButton(votes,thumb,keyCardListener);
 
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
@@ -226,6 +232,7 @@ public class Main extends Application {
         root.setLeft(kegFrame);
         root.setCenter(tempAndVotingFrame);
         root.setBottom(footerFrame);
+        root.setOnKeyPressed((KeyEvent event) -> keyCardListener.handleEvent(event));
 
         BorderPane.setAlignment(kegFrame, Pos.CENTER_RIGHT);
         BorderPane.setAlignment(tempAndVotingFrame, Pos.CENTER_LEFT);
@@ -266,15 +273,19 @@ public class Main extends Application {
     }
 
     private void keyboardEvents(KeyEvent event, TextField textField, BorderPane frame) {
+        long current = System.nanoTime();
+        long elapsed = current - keyStrokeTime;
+        keyStrokeTime = current;
+
         switch (event.getCode()) {
             case ENTER:
                 if (!textField.getText().isEmpty()) {
-                    if (voteManager.keyCardValid()) {
+                    if (keyCardListener.checkKeyValid())
                         if (voteManager.addBeer(textField.getText(), 0)) {
+                            textField.clear();
                             frame.setBottom(voteManager.getPollChart());
                             toggleKeyboard();
                         }
-                    }
                     textField.clear();
                 }
                 break;
@@ -283,6 +294,10 @@ public class Main extends Application {
                 textField.clear();
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
+                break;
+
+            case SLASH:
+                textField.clear();
                 break;
         }
     }

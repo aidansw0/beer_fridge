@@ -1,5 +1,6 @@
 package gui;
 
+import backend.KeyCardListener;
 import backend.SaveData;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -29,9 +30,9 @@ public class VoteManager {
     private final Map<String, Integer> beerTypeLikes    = new HashMap<String, Integer>();
     private final List<String> beerTypes                = new ArrayList<String>();
     private final List<Rectangle> beerVotesBar          = new ArrayList<>();
-    private final List<String> keyCardID                = new ArrayList<String>();
     private final HBox pollsPane                        = new HBox();
     private SaveData saveData;
+    private KeyCardListener keyCardListener;
 
     private final int MAX_BAR_HEIGHT                    = 100;
     private final int FIXED_BAR_WIDTH                   = 55;
@@ -44,12 +45,8 @@ public class VoteManager {
     private int currentBeer = 0;
     private int lowestIndexed = 0;
     private int highestVote = 10;
-    private String readInput = "";
-    private boolean keyVerified = false;
 
     public VoteManager() {
-        keyCardID.add("0000000000000000708C14057");
-
         // Read data from saved file
         saveData = new SaveData(beerTypeLikes, beerTypes);
     }
@@ -80,19 +77,6 @@ public class VoteManager {
      * @return Returns the chart
      */
     public HBox getPollChart() { return pollsPane; }
-
-    /**
-     * @return Returns true if key card was verified
-     */
-    public boolean keyCardValid() {
-        if (keyVerified) {
-            keyVerified = false;
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
 
     /**
      * Adds beer to list with current number of votes and redraw
@@ -218,9 +202,10 @@ public class VoteManager {
      * @param img, Graphic used to represent the button
      * @return returns Button likesButton
      */
-    public Button createLikeButton(Text likes, ImageView img) {
+    public Button createLikeButton(Text likes, ImageView img, KeyCardListener listener) {
         Button likeButton = new Button("", img);
         likesDisplay = likes;
+        keyCardListener = listener;
         likeButton.setBackground(Background.EMPTY);
 
         // Find the highest vote and set the global variable used for drawing
@@ -231,45 +216,19 @@ public class VoteManager {
         }
 
         likeButton.setOnAction(event -> {
-            if (keyVerified) {
-                keyVerified = false;
-                System.out.println("ID OK");
+            if (saveData.isDataReady() && keyCardListener.checkKeyValid()) {
+                String beerToUpvote = beerTypes.get(currentBeer);
+                beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
+                likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
 
-                if (saveData.isDataReady()) {
-                    String beerToUpvote = beerTypes.get(currentBeer);
-                    beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
-                    likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-
-                    if (beerTypeLikes.get(beerToUpvote) > highestVote) {
-                        // Update all chart elements if highestVote increases
-                        highestVote = beerTypeLikes.get(beerToUpvote);
-                        updatePollChart(currentBeer, true);
-                    } else {
-                        // Chart element is still within range, only update one element
-                        updatePollChart(currentBeer, false);
-                    }
+                if (beerTypeLikes.get(beerToUpvote) > highestVote) {
+                    // Update all chart elements if highestVote increases
+                    highestVote = beerTypeLikes.get(beerToUpvote);
+                    updatePollChart(currentBeer, true);
+                } else {
+                    // Chart element is still within range, only update one element
+                    updatePollChart(currentBeer, false);
                 }
-            }
-            else {
-                System.out.println("ID Not Verified");
-            }
-        });
-
-        likeButton.setOnKeyPressed((KeyEvent event) -> {
-            if (event.getCode() == KeyCode.SLASH) {
-                System.out.println(readInput);
-
-                for (int i=0; i<keyCardID.size(); i++) {
-                    keyVerified = false;
-                    if (keyCardID.get(i).equals(readInput)) {
-                        keyVerified = true;
-                        break;
-                    }
-                }
-                readInput = "";
-            }
-            else {
-                readInput = readInput + event.getText();
             }
         });
 
