@@ -299,10 +299,6 @@ public class Main extends Application {
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
                 break;
-
-            case SLASH:
-                newBeerField.setText(" ");
-                break;
         }
     }
 
