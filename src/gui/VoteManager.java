@@ -1,21 +1,21 @@
 package gui;
 
+import backend.KeyCardListener;
 import backend.SaveData;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class manages button events in the voting pane
@@ -32,6 +32,7 @@ public class VoteManager {
     private final List<Rectangle> beerVotesBar          = new ArrayList<>();
     private final HBox pollsPane                        = new HBox();
     private SaveData saveData;
+    private KeyCardListener keyCardListener;
 
     private final int MAX_BAR_HEIGHT                    = 100;
     private final int FIXED_BAR_WIDTH                   = 55;
@@ -201,9 +202,10 @@ public class VoteManager {
      * @param img, Graphic used to represent the button
      * @return returns Button likesButton
      */
-    public Button createLikeButton(Text likes, ImageView img) {
+    public Button createLikeButton(Text likes, ImageView img, KeyCardListener listener) {
         Button likeButton = new Button("", img);
         likesDisplay = likes;
+        keyCardListener = listener;
         likeButton.setBackground(Background.EMPTY);
 
         // Find the highest vote and set the global variable used for drawing
@@ -213,26 +215,23 @@ public class VoteManager {
             }
         }
 
-        likeButton.setOnAction(new EventHandler<ActionEvent>() {
+        likeButton.setOnAction(event -> {
+            if (saveData.isDataReady() && keyCardListener.checkKeyValid()) {
+                String beerToUpvote = beerTypes.get(currentBeer);
+                beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
+                likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
 
-            @Override
-            public void handle(ActionEvent event) {
-                if (saveData.isDataReady()) {
-                    String beerToUpvote = beerTypes.get(currentBeer);
-                    beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
-                    likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-
-                    if (beerTypeLikes.get(beerToUpvote) > highestVote) {
-                        // Update all chart elements if highestVote increases
-                        highestVote = beerTypeLikes.get(beerToUpvote);
-                        updatePollChart(currentBeer, true);
-                    } else {
-                        // Chart element is still within range, only update one element
-                        updatePollChart(currentBeer, false);
-                    }
+                if (beerTypeLikes.get(beerToUpvote) > highestVote) {
+                    // Update all chart elements if highestVote increases
+                    highestVote = beerTypeLikes.get(beerToUpvote);
+                    updatePollChart(currentBeer, true);
+                } else {
+                    // Chart element is still within range, only update one element
+                    updatePollChart(currentBeer, false);
                 }
             }
         });
+
         return likeButton;
     }
 

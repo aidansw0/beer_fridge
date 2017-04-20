@@ -1,20 +1,17 @@
 package gui;
 import backend.KegManager;
+import backend.KeyCardListener;
 import backend.VirtualKeyboard;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.shape.Polygon;
@@ -23,13 +20,13 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
 
 public class Main extends Application {
 
     private final KegManager beerKeg = new KegManager();
     private final DataManager dataManager = new DataManager(beerKeg);
-    private final VoteManager buttons = new VoteManager();
+    private final VoteManager voteManager = new VoteManager();
+    private final KeyCardListener keyCardListener = new KeyCardListener();
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
 
@@ -113,8 +110,8 @@ public class Main extends Application {
         BorderPane votingFrame = new BorderPane();
         BorderPane navPane = new BorderPane();
         VBox likePane = new VBox();
-        Text beerDisplay = new Text(buttons.getCurrentBeer());
-        Text votes = new Text(buttons.getCurrentVotes() + " Votes");
+        Text beerDisplay = new Text(voteManager.getCurrentBeer());
+        Text votes = new Text(voteManager.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
         TextField newBeerField = new TextField();
         Button addButton = new Button();
@@ -133,13 +130,15 @@ public class Main extends Application {
         addButton.setBackground(Background.EMPTY);
         addButton.setOnAction(event -> {
             if (keyboardOn) {
-                votingFrame.setBottom(buttons.getPollChart());
+                votingFrame.setBottom(voteManager.getPollChart());
+                toggleKeyboard();
             }
-            else {
+            else if (keyCardListener.checkKeyValidReadOnly()) {
+                newBeerField.clear();
                 votingFrame.setBottom(newBeerField);
                 newBeerField.requestFocus();
+                toggleKeyboard();
             }
-            toggleKeyboard();
         });
 
         votingHeader.getChildren().add(votingheaderimg);
@@ -147,9 +146,9 @@ public class Main extends Application {
         StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
         StackPane.setMargin(addButton, new Insets(0,15,0,0));
 
-        Button left = buttons.createLeftButton(beerDisplay,navleft);
-        Button right = buttons.createRightButton(beerDisplay,navright);
-        Button like = buttons.createLikeButton(votes,thumb);
+        Button left = voteManager.createLeftButton(beerDisplay,navleft);
+        Button right = voteManager.createRightButton(beerDisplay,navright);
+        Button like = voteManager.createLikeButton(votes,thumb,keyCardListener);
 
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
@@ -172,7 +171,7 @@ public class Main extends Application {
         votingFrame.setRight(navPane);
         votingFrame.setCenter(like);
         votingFrame.setLeft(likePane);
-        votingFrame.setBottom(buttons.createPollChart());
+        votingFrame.setBottom(voteManager.createPollChart());
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
@@ -233,6 +232,7 @@ public class Main extends Application {
         root.setLeft(kegFrame);
         root.setCenter(tempAndVotingFrame);
         root.setBottom(footerFrame);
+        root.setOnKeyPressed((KeyEvent event) -> keyCardListener.handleEvent(event));
 
         BorderPane.setAlignment(kegFrame, Pos.CENTER_RIGHT);
         BorderPane.setAlignment(tempAndVotingFrame, Pos.CENTER_LEFT);
@@ -242,8 +242,8 @@ public class Main extends Application {
         scene.getStylesheets().add("css/linechart.css");
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
-        scene.setCursor(Cursor.NONE);
-        window.initStyle(StageStyle.UNDECORATED);
+//        scene.setCursor(Cursor.NONE);
+//        window.initStyle(StageStyle.UNDECORATED);
         window.setScene(scene);
         window.show();
     }
@@ -276,18 +276,31 @@ public class Main extends Application {
         switch (event.getCode()) {
             case ENTER:
                 if (!textField.getText().isEmpty()) {
-                    if (buttons.addBeer(textField.getText(), 0)) {
-                        frame.setBottom(buttons.getPollChart());
-                        toggleKeyboard();
+                    if (keyCardListener.checkKeyValidReadOnly()) {
+                        if (voteManager.addBeer(textField.getText(), 0)) {
+                            keyCardListener.checkKeyValid();
+                            frame.setBottom(voteManager.getPollChart());
+                            toggleKeyboard();
+                        }
+                        textField.clear();
                     }
-                    textField.clear();
+                    // Access has expired
+                    else {
+                        frame.setBottom(voteManager.getPollChart());
+                        toggleKeyboard();
+                        textField.clear();
+                    }
                 }
                 break;
 
             case ESCAPE:
                 textField.clear();
-                frame.setBottom(buttons.getPollChart());
+                frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
+                break;
+
+            case SLASH:
+                textField.clear();
                 break;
         }
     }
