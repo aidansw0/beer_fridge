@@ -16,7 +16,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
@@ -24,7 +23,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.PolygonBuilder;
 
 public class VirtualKeyboard {
     private final VBox root;
@@ -76,10 +74,6 @@ public class VirtualKeyboard {
         final Button enter = createNonshiftableButton("Enter", KeyCode.ENTER, modifiers, target);
         final Button tab = createNonshiftableButton("   ", KeyCode.TAB, modifiers, target);
 
-        // Cursor keys, with graphic instead of text
-        final Button cursorLeft = createCursorKey(KeyCode.LEFT, modifiers, target, 15.0, 5.0, 15.0, 15.0, 5.0, 10.0);
-        final Button cursorRight = createCursorKey(KeyCode.RIGHT, modifiers, target, 5.0, 5.0, 5.0, 15.0, 15.0, 10.0);
-
         // "Extras" to go at the left or right end of each row of buttons.
         final Node[][] extraLeftButtons = new Node[][]{{escape}, {tab}, {modifiers.capsLockKey()}, {modifiers.shiftKey()}};
         final Node[][] extraRightButtons = new Node[][]{{backspace}, {delete}, {enter}, {modifiers.secondShiftKey()}};
@@ -103,15 +97,8 @@ public class VirtualKeyboard {
 
         final HBox bottomRow = new HBox(5);
         bottomRow.setAlignment(Pos.CENTER);
-        bottomRow.getChildren().addAll(spaceBar, cursorLeft, cursorRight);
+        bottomRow.getChildren().addAll(spaceBar);
         root.getChildren().add(bottomRow);
-    }
-
-    /**
-     * Creates a VirtualKeyboard which uses the focusProperty of the scene to which it is attached as its target
-     */
-    public VirtualKeyboard() {
-        this(null);
     }
 
     /**
@@ -226,16 +213,6 @@ public class VirtualKeyboard {
         return new KeyEvent(source, target, eventType, character, code.toString(),
                 code, modifiers.shiftDown().get(), modifiers.ctrlDown().get(),
                 modifiers.altDown().get(), modifiers.metaDown().get());
-    }
-
-    // Utility method for creating cursor keys:
-    private Button createCursorKey(KeyCode code, Modifiers modifiers, Label target, Double... points) {
-        Button button = createNonshiftableButton("", code, modifiers, target);
-        final Node graphic = PolygonBuilder.create().points(points).build();
-        graphic.setStyle("-fx-fill: -fx-mark-color;");
-        button.setGraphic(graphic);
-        button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        return button;
     }
 
     // Convenience class to bundle together the modifier keys and their selected state
