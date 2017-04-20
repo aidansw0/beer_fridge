@@ -49,6 +49,7 @@ public class Main extends Application {
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
 
         primaryStage.setOnCloseRequest(event -> {
+                voteManager.saveToFile();
                 Platform.exit();
                 System.exit(0);
         });

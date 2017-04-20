@@ -72,7 +72,7 @@ public class VirtualKeyboard {
         final Button backspace = createNonshiftableButton("Backspace", KeyCode.BACK_SPACE, modifiers, target);
         final Button delete = createNonshiftableButton("Del", KeyCode.DELETE, modifiers, target);
         final Button enter = createNonshiftableButton("Enter", KeyCode.ENTER, modifiers, target);
-        final Button tab = createNonshiftableButton("   ", KeyCode.TAB, modifiers, target);
+        final Button tab = createNonshiftableButton("Tab", KeyCode.TAB, modifiers, target);
 
         // "Extras" to go at the left or right end of each row of buttons.
         final Node[][] extraLeftButtons = new Node[][]{{escape}, {tab}, {modifiers.capsLockKey()}, {modifiers.shiftKey()}};
@@ -92,7 +92,7 @@ public class VirtualKeyboard {
         }
 
         final Button spaceBar = createNonshiftableButton(" ", KeyCode.SPACE, modifiers, target);
-        spaceBar.setMaxWidth(600);
+        spaceBar.setMaxWidth(700);
         HBox.setHgrow(spaceBar, Priority.ALWAYS);
 
         final HBox bottomRow = new HBox(5);
