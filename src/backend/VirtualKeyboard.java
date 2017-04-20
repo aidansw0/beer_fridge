@@ -18,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -25,6 +26,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.PolygonBuilder;
+import javafx.scene.text.Text;
 
 public class VirtualKeyboard {
     private final VBox root;
@@ -36,7 +38,7 @@ public class VirtualKeyboard {
      *               If target is null, KeyEvents will be dynamically forwarded to the focus owner
      *               in the Scene containing this keyboard.
      */
-    public VirtualKeyboard(ReadOnlyObjectProperty<Node> target) {
+    public VirtualKeyboard(Label target) {
         this.root = new VBox(5);
         root.setPadding(new Insets(10));
         root.getStyleClass().add("virtual-keyboard");
@@ -74,15 +76,11 @@ public class VirtualKeyboard {
         final Button backspace = createNonshiftableButton("Backspace", KeyCode.BACK_SPACE, modifiers, target);
         final Button delete = createNonshiftableButton("Del", KeyCode.DELETE, modifiers, target);
         final Button enter = createNonshiftableButton("Enter", KeyCode.ENTER, modifiers, target);
-        final Button tab = createNonshiftableButton("Tab", KeyCode.TAB, modifiers, target);
+        final Button tab = createNonshiftableButton("   ", KeyCode.TAB, modifiers, target);
 
         // Cursor keys, with graphic instead of text
         final Button cursorLeft = createCursorKey(KeyCode.LEFT, modifiers, target, 15.0, 5.0, 15.0, 15.0, 5.0, 10.0);
         final Button cursorRight = createCursorKey(KeyCode.RIGHT, modifiers, target, 5.0, 5.0, 5.0, 15.0, 15.0, 10.0);
-        final Button cursorUp = createCursorKey(KeyCode.UP, modifiers, target, 10.0, 0.0, 15.0, 10.0, 5.0, 10.0);
-        final Button cursorDown = createCursorKey(KeyCode.DOWN, modifiers, target, 10.0, 10.0, 15.0, 0.0, 5.0, 0.0);
-        final VBox cursorUpDown = new VBox(2);
-        cursorUpDown.getChildren().addAll(cursorUp, cursorDown);
 
         // "Extras" to go at the left or right end of each row of buttons.
         final Node[][] extraLeftButtons = new Node[][]{{escape}, {tab}, {modifiers.capsLockKey()}, {modifiers.shiftKey()}};
@@ -102,13 +100,12 @@ public class VirtualKeyboard {
         }
 
         final Button spaceBar = createNonshiftableButton(" ", KeyCode.SPACE, modifiers, target);
-        spaceBar.setMaxWidth(Double.POSITIVE_INFINITY);
+        spaceBar.setMaxWidth(600);
         HBox.setHgrow(spaceBar, Priority.ALWAYS);
 
         final HBox bottomRow = new HBox(5);
         bottomRow.setAlignment(Pos.CENTER);
-        bottomRow.getChildren().addAll(modifiers.ctrlKey(), modifiers.altKey(),
-                modifiers.metaKey(), spaceBar, cursorLeft, cursorUpDown, cursorRight);
+        bottomRow.getChildren().addAll(spaceBar, cursorLeft, cursorRight);
         root.getChildren().add(bottomRow);
     }
 
@@ -131,7 +128,7 @@ public class VirtualKeyboard {
 
     // Creates a "regular" button that has an unshifted and shifted value
     private Button createShiftableButton(final String unshifted, final String shifted,
-                                         final KeyCode code, Modifiers modifiers, final ReadOnlyObjectProperty<Node> target) {
+                                         final KeyCode code, Modifiers modifiers, final Label target) {
         final ReadOnlyBooleanProperty letter = new SimpleBooleanProperty(unshifted.length() == 1 && Character.isLetter(unshifted.charAt(0)));
         final StringBinding text =
                 Bindings.when(modifiers.shiftDown().or(modifiers.capsLockOn().and(letter)))
@@ -143,14 +140,14 @@ public class VirtualKeyboard {
     }
 
     // Creates a button with fixed text not responding to Shift
-    private Button createNonshiftableButton(final String text, final KeyCode code, final Modifiers modifiers, final ReadOnlyObjectProperty<Node> target) {
+    private Button createNonshiftableButton(final String text, final KeyCode code, final Modifiers modifiers, final Label target) {
         StringProperty textProperty = new SimpleStringProperty(text);
         Button button = createButton(textProperty, code, modifiers, target);
         return button;
     }
 
     // Creates a button with mutable text, and registers listener with it
-    private Button createButton(final ObservableStringValue text, final KeyCode code, final Modifiers modifiers, final ReadOnlyObjectProperty<Node> target) {
+    private Button createButton(final ObservableStringValue text, final KeyCode code, final Modifiers modifiers, final Label target) {
         final Button button = new Button();
         button.textProperty().bind(text);
 
@@ -163,35 +160,61 @@ public class VirtualKeyboard {
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                final Node targetNode = view().getScene().getFocusOwner();
+                final KeyEvent keyPressEvent, keyReleasedEvent;
+                final String character;
 
-                final Node targetNode;
-                if (target != null) {
-                    targetNode = target.get();
+                if (text.get().length() == 1) {
+                    character = text.get();
                 } else {
-                    targetNode = view().getScene().getFocusOwner();
+                    character = KeyEvent.CHAR_UNDEFINED;
                 }
 
-                if (targetNode != null) {
-                    final String character;
-                    if (text.get().length() == 1) {
-                        character = text.get();
-                    } else {
-                        character = KeyEvent.CHAR_UNDEFINED;
-                    }
-                    final KeyEvent keyPressEvent = createKeyEvent(button, targetNode, KeyEvent.KEY_PRESSED, character, code, modifiers);
-                    targetNode.fireEvent(keyPressEvent);
-                    final KeyEvent keyReleasedEvent = createKeyEvent(button, targetNode, KeyEvent.KEY_RELEASED, character, code, modifiers);
-                    targetNode.fireEvent(keyReleasedEvent);
-                    if (character != KeyEvent.CHAR_UNDEFINED) {
-                        final KeyEvent keyTypedEvent = createKeyEvent(button, targetNode, KeyEvent.KEY_TYPED, character, code, modifiers);
-                        targetNode.fireEvent(keyTypedEvent);
-                    }
+                if (character != KeyEvent.CHAR_UNDEFINED) {
+                    target.setText(target.getText() + text.getValue());
                     modifiers.releaseKeys();
+                }
 
-                    // Automatically capitalize next word/entry
-                    if (code == KeyCode.SPACE || code == KeyCode.ENTER || code == KeyCode.ESCAPE) {
+                switch(code) {
+                    case BACK_SPACE:
+                        if (target.getText().length() != 0) {
+                            String backspace = target.getText();
+                            String newText = backspace.substring(0, backspace.length() - 1);
+                            target.setText(newText);
+
+                            if (newText.length() > 0) {
+                                if (newText.substring(newText.length() - 1).matches(" ")) {
+                                    modifiers.shift.setSelected(true);
+                                } else {
+                                    modifiers.shift.setSelected(false);
+                                }
+                            }
+                        }
+                        else {
+                            modifiers.shift.setSelected(true);
+                        }
+
+                        break;
+
+                    case ESCAPE:
+                        keyPressEvent = createKeyEvent(button, targetNode, KeyEvent.KEY_PRESSED, character, code, modifiers);
+                        targetNode.fireEvent(keyPressEvent);
+                        keyReleasedEvent = createKeyEvent(button, targetNode, KeyEvent.KEY_RELEASED, character, code, modifiers);
+                        targetNode.fireEvent(keyReleasedEvent);
                         modifiers.shift.setSelected(true);
-                    }
+                        break;
+
+                    case ENTER:
+                        keyPressEvent = createKeyEvent(button, targetNode, KeyEvent.KEY_PRESSED, character, code, modifiers);
+                        targetNode.fireEvent(keyPressEvent);
+                        keyReleasedEvent = createKeyEvent(button, targetNode, KeyEvent.KEY_RELEASED, character, code, modifiers);
+                        targetNode.fireEvent(keyReleasedEvent);
+                        modifiers.shift.setSelected(true);
+                        break;
+
+                    case SPACE:
+                        modifiers.shift.setSelected(true);
+                        break;
                 }
             }
         });
@@ -208,7 +231,7 @@ public class VirtualKeyboard {
     }
 
     // Utility method for creating cursor keys:
-    private Button createCursorKey(KeyCode code, Modifiers modifiers, ReadOnlyObjectProperty<Node> target, Double... points) {
+    private Button createCursorKey(KeyCode code, Modifiers modifiers, Label target, Double... points) {
         Button button = createNonshiftableButton("", code, modifiers, target);
         final Node graphic = PolygonBuilder.create().points(points).build();
         graphic.setStyle("-fx-fill: -fx-mark-color;");

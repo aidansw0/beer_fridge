@@ -20,7 +20,7 @@ public class KeyCardListener {
     private boolean keyVerified = false;
 
     private final int KEY_CARD_ID_LENGTH = 25;
-    private final int KEY_EXPIRY_TIME = 10000; // in ms
+    private final int KEY_EXPIRY_TIME = 60000; // in ms
 
     public KeyCardListener() {
         // Added for testing - Richard's access card

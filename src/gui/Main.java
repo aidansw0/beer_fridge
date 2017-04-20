@@ -27,6 +27,7 @@ public class Main extends Application {
     private final DataManager dataManager = new DataManager(beerKeg);
     private final VoteManager voteManager = new VoteManager();
     private final KeyCardListener keyCardListener = new KeyCardListener();
+    private final Label newBeerField = new Label();
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
 
@@ -113,7 +114,6 @@ public class Main extends Application {
         Text beerDisplay = new Text(voteManager.getCurrentBeer());
         Text votes = new Text(voteManager.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
-        TextField newBeerField = new TextField();
         Button addButton = new Button();
 
         // Import images
@@ -124,7 +124,8 @@ public class Main extends Application {
         ImageView plusimg = importImage("img/add.png",30);
 
         newBeerField.getStyleClass().add("new-beer-field");
-        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,newBeerField,votingFrame));
+        newBeerField.setPrefWidth(715);
+        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
@@ -134,7 +135,7 @@ public class Main extends Application {
                 toggleKeyboard();
             }
             else if (keyCardListener.checkKeyValidReadOnly()) {
-                newBeerField.clear();
+                newBeerField.setText(" ");
                 votingFrame.setBottom(newBeerField);
                 newBeerField.requestFocus();
                 toggleKeyboard();
@@ -249,7 +250,7 @@ public class Main extends Application {
     }
 
     private void createKeyboardPopUp () {
-        VirtualKeyboard vkb = new VirtualKeyboard();
+        VirtualKeyboard vkb = new VirtualKeyboard(newBeerField);
         Node keys = vkb.view();
 
         keyboardFrame = new BorderPane();
@@ -272,35 +273,35 @@ public class Main extends Application {
         }
     }
 
-    private void keyboardEvents(KeyEvent event, TextField textField, BorderPane frame) {
+    private void keyboardEvents(KeyEvent event, BorderPane frame) {
         switch (event.getCode()) {
             case ENTER:
-                if (!textField.getText().isEmpty()) {
+                if (!newBeerField.getText().isEmpty()) {
                     if (keyCardListener.checkKeyValidReadOnly()) {
-                        if (voteManager.addBeer(textField.getText(), 0)) {
+                        if (voteManager.addBeer(newBeerField.getText(), 0)) {
                             keyCardListener.checkKeyValid();
                             frame.setBottom(voteManager.getPollChart());
                             toggleKeyboard();
                         }
-                        textField.clear();
+                        newBeerField.setText(" ");
                     }
                     // Access has expired
                     else {
                         frame.setBottom(voteManager.getPollChart());
                         toggleKeyboard();
-                        textField.clear();
+                        newBeerField.setText(" ");
                     }
                 }
                 break;
 
             case ESCAPE:
-                textField.clear();
+                newBeerField.setText(" ");
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
                 break;
 
             case SLASH:
-                textField.clear();
+                newBeerField.setText(" ");
                 break;
         }
     }
