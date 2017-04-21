@@ -214,7 +214,8 @@ public class VoteManager {
         }
 
         likeButton.setOnAction(event -> {
-            if (saveData.isDataReady() && keyCardListener.checkKeyValid()) {
+            if (saveData.isDataReady() && keyCardListener.checkKeyNotUsed()) {
+                listener.registerVote();
                 String beerToUpvote = beerTypes.get(currentBeer);
                 beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
                 likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");

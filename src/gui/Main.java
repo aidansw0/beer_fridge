@@ -127,14 +127,14 @@ public class Main extends Application {
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setPrefWidth(715);
         newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
-        newBeerField.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
+        newBeerField.disableProperty().bind(keyCardListener.adminVerifiedProperty().not());
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
-        addButton.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
+        addButton.disableProperty().bind(keyCardListener.adminVerifiedProperty().not());
         addButton.setOnAction(event -> {
             if (keyboardOn) {
-                keyCardListener.checkKeyValid();
+                keyCardListener.checkAdminValid();
                 votingFrame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
             }
@@ -155,13 +155,13 @@ public class Main extends Application {
         Button left = voteManager.createLeftButton(beerDisplay,navleft);
         Button right = voteManager.createRightButton(beerDisplay,navright);
         Button like = voteManager.createLikeButton(votes,thumb,keyCardListener);
-        like.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
+        like.disableProperty().bind(keyCardListener.keyNotUsedProperty().not());
 
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
         pressToVote.getStyleClass().add("press-to-vote");
         pleaseScanCard.getStyleClass().add("votes-display");
-        pleaseScanCard.visibleProperty().bind(keyCardListener.keyVerifiedProperty().not());
+        pleaseScanCard.textProperty().bind(keyCardListener.getHintText());
 
         votingFrame.getStyleClass().addAll("all-frames","voting-frame");
         votingFrame.setPrefSize(715,150);
@@ -208,7 +208,7 @@ public class Main extends Application {
 
     private void createFooterFrame() {
         footerFrame = new BorderPane();
-        Label currentKeg = new Label("Steamworks IPA");
+        Label currentKeg = new Label("Steamworks Kolsch");
 
         // Import images
         ImageView footerheader = importImage("img/footerheader.png",53);
@@ -289,9 +289,9 @@ public class Main extends Application {
         switch (event.getCode()) {
             case ENTER:
                 if (!newBeerField.getText().isEmpty()) {
-                    if (keyCardListener.checkKeyValidReadOnly()) {
+                    if (keyCardListener.checkKeyNotUsedReadOnly()) {
                         if (voteManager.addBeer(newBeerField.getText(), 0)) {
-                            keyCardListener.checkKeyValid();
+                            keyCardListener.checkKeyNotUsed();
                             frame.setBottom(voteManager.getPollChart());
                             toggleKeyboard();
                         }
@@ -308,7 +308,7 @@ public class Main extends Application {
 
             case ESCAPE:
                 newBeerField.setText("");
-                keyCardListener.checkKeyValid();
+                keyCardListener.checkKeyNotUsed();
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
                 break;
