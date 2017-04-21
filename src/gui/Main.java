@@ -5,6 +5,7 @@ import backend.VirtualKeyboard;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
@@ -17,6 +18,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
+import javafx.stage.StageStyle;
 
 public class Main extends Application {
 
@@ -112,6 +114,7 @@ public class Main extends Application {
         Text beerDisplay = new Text(voteManager.getCurrentBeer());
         Text votes = new Text(voteManager.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
+        Text pleaseScanCard = new Text ("Please scan card ...");
         Button addButton = new Button();
 
         // Import images
@@ -145,6 +148,7 @@ public class Main extends Application {
 
         votingHeader.getChildren().add(votingheaderimg);
         votingHeader.getChildren().add(addButton);
+        votingHeader.getChildren().add(pleaseScanCard);
         StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
         StackPane.setMargin(addButton, new Insets(0,15,0,0));
 
@@ -156,6 +160,8 @@ public class Main extends Application {
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
         pressToVote.getStyleClass().add("press-to-vote");
+        pleaseScanCard.getStyleClass().add("votes-display");
+        pleaseScanCard.visibleProperty().bind(keyCardListener.keyVerifiedProperty().not());
 
         votingFrame.getStyleClass().addAll("all-frames","voting-frame");
         votingFrame.setPrefSize(715,150);
@@ -246,10 +252,10 @@ public class Main extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-//        scene.setCursor(Cursor.NONE);
-        window.setMaxWidth(1280);
-        window.setMaxHeight(1024);
-//        window.initStyle(StageStyle.UNDECORATED);
+        scene.setCursor(Cursor.NONE);
+        window.initStyle(StageStyle.UNDECORATED);
+//        window.setMaxWidth(1280);
+//        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();
@@ -282,9 +288,7 @@ public class Main extends Application {
     private void keyboardEvents(KeyEvent event, BorderPane frame) {
         switch (event.getCode()) {
             case ENTER:
-                System.out.println("Enter");
                 if (!newBeerField.getText().isEmpty()) {
-                    System.out.println("Entered");
                     if (keyCardListener.checkKeyValidReadOnly()) {
                         if (voteManager.addBeer(newBeerField.getText(), 0)) {
                             keyCardListener.checkKeyValid();
