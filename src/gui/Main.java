@@ -8,7 +8,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
@@ -27,6 +26,7 @@ public class Main extends Application {
     private final DataManager dataManager = new DataManager(beerKeg);
     private final VoteManager voteManager = new VoteManager();
     private final KeyCardListener keyCardListener = new KeyCardListener();
+    private final Label newBeerField = new Label();
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
 
@@ -49,6 +49,7 @@ public class Main extends Application {
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
 
         primaryStage.setOnCloseRequest(event -> {
+                voteManager.saveToFile();
                 Platform.exit();
                 System.exit(0);
         });
@@ -113,7 +114,7 @@ public class Main extends Application {
         Text beerDisplay = new Text(voteManager.getCurrentBeer());
         Text votes = new Text(voteManager.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
-        TextField newBeerField = new TextField();
+        Text pleaseScanCard = new Text ("Please scan card ...");
         Button addButton = new Button();
 
         // Import images
@@ -124,17 +125,21 @@ public class Main extends Application {
         ImageView plusimg = importImage("img/add.png",30);
 
         newBeerField.getStyleClass().add("new-beer-field");
-        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,newBeerField,votingFrame));
+        newBeerField.setPrefWidth(715);
+        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
+        newBeerField.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
+        addButton.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
         addButton.setOnAction(event -> {
             if (keyboardOn) {
+                keyCardListener.checkKeyValid();
                 votingFrame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
             }
-            else if (keyCardListener.checkKeyValidReadOnly()) {
-                newBeerField.clear();
+            else {
+                newBeerField.setText("");
                 votingFrame.setBottom(newBeerField);
                 newBeerField.requestFocus();
                 toggleKeyboard();
@@ -143,16 +148,20 @@ public class Main extends Application {
 
         votingHeader.getChildren().add(votingheaderimg);
         votingHeader.getChildren().add(addButton);
+        votingHeader.getChildren().add(pleaseScanCard);
         StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
         StackPane.setMargin(addButton, new Insets(0,15,0,0));
 
         Button left = voteManager.createLeftButton(beerDisplay,navleft);
         Button right = voteManager.createRightButton(beerDisplay,navright);
         Button like = voteManager.createLikeButton(votes,thumb,keyCardListener);
+        like.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
 
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
         pressToVote.getStyleClass().add("press-to-vote");
+        pleaseScanCard.getStyleClass().add("votes-display");
+        pleaseScanCard.visibleProperty().bind(keyCardListener.keyVerifiedProperty().not());
 
         votingFrame.getStyleClass().addAll("all-frames","voting-frame");
         votingFrame.setPrefSize(715,150);
@@ -242,14 +251,18 @@ public class Main extends Application {
         scene.getStylesheets().add("css/linechart.css");
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
-//        scene.setCursor(Cursor.NONE);
-//        window.initStyle(StageStyle.UNDECORATED);
+
+        scene.setCursor(Cursor.NONE);
+        window.initStyle(StageStyle.UNDECORATED);
+//        window.setMaxWidth(1280);
+//        window.setMaxHeight(1024);
+
         window.setScene(scene);
         window.show();
     }
 
     private void createKeyboardPopUp () {
-        VirtualKeyboard vkb = new VirtualKeyboard();
+        VirtualKeyboard vkb = new VirtualKeyboard(newBeerField);
         Node keys = vkb.view();
 
         keyboardFrame = new BorderPane();
@@ -272,35 +285,32 @@ public class Main extends Application {
         }
     }
 
-    private void keyboardEvents(KeyEvent event, TextField textField, BorderPane frame) {
+    private void keyboardEvents(KeyEvent event, BorderPane frame) {
         switch (event.getCode()) {
             case ENTER:
-                if (!textField.getText().isEmpty()) {
+                if (!newBeerField.getText().isEmpty()) {
                     if (keyCardListener.checkKeyValidReadOnly()) {
-                        if (voteManager.addBeer(textField.getText(), 0)) {
+                        if (voteManager.addBeer(newBeerField.getText(), 0)) {
                             keyCardListener.checkKeyValid();
                             frame.setBottom(voteManager.getPollChart());
                             toggleKeyboard();
                         }
-                        textField.clear();
+                        newBeerField.setText("");
                     }
                     // Access has expired
                     else {
                         frame.setBottom(voteManager.getPollChart());
                         toggleKeyboard();
-                        textField.clear();
+                        newBeerField.setText("");
                     }
                 }
                 break;
 
             case ESCAPE:
-                textField.clear();
+                newBeerField.setText("");
+                keyCardListener.checkKeyValid();
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
-                break;
-
-            case SLASH:
-                textField.clear();
                 break;
         }
     }

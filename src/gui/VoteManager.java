@@ -7,8 +7,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -287,8 +285,18 @@ public class VoteManager {
             // Shift charts, must update all elements in chart
             updatePollChart(currentBeer,true);
 
+            if (beerVotesBar.size() <= MAX_BEERS_DISPLAYED) {
+                if (newIndex == 0) {
+                    beerVotesBar.get(beerVotesBar.size() - 1).setFill(UNSELECTED);
+                    beerVotesBar.get(0).setFill(SELECTED);
+                }
+                else {
+                    beerVotesBar.get(0).setFill(UNSELECTED);
+                    beerVotesBar.get(beerVotesBar.size() - 1).setFill(SELECTED);
+                }
+            }
             // Swap highlighted element from last to first
-            if (lowestIndexed == 0) {
+            else if (lowestIndexed == 0) {
                 beerVotesBar.get(beerVotesBar.size() - 1).setFill(UNSELECTED);
                 beerVotesBar.get(0).setFill(SELECTED);
             }
