@@ -5,7 +5,6 @@ import backend.VirtualKeyboard;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
@@ -18,7 +17,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.control.Label;
-import javafx.stage.StageStyle;
 
 public class Main extends Application {
 
@@ -129,13 +127,15 @@ public class Main extends Application {
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
+        addButton.disableProperty().bind(keyCardListener.keyNotVerifiedProperty());
         addButton.setOnAction(event -> {
             if (keyboardOn) {
+                keyCardListener.checkKeyValid();
                 votingFrame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
             }
-            else if (keyCardListener.checkKeyValidReadOnly()) {
-                newBeerField.setText(" ");
+            else {
+                newBeerField.setText("");
                 votingFrame.setBottom(newBeerField);
                 newBeerField.requestFocus();
                 toggleKeyboard();
@@ -150,6 +150,7 @@ public class Main extends Application {
         Button left = voteManager.createLeftButton(beerDisplay,navleft);
         Button right = voteManager.createRightButton(beerDisplay,navright);
         Button like = voteManager.createLikeButton(votes,thumb,keyCardListener);
+        like.disableProperty().bind(keyCardListener.keyNotVerifiedProperty());
 
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
@@ -243,8 +244,12 @@ public class Main extends Application {
         scene.getStylesheets().add("css/linechart.css");
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
+
 //        scene.setCursor(Cursor.NONE);
+        window.setMaxWidth(1280);
+        window.setMaxHeight(1024);
 //        window.initStyle(StageStyle.UNDECORATED);
+
         window.setScene(scene);
         window.show();
     }
@@ -283,19 +288,20 @@ public class Main extends Application {
                             frame.setBottom(voteManager.getPollChart());
                             toggleKeyboard();
                         }
-                        newBeerField.setText(" ");
+                        newBeerField.setText("");
                     }
                     // Access has expired
                     else {
                         frame.setBottom(voteManager.getPollChart());
                         toggleKeyboard();
-                        newBeerField.setText(" ");
+                        newBeerField.setText("");
                     }
                 }
                 break;
 
             case ESCAPE:
-                newBeerField.setText(" ");
+                newBeerField.setText("");
+                keyCardListener.checkKeyValid();
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
                 break;

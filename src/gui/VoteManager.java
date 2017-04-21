@@ -287,8 +287,18 @@ public class VoteManager {
             // Shift charts, must update all elements in chart
             updatePollChart(currentBeer,true);
 
+            if (beerVotesBar.size() <= MAX_BEERS_DISPLAYED) {
+                if (newIndex == 0) {
+                    beerVotesBar.get(beerVotesBar.size() - 1).setFill(UNSELECTED);
+                    beerVotesBar.get(0).setFill(SELECTED);
+                }
+                else {
+                    beerVotesBar.get(0).setFill(UNSELECTED);
+                    beerVotesBar.get(beerVotesBar.size() - 1).setFill(SELECTED);
+                }
+            }
             // Swap highlighted element from last to first
-            if (lowestIndexed == 0) {
+            else if (lowestIndexed == 0) {
                 beerVotesBar.get(beerVotesBar.size() - 1).setFill(UNSELECTED);
                 beerVotesBar.get(0).setFill(SELECTED);
             }

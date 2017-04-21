@@ -174,6 +174,9 @@ public class VirtualKeyboard {
                                     modifiers.shift.setSelected(false);
                                 }
                             }
+                            else {
+                                modifiers.shift.setSelected(true);
+                            }
                         }
                         else {
                             modifiers.shift.setSelected(true);
