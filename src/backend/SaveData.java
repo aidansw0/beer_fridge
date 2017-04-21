@@ -110,17 +110,17 @@ public class SaveData {
         }
         
         if (!checkFileExists(fullRFIDFilePath)) {
-            createFileInDataDirectory(RFID_FILE);
+            createFileInDataDirectory(RFID_FILE); 
             try {
                 writeBufferToFile();
-            } catch (JSONException | IOException e) {
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 userDataReady = false;
             }
         } else {
             loadIntoBuffer();
         }
-
+       
     }
 
     /**
@@ -165,9 +165,10 @@ public class SaveData {
 
                 for (String userID : userData.keySet()) {
                     JSONObject user = new JSONObject();
-                    user.put("ID", userID);
+                    user.put("id", userID);
                     user.put("admin", userData.get(userID).isAdmin());
                     user.put("voted", userData.get(userID).hasVoted());
+                    dataArray.put(user);
                 }
 
                 jsonFile.put("users", dataArray);
@@ -190,9 +191,10 @@ public class SaveData {
 
                 for (String userID : userData.keySet()) {
                     JSONObject user = new JSONObject();
-                    user.put("ID", userID);
+                    user.put("id", userID);
                     user.put("admin", userData.get(userID).isAdmin());
                     user.put("voted", userData.get(userID).hasVoted());
+                    dataArray.put(user);
                 }
 
                 jsonFile.put("users", dataArray);
@@ -209,30 +211,28 @@ public class SaveData {
     }
 
     public void loadIntoBuffer() {
-
+        
         try {
             String jsonString = readFileToString(fullRFIDFilePath);
             if (jsonString == null) {
                 userDataReady = false;
                 return;
             }
-
+            
             userDataReady = false;
-
+            
             JSONObject obj = (JSONObject) new JSONTokener(jsonString).nextValue();
             JSONArray users = obj.getJSONArray("users");
-
+            
             for (int i = 0; i < users.length(); i++) {
                 JSONObject user = users.getJSONObject(i);
                 boolean admin = user.getBoolean("admin");
                 boolean voted = user.getBoolean("voted");
                 userData.put(user.getString("id"), new UserFlags(admin, voted));
-                userDataReady = true;
             }
-
+            
         } catch (IOException | JSONException e) {
             e.printStackTrace();
-            userDataReady = false;
         }
     }
 
@@ -247,7 +247,7 @@ public class SaveData {
         }
 
         byte[] encryptedBytes = Base64.getEncoder().encode(ciphertext);
-        System.out.println("encrypted: " + new String(encryptedBytes));
+        //System.out.println(new String(encryptedBytes));
         return new String(encryptedBytes);
 
     }
@@ -321,15 +321,14 @@ public class SaveData {
     private void readJSONData() {
 
         try {
-
             String jsonString = readFileToString(fullJSONFilePath);
             if (jsonString == null) {
                 beerDataReady = false;
                 return;
             }
-
+            
             beerDataReady = false;
-
+            
             JSONObject obj = (JSONObject) new JSONTokener(jsonString).nextValue();
             JSONArray jsonBeers = obj.getJSONArray("beers");
 
@@ -366,6 +365,7 @@ public class SaveData {
             file.getParentFile().mkdirs();
             file.createNewFile();
         } catch (IOException e) {
+            System.out.println(file.getAbsolutePath());
             e.printStackTrace();
         }
     }
@@ -404,20 +404,20 @@ public class SaveData {
         StringBuilder fileText = new StringBuilder();
         BufferedReader reader;
 
-        reader = new BufferedReader(new FileReader(filePath));
-        String line = reader.readLine();
+            reader = new BufferedReader(new FileReader(filePath));
+            String line = reader.readLine();
 
-        if (line == null) {
+            if (line == null) {
+                reader.close();
+                return null;
+            }
+
+            while (line != null) {
+                fileText.append(line);
+                line = reader.readLine();
+            }
+            
             reader.close();
-            return null;
-        }
-
-        while (line != null) {
-            fileText.append(line);
-            line = reader.readLine();
-        }
-
-        reader.close();
 
         return fileText.toString();
     }
@@ -426,11 +426,11 @@ public class SaveData {
         createFileInDataDirectory(SALT_FILE);
         SecureRandom secureRandom = new SecureRandom();
         SALT = secureRandom.generateSeed(8);
-        try {
-            System.out.println("write: " + new String(SALT, "UTF-8"));
-        } catch (UnsupportedEncodingException e1) {
-            e1.printStackTrace();
-        }
+//        try {
+//            System.out.println("write: " + new String(SALT, "UTF-8"));
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
 
         try {
             FileOutputStream fos = new FileOutputStream(fullSALTPath);
@@ -454,10 +454,10 @@ public class SaveData {
             e.printStackTrace();
         }
 
-        try {
-            System.out.println("read: " + new String(SALT, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            System.out.println("read: " + new String(SALT, "UTF-8"));
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
     }
 }
