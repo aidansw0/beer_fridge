@@ -124,10 +124,11 @@ public class Main extends Application {
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setPrefWidth(715);
         newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
+        newBeerField.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
-        addButton.disableProperty().bind(keyCardListener.keyNotVerifiedProperty());
+        addButton.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
         addButton.setOnAction(event -> {
             if (keyboardOn) {
                 keyCardListener.checkKeyValid();
@@ -150,7 +151,7 @@ public class Main extends Application {
         Button left = voteManager.createLeftButton(beerDisplay,navleft);
         Button right = voteManager.createRightButton(beerDisplay,navright);
         Button like = voteManager.createLikeButton(votes,thumb,keyCardListener);
-        like.disableProperty().bind(keyCardListener.keyNotVerifiedProperty());
+        like.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
 
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
@@ -281,7 +282,9 @@ public class Main extends Application {
     private void keyboardEvents(KeyEvent event, BorderPane frame) {
         switch (event.getCode()) {
             case ENTER:
+                System.out.println("Enter");
                 if (!newBeerField.getText().isEmpty()) {
+                    System.out.println("Entered");
                     if (keyCardListener.checkKeyValidReadOnly()) {
                         if (voteManager.addBeer(newBeerField.getText(), 0)) {
                             keyCardListener.checkKeyValid();

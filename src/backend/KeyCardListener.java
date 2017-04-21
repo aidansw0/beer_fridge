@@ -22,7 +22,7 @@ public class KeyCardListener {
     private final Timer timer = new Timer();
 
     private String readInput = "";
-    private final ReadOnlyBooleanWrapper keyNotVerified;
+    private final ReadOnlyBooleanWrapper keyVerified;
 
     private final int KEY_CARD_ID_LENGTH = 25;
     private final int KEY_EXPIRY_TIME = 60000; // in ms
@@ -31,17 +31,17 @@ public class KeyCardListener {
         // Added for testing - Richard's access card
         keyCardID.add("0000000000000000708C14057");
 
-        keyNotVerified = new ReadOnlyBooleanWrapper();
-        keyNotVerified.set(true);
+        keyVerified = new ReadOnlyBooleanWrapper();
+        keyVerified.set(false);
     }
 
-    public ReadOnlyBooleanProperty keyNotVerifiedProperty() { return keyNotVerified.getReadOnlyProperty(); }
+    public ReadOnlyBooleanProperty keyVerifiedProperty() { return keyVerified.getReadOnlyProperty(); }
 
     /**
      * @return Returns true if key card was verified but does not toggle the variable
      */
     public boolean checkKeyValidReadOnly() {
-        if (!keyNotVerified.get()) {
+        if (keyVerified.get()) {
             return true;
         }
         else {
@@ -53,8 +53,8 @@ public class KeyCardListener {
      * @return Returns true if key card was verified and toggles to false
      */
     public boolean checkKeyValid() {
-        if (!keyNotVerified.get()) {
-            keyNotVerified.set(true);
+        if (keyVerified.get()) {
+            keyVerified.set(false);
             return true;
         }
         else {
@@ -73,14 +73,14 @@ public class KeyCardListener {
             String keyCardRead = readInput.substring(readInput.length()-KEY_CARD_ID_LENGTH);
 
             if (keyCardID.contains(keyCardRead)) {
-                timer.schedule(new ExpireAccess(keyNotVerified),KEY_EXPIRY_TIME);
+                timer.schedule(new ExpireAccess(keyVerified),KEY_EXPIRY_TIME);
 
                 System.out.print("Key Found: ");
-                keyNotVerified.set(false);
+                keyVerified.set(true);
             }
             else {
                 System.out.print("Key NOT found: ");
-                keyNotVerified.set(true);
+                keyVerified.set(false);
             }
 
             System.out.println(keyCardRead);
@@ -102,6 +102,6 @@ class ExpireAccess extends TimerTask {
 
     @Override
     public void run() {
-        disableAccess.set(true);
+        disableAccess.set(false);
     }
 }
