@@ -55,7 +55,7 @@ public class VoteManager {
      */
     public String getCurrentBeer() {
         String retval = " ";
-        if (saveData.isDataReady()) {
+        if (saveData.isBeerDataReady()) {
             retval = beerTypes.get(currentBeer);
         }
         return retval;
@@ -66,7 +66,7 @@ public class VoteManager {
      */
     public String getCurrentVotes() {
         String retval = " ";
-        if (saveData.isDataReady()) {
+        if (saveData.isBeerDataReady()) {
             retval = beerTypeLikes.get(beerTypes.get(currentBeer)).toString();
         }
         return retval;
@@ -217,7 +217,7 @@ public class VoteManager {
 
             @Override
             public void handle(ActionEvent event) {
-                if (saveData.isDataReady()) {
+                if (saveData.isBeerDataReady()) {
                     String beerToUpvote = beerTypes.get(currentBeer);
                     beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
                     likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
@@ -265,7 +265,7 @@ public class VoteManager {
         }
 
         // Highlight the current element
-        if (saveData.isDataReady()) {
+        if (saveData.isBeerDataReady()) {
             beerVotesBar.get(currentBeer).setFill(SELECTED);
         }
 
