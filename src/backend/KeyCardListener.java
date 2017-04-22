@@ -136,7 +136,7 @@ public class KeyCardListener {
                 // New card
                 else {
                     System.out.print("New Vote: ");
-                    cardHintText.set("New Vote");
+                    cardHintText.set("Press Thumb to Vote");
                     newCardBuffer = keyCardRead;
                     keyVerified.set(false);
                     keyNotDuplicate.set(true);
@@ -152,7 +152,7 @@ public class KeyCardListener {
         }
         else {
             if (!newAttempt.get()) {
-                timer.schedule(new ExpireAttempt(newAttempt,cardHintText,keyVerified), ATTEMPT_EXPIRY_TIME);
+                timer.schedule(new ExpireAttempt(newAttempt,cardHintText,keyVerified,keyNotDuplicate), ATTEMPT_EXPIRY_TIME);
                 readInput = "";
             }
 
@@ -188,18 +188,19 @@ class ExpireAttempt extends TimerTask {
     private ReadOnlyBooleanWrapper newAttempt;
     private SimpleStringProperty cardHintText;
     private ReadOnlyBooleanWrapper keyVerified;
+    private ReadOnlyBooleanWrapper keyNotDuplicate;
 
-    public ExpireAttempt(ReadOnlyBooleanWrapper newAttempt, SimpleStringProperty cardHintText, ReadOnlyBooleanWrapper keyVerified) {
+    public ExpireAttempt(ReadOnlyBooleanWrapper newAttempt, SimpleStringProperty cardHintText, ReadOnlyBooleanWrapper keyVerified, ReadOnlyBooleanWrapper keyNotDuplicate) {
         this.newAttempt = newAttempt;
         this.cardHintText = cardHintText;
         this.keyVerified = keyVerified;
+        this.keyNotDuplicate = keyNotDuplicate;
     }
 
     @Override
     public void run() {
-        if (keyVerified.get()) {
+        if (keyVerified.get() || keyNotDuplicate.get()) {
             newAttempt.set(false);
-//            cardHintText.set("Card Verified");
         }
         else {
             newAttempt.set(false);
