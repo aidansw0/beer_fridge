@@ -3,13 +3,17 @@ import backend.KegManager;
 import backend.KeyCardListener;
 import backend.VirtualKeyboard;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseDragEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -29,6 +33,8 @@ public class Main extends Application {
     private final Label newBeerField = new Label();
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
+
+    private double initial = 0;
 
     private boolean keyboardOn = false;
 
@@ -166,6 +172,26 @@ public class Main extends Application {
         votingFrame.getStyleClass().addAll("all-frames","voting-frame");
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);
+
+        votingFrame.onMousePressedProperty().set(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                event.setDragDetect(true);
+                initial = event.getX();
+            }
+        });
+
+        votingFrame.onMouseReleasedProperty().set(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getX() < initial - 100) {
+                    voteManager.swipeLeft();
+                }
+                else if (event.getX() > initial + 100){
+                    voteManager.swipeRight();
+                }
+            }
+        });
 
         navPane.setLeft(left);
         navPane.setRight(right);

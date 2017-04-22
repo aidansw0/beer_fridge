@@ -328,6 +328,30 @@ public class VoteManager {
         likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
     }
 
+    public void swipeLeft() {
+        if (beerTypes.size() > 1) {
+            if (currentBeer < beerTypes.size() - 1) {
+                goToElement(currentBeer + 1, false);
+            } else if (currentBeer == beerTypes.size() - 1) {
+                lowestIndexed = 0;
+                goToElement(0, true);
+            }
+        }
+    }
+
+    public void swipeRight() {
+        if (beerTypes.size() > 1) {
+            if (currentBeer > 0) {
+                goToElement(currentBeer - 1, false);
+            } else if (currentBeer == 0) {
+                if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
+                    lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
+                }
+                goToElement(beerTypes.size() - 1, true);
+            }
+        }
+    }
+
     /**
      * Updates the poll chart elements to its new heights.
      *
