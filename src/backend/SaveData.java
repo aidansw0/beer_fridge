@@ -13,8 +13,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.AlgorithmParameters;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +28,10 @@ import java.util.Map;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -50,9 +57,9 @@ public class SaveData {
     private final String RFID_FILE = "user_data.json";
     private final String SALT_FILE = "hac.bin"; // stores salt for encryption
 
-    private final String fullSALTPath;
-    private final String fullJSONFilePath;
-    private final String fullRFIDFilePath;
+    private final String fullSaltPath;
+    private final String fullJsonFilePath;
+    private final String fullRfidFilePath;
     // full paths for JSON_FILE and RFID_FILE to be stored (includes file name),
     // dependent on location of .jar file
 
@@ -60,33 +67,35 @@ public class SaveData {
     private final List<String> beers;
     private boolean beerDataReady = false;
 
+    // constants for encryption
     private final int KEY_DERIVATION_ITERATION = 65536;
     private final int KEY_SIZE = 128;
-
     private final char[] PASSWORD = { 'a', 'b' };
-    private byte[] SALT;// = new byte[KEY_SIZE];
+    private byte[] SALT;
     private Cipher cipher;
 
     private final Map<String, UserFlags> userData = new HashMap<String, UserFlags>();
     private boolean userDataReady = false;
 
-    public SaveData(Map<String, Integer> map, List<String> list) {
-        fullSALTPath = getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
+    SecretKey secretKey = null;
 
-        if (!checkFileExists(fullSALTPath)) {
+    public SaveData(Map<String, Integer> map, List<String> list) {
+        fullSaltPath = getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
+
+        if (!checkFileExists(fullSaltPath)) {
             writeSALT();
         } else {
             readSALT();
         }
 
+        // SecretKey secretKey = null;
+
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
             SecretKey tmpKey = factory.generateSecret(spec);
-            SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
-
-            cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
+            encryptCipher(secretKey);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,10 +103,10 @@ public class SaveData {
 
         beerRatings = map;
         beers = list;
-        fullJSONFilePath = getJarPath() + "data" + System.getProperty("file.separator") + JSON_FILE;
-        fullRFIDFilePath = getJarPath() + "data" + System.getProperty("file.separator") + RFID_FILE;
+        fullJsonFilePath = getJarPath() + "data" + System.getProperty("file.separator") + JSON_FILE;
+        fullRfidFilePath = getJarPath() + "data" + System.getProperty("file.separator") + RFID_FILE;
 
-        if (!checkFileExists(fullJSONFilePath)) {
+        if (!checkFileExists(fullJsonFilePath)) {
             createFileInDataDirectory(JSON_FILE);
             try {
                 writeData();
@@ -108,19 +117,47 @@ public class SaveData {
         } else {
             readJSONData();
         }
-        
-        if (!checkFileExists(fullRFIDFilePath)) {
-            createFileInDataDirectory(RFID_FILE); 
+
+        if (!checkFileExists(fullRfidFilePath)) {
+            createFileInDataDirectory(RFID_FILE);
             try {
                 writeBufferToFile();
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 userDataReady = false;
             }
+
         } else {
-            loadIntoBuffer();
+            loadIntoBuffer(secretKey);
         }
-       
+
+//         addUserToBuffer("user0");
+//        
+//         try {
+//         writeBufferToFile();
+//         } catch (IOException | JSONException e) {
+//         e.printStackTrace();
+//         }
+
+        encrypt("user0");
+        //System.out.println(userData.keySet().toString());
+    }
+
+    private void encryptCipher(SecretKey secretKey) throws Exception {
+//        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+//        KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
+
+        cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+    }
+
+    private void decryptCipher(SecretKey secretKey, byte[] iv) throws Exception {
+//        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+//        KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
+
+        cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
+
     }
 
     /**
@@ -140,12 +177,12 @@ public class SaveData {
 
     public void addUserToBuffer(String rfid) {
         if (!checkUserInBuffer(rfid)) {
-            userData.put(encrypt(rfid), new UserFlags(false, false));
+            userData.put(rfid, new UserFlags("", false, false));
         }
     }
 
     public boolean checkUserInBuffer(String rfid) {
-        return userData.keySet().contains(encrypt(rfid));
+        return userData.keySet().contains(rfid);
     }
 
     public boolean checkAdmin(String rfid) {
@@ -154,6 +191,24 @@ public class SaveData {
 
     public boolean checkVoted(String rfid) {
         return userData.get(encrypt(rfid)).hasVoted();
+    }
+
+    public void setAdmin(String user, boolean value) {
+        if (checkUserInBuffer(user)) {
+            userData.get(user).setAdmin(value);
+        } else {
+            String[] encryptedRFID = encrypt(user);
+            userData.put(encryptedRFID[0], new UserFlags(encryptedRFID[1], value, false));
+        }
+    }
+
+    public void setVoted(String user, boolean value) {
+        if (checkUserInBuffer(user)) {
+            userData.get(user).setVoted(value);
+        } else {
+            String[] encryptedRFID = encrypt(user);
+            userData.put(encryptedRFID[0], new UserFlags(encryptedRFID[1], false, value));
+        }
     }
 
     public void writeBufferToFile() throws IOException, JSONException {
@@ -165,14 +220,16 @@ public class SaveData {
 
                 for (String userID : userData.keySet()) {
                     JSONObject user = new JSONObject();
-                    user.put("id", userID);
+                    String[] encrypted = encrypt(userID);
+                    user.put("id", encrypted[0]);
+                    user.put("iv", encrypted[1]);
                     user.put("admin", userData.get(userID).isAdmin());
                     user.put("voted", userData.get(userID).hasVoted());
                     dataArray.put(user);
                 }
 
                 jsonFile.put("users", dataArray);
-                FileWriter writer = new FileWriter(fullRFIDFilePath);
+                FileWriter writer = new FileWriter(fullRfidFilePath);
                 writer.write(jsonFile.toString());
                 writer.flush();
                 writer.close();
@@ -191,14 +248,16 @@ public class SaveData {
 
                 for (String userID : userData.keySet()) {
                     JSONObject user = new JSONObject();
-                    user.put("id", userID);
+                    String[] encrypted = encrypt(userID);
+                    user.put("id", encrypted[0]);
+                    user.put("iv", encrypted[1]);
                     user.put("admin", userData.get(userID).isAdmin());
                     user.put("voted", userData.get(userID).hasVoted());
                     dataArray.put(user);
                 }
 
                 jsonFile.put("users", dataArray);
-                FileWriter writer = new FileWriter(fullRFIDFilePath);
+                FileWriter writer = new FileWriter(fullRfidFilePath);
                 writer.write(jsonFile.toString());
                 writer.flush();
                 writer.close();
@@ -210,46 +269,86 @@ public class SaveData {
         }
     }
 
-    public void loadIntoBuffer() {
-        
+    private void loadIntoBuffer(SecretKey key) {
+
         try {
-            String jsonString = readFileToString(fullRFIDFilePath);
+            String jsonString = readFileToString(fullRfidFilePath);
             if (jsonString == null) {
                 userDataReady = false;
                 return;
             }
-            
+
             userDataReady = false;
-            
+
             JSONObject obj = (JSONObject) new JSONTokener(jsonString).nextValue();
             JSONArray users = obj.getJSONArray("users");
-            
+
             for (int i = 0; i < users.length(); i++) {
                 JSONObject user = users.getJSONObject(i);
                 boolean admin = user.getBoolean("admin");
                 boolean voted = user.getBoolean("voted");
-                userData.put(user.getString("id"), new UserFlags(admin, voted));
+
+                String id = decrypt(user.getString("id"), user.getString("iv"), key);
+
+                userData.put(id, new UserFlags(user.getString("iv"), admin, voted));
             }
-            
+
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private String encrypt(String plainText) {
+    private String[] encrypt(String plainText) {
         byte[] ciphertext = null;
+        byte[] iv = null;
+        String[] encrypted = new String[2];
 
         try {
+            AlgorithmParameters params = cipher.getParameters();
+            iv = params.getParameterSpec(IvParameterSpec.class).getIV();
             ciphertext = cipher.doFinal(plainText.getBytes("UTF-8"));
 
-        } catch (IllegalBlockSizeException | BadPaddingException | UnsupportedEncodingException e) {
+        } catch (IllegalBlockSizeException | BadPaddingException | UnsupportedEncodingException
+                | InvalidParameterSpecException e) {
             e.printStackTrace();
         }
 
-        byte[] encryptedBytes = Base64.getEncoder().encode(ciphertext);
-        //System.out.println(new String(encryptedBytes));
-        return new String(encryptedBytes);
+        String cipherString = Base64.getEncoder().encodeToString(ciphertext);
+        String ivString = Base64.getEncoder().encodeToString(iv);
 
+        encrypted[0] = cipherString;
+        encrypted[1] = ivString;
+        
+        System.out.println("iv from encrypt: " + ivString);
+        System.out.println(Arrays.equals(Base64.getDecoder().decode(ivString.getBytes()), iv));
+
+        try {
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(Base64.getDecoder().decode(ivString.getBytes())));
+            String plain = new String(cipher.doFinal(Base64.getDecoder().decode(cipherString.getBytes())), "UTF-8");
+            System.out.println("here: " + plain);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return encrypted;
+
+    }
+
+    private String decrypt(String encrypted, String iv, SecretKey key) {
+        byte[] ivBytes = Base64.getDecoder().decode(iv.getBytes());
+        
+        System.out.println("iv from decrypt: " + iv);
+        System.out.println("iv length from decrypt(): " + ivBytes.length);
+        String decrypted = null;
+
+        try {
+            decryptCipher(key, ivBytes);
+            decrypted = new String(cipher.doFinal(Base64.getDecoder().decode(iv.getBytes())), "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("decrypted:  " + decrypted);
+        return decrypted;
     }
 
     /**
@@ -277,7 +376,7 @@ public class SaveData {
                 }
 
                 jsonToWrite.put("beers", jsonBeerList);
-                FileWriter writer = new FileWriter(fullJSONFilePath);
+                FileWriter writer = new FileWriter(fullJsonFilePath);
                 writer.write(jsonToWrite.toString());
                 writer.flush();
                 writer.close();
@@ -301,7 +400,7 @@ public class SaveData {
                 }
 
                 jsonToWrite.put("beers", jsonBeerList);
-                FileWriter writer = new FileWriter(fullJSONFilePath);
+                FileWriter writer = new FileWriter(fullJsonFilePath);
                 writer.write(jsonToWrite.toString());
                 writer.close();
 
@@ -321,14 +420,14 @@ public class SaveData {
     private void readJSONData() {
 
         try {
-            String jsonString = readFileToString(fullJSONFilePath);
+            String jsonString = readFileToString(fullJsonFilePath);
             if (jsonString == null) {
                 beerDataReady = false;
                 return;
             }
-            
+
             beerDataReady = false;
-            
+
             JSONObject obj = (JSONObject) new JSONTokener(jsonString).nextValue();
             JSONArray jsonBeers = obj.getJSONArray("beers");
 
@@ -365,7 +464,6 @@ public class SaveData {
             file.getParentFile().mkdirs();
             file.createNewFile();
         } catch (IOException e) {
-            System.out.println(file.getAbsolutePath());
             e.printStackTrace();
         }
     }
@@ -404,20 +502,20 @@ public class SaveData {
         StringBuilder fileText = new StringBuilder();
         BufferedReader reader;
 
-            reader = new BufferedReader(new FileReader(filePath));
-            String line = reader.readLine();
+        reader = new BufferedReader(new FileReader(filePath));
+        String line = reader.readLine();
 
-            if (line == null) {
-                reader.close();
-                return null;
-            }
-
-            while (line != null) {
-                fileText.append(line);
-                line = reader.readLine();
-            }
-            
+        if (line == null) {
             reader.close();
+            return null;
+        }
+
+        while (line != null) {
+            fileText.append(line);
+            line = reader.readLine();
+        }
+
+        reader.close();
 
         return fileText.toString();
     }
@@ -426,14 +524,14 @@ public class SaveData {
         createFileInDataDirectory(SALT_FILE);
         SecureRandom secureRandom = new SecureRandom();
         SALT = secureRandom.generateSeed(8);
-//        try {
-//            System.out.println("write: " + new String(SALT, "UTF-8"));
-//        } catch (UnsupportedEncodingException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            System.out.println("write: " + new String(SALT, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
 
         try {
-            FileOutputStream fos = new FileOutputStream(fullSALTPath);
+            FileOutputStream fos = new FileOutputStream(fullSaltPath);
             fos.write(SALT);
             fos.flush();
             fos.close();
@@ -443,21 +541,21 @@ public class SaveData {
     }
 
     private void readSALT() {
-        File saltFile = new File(fullSALTPath);
+        File saltFile = new File(fullSaltPath);
         SALT = new byte[(int) saltFile.length()];
 
         try {
-            FileInputStream fis = new FileInputStream(fullSALTPath);
+            FileInputStream fis = new FileInputStream(fullSaltPath);
             fis.read(SALT);
             fis.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-//        try {
-//            System.out.println("read: " + new String(SALT, "UTF-8"));
-//        } catch (UnsupportedEncodingException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            System.out.println("read: " + new String(SALT, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 }

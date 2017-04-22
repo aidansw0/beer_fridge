@@ -2,12 +2,18 @@ package backend;
 
 public class UserFlags {
     
+    private final String iv;
     private boolean admin;
     private boolean voted;
     
-    public UserFlags(boolean admin, boolean voted) {
+    public UserFlags(String iv, boolean admin, boolean voted) {
+        this.iv = iv;
         this.admin = admin;
         this.voted = voted;
+    }
+    
+    public String getIV() {
+        return iv;
     }
     
     public void setAdmin(boolean value) {
