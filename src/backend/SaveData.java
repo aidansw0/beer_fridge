@@ -1,10 +1,8 @@
 package backend;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -13,13 +11,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.AlgorithmParameters;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -53,14 +51,15 @@ import org.json.JSONTokener;
  */
 public class SaveData {
 
-    private final String JSON_FILE = "beer_data.json";
-    private final String RFID_FILE = "user_data.json";
-    private final String SALT_FILE = "hac.bin"; // stores salt for encryption
+    private static final String BEER_FILE = "beer_data.json";
+    private static final String USER_FILE = "user_data.json";
+    private static final String SALT_FILE = "hac.bin"; // stores salt for
+                                                       // encryption
 
     private final String fullSaltPath;
-    private final String fullJsonFilePath;
-    private final String fullRfidFilePath;
-    // full paths for JSON_FILE and RFID_FILE to be stored (includes file name),
+    private final String fullBeerFilePath;
+    private final String fullUserFilePath;
+    // full paths for BEER_FILE and USER_FILE to be stored (includes file name),
     // dependent on location of .jar file
 
     private final Map<String, Integer> beerRatings;
@@ -68,145 +67,210 @@ public class SaveData {
     private boolean beerDataReady = false;
 
     // constants for encryption
-    private final int KEY_DERIVATION_ITERATION = 65536;
-    private final int KEY_SIZE = 128;
-    private final char[] PASSWORD = { 'a', 'b' };
-    private byte[] SALT;// = {0, 0, 0, 0, 0, 0, 0, 0};
+    private static final int KEY_DERIVATION_ITERATION = 65536;
+    private static final int KEY_SIZE = 128;
+    private static final char[] PASSWORD = { 'z', 'e', 'r', 'o', 'c', 'l', 'i', 'e', 'n', 't' };
+    private static byte[] SALT;
     private Cipher cipher;
 
     private final Map<String, UserFlags> userData = new HashMap<String, UserFlags>();
     private boolean userDataReady = false;
 
-    // SecretKey secretKey = null;
-
+    /**
+     * Assigns path names for data files and loads beer and user information
+     * into memory if available.
+     * 
+     * @param map,
+     *            Map<String, Integer> containing beer rating information.
+     *            map.keySet() should contain the exact same elements as list.
+     * @param list,
+     *            List<String> containing a list of Beers. Should not contain
+     *            duplicate beers and should contain the exact same elements as
+     *            map.keySet();
+     */
     public SaveData(Map<String, Integer> map, List<String> list) {
-        System.out.println("new SaveData instance created");
         fullSaltPath = getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
+        fullBeerFilePath = getJarPath() + "data" + System.getProperty("file.separator") + BEER_FILE;
+        fullUserFilePath = getJarPath() + "data" + System.getProperty("file.separator") + USER_FILE;
 
+        beerRatings = map;
+        beers = list;
+
+        try {
+            cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e1) {
+            e1.printStackTrace();
+        }
+        
         if (!checkFileExists(fullSaltPath)) {
             writeSALT();
         } else {
             readSALT();
         }
 
-        SecretKey secretKey = null;
-
-        try {
-            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
-            SecretKey tmpKey = factory.generateSecret(spec);
-            secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
-            cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        beerRatings = map;
-        beers = list;
-        fullJsonFilePath = getJarPath() + "data" + System.getProperty("file.separator") + JSON_FILE;
-        fullRfidFilePath = getJarPath() + "data" + System.getProperty("file.separator") + RFID_FILE;
-
-        if (!checkFileExists(fullJsonFilePath)) {
-            createFileInDataDirectory(JSON_FILE);
+        if (!checkFileExists(fullBeerFilePath)) {
+            createFileInDataDirectory(BEER_FILE);
             try {
-                writeData();
+                writeBeerData();
             } catch (JSONException | IOException e) {
                 e.printStackTrace();
                 beerDataReady = false;
             }
         } else {
-            readJSONData();
+            readBeerData();
         }
 
-        if (!checkFileExists(fullRfidFilePath)) {
-            createFileInDataDirectory(RFID_FILE);
+        if (!checkFileExists(fullUserFilePath)) {
+            createFileInDataDirectory(USER_FILE);
             try {
-                encryptCipher(secretKey);
-                writeBufferToFile();
+                writeUsersToFile();
             } catch (Exception e) {
                 e.printStackTrace();
                 userDataReady = false;
             }
 
         } else {
-            loadIntoBuffer(secretKey);
+            readUsersFromFile();
         }
-
-        // addUserToBuffer("user0");
-        //
-        // try {
-        // writeBufferToFile();
-        // } catch (IOException | JSONException e) {
-        // e.printStackTrace();
-        // }
-
-        // encrypt("user0");
-        // System.out.println(userData.keySet().toString());
     }
 
-    private void encryptCipher(SecretKey ket) throws Exception {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
-        SecretKey tmpKey = factory.generateSecret(spec);
-        SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+    /**
+     * Sets the cipher into encryption mode. Once set the cipher may be used to
+     * encrypt as many items as needed.
+     */
+    private void setCipherEncrypt() {
+        try {
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
+            SecretKey tmpKey = factory.generateSecret(spec);
+            SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            
+        } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void decryptCipher(SecretKey ey, byte[] iv) throws Exception {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
-        SecretKey tmpKey = factory.generateSecret(spec);
-        SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
+    /**
+     * Sets the cipher to decryption mode. Once set the cipher may only be used
+     * to decrpyt the one item that corresponds the the initialization vector,
+     * iv. The initialization vector is generated upon encryption of the item
+     * and is required to decrypt that same item.
+     * 
+     * @param iv,
+     *            byte[] giving the initialization vector generated upon
+     *            encryption of its corresponding item.
+     */
+    private void setCipherDecrypt(byte[] iv) {
+        try {
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
+            SecretKey tmpKey = factory.generateSecret(spec);
+            SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
+            
+        } catch (InvalidKeyException | InvalidAlgorithmParameterException | InvalidKeySpecException
+                | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * @return true if data has been loaded into memory and false if an error an
-     *         occured or if no data existed during the last call to
-     *         readData()/writeData(). This may happen if either: beerRatings
-     *         contained no data to write to JSON_FILE or if JSON_FILE did not
-     *         contain any data to read.
+     *         occured or if no data was transferred during the last call to
+     *         readBeerData()/writeBeerData(). This may happen if either:
+     *         beerRatings contained no data to write to BEER_FILE or if
+     *         BEER_FILE did not contain any data to read.
      */
     public boolean isBeerDataReady() {
         return beerDataReady;
     }
 
+    /**
+     * @return true if data was successfully loaded into memory and false if an
+     *         error occured or if no data was transferred during the last call
+     *         to writeUsersToFile()/readUsersFromFile(). This may happen if
+     *         either: userData did not contain any data to write to USER_FILE
+     *         or USER_FILE did not contain any data to read.
+     */
     public boolean isUserDataReady() {
         return userDataReady;
     }
 
-    public boolean addUserToBuffer(String rfid) {
-        if (!checkUserInBuffer(rfid)) {
-            userData.put(rfid, new UserFlags("", false, false));
+    /**
+     * Adds the given user identified by user to a buffer stored in RAM. This
+     * buffer should also contain user data read from USER_FILE. If the user
+     * already exists then the user is not added to the buffer.
+     * 
+     * @param rfid,
+     *            String to identify the user. Must not be the empty string.
+     * @return true if the user did not already exist and was successfully added
+     *         to the buffer and false if otherwise.
+     */
+    public boolean addUser(String user) {
+        if (!checkUserExists(user)) {
+            userData.put(user, new UserFlags("", false, false));
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean checkUserInBuffer(String rfid) {
-        return userData.keySet().contains(rfid);
+    /**
+     * Checks if the given user exists in the buffer stored in RAM.
+     * 
+     * @param user,
+     *            String giving the user to be identified.
+     * @return true if the user exists and false if otherwise.
+     */
+    public boolean checkUserExists(String user) {
+        return userData.keySet().contains(user);
     }
 
-    public boolean checkAdmin(String rfid) {
-        if (checkUserInBuffer(rfid)) {
-            return userData.get(rfid).isAdmin();
+    /**
+     * Checks if the given user is flagged with administrative privileges.
+     * 
+     * @param user,
+     *            String giving the user to be identified.
+     * @return true if the user exists and has administrative privileges and
+     *         false if otherwise or the user does not exist.
+     */
+    public boolean checkAdmin(String user) {
+        if (checkUserExists(user)) {
+            return userData.get(user).isAdmin();
         } else {
             return false;
         }
     }
 
-    public boolean checkVoted(String rfid) {
-        if (checkUserInBuffer(rfid)) {
-            return userData.get(rfid).isAdmin();
+    /**
+     * Checks if the given user is flagged as having already voted.
+     * 
+     * @param user,
+     *            String giving the user to be identified.
+     * @return true if the user exists and has already voted and false if
+     *         otherwise or if the user has not voted.
+     */
+    public boolean checkVoted(String user) {
+        if (checkUserExists(user)) {
+            return userData.get(user).isAdmin();
         } else {
             return false;
         }
     }
 
+    /**
+     * Sets the given user's administrative privileges to 'value.' If the user
+     * did not already exist then a new user is added with admin set to 'value'
+     * and voted set to false.
+     * 
+     * @param user,
+     *            String giving user to be identified.
+     * @param value,
+     *            boolean giving value to set as administrative privileges.
+     */
     public void setAdmin(String user, boolean value) {
-        if (checkUserInBuffer(user)) {
+        if (checkUserExists(user)) {
             userData.get(user).setAdmin(value);
         } else {
             String[] encryptedRFID = encrypt(user);
@@ -214,8 +278,18 @@ public class SaveData {
         }
     }
 
+    /**
+     * Sets the given user's voted status to 'value.' If the user did not
+     * already exist then a new user is added with voted set to 'value' and
+     * admin set to false.
+     * 
+     * @param user,
+     *            String giving user to be identified.
+     * @param value,
+     *            boolean giving value to set as user's voted status.
+     */
     public void setVoted(String user, boolean value) {
-        if (checkUserInBuffer(user)) {
+        if (checkUserExists(user)) {
             userData.get(user).setVoted(value);
         } else {
             String[] encryptedRFID = encrypt(user);
@@ -223,8 +297,19 @@ public class SaveData {
         }
     }
 
-    public void writeBufferToFile() throws IOException, JSONException {        
-        if (checkFileExists(RFID_FILE)) {
+    /**
+     * Overwrites USER_FILE with any user data that is contained in the user
+     * buffer, userData. If USER_FILE does not exist then a new file is created
+     * and written to. All user identification strings are encrypted before
+     * being written to the file.
+     * 
+     * @throws IOException
+     * @throws JSONException
+     */
+    public void writeUsersToFile() throws JSONException, IOException {
+        setCipherEncrypt();
+
+        if (checkFileExists(USER_FILE)) {
 
             if (userData.keySet().size() > 0) {
                 JSONObject jsonFile = new JSONObject();
@@ -241,7 +326,7 @@ public class SaveData {
                 }
 
                 jsonFile.put("users", dataArray);
-                FileWriter writer = new FileWriter(fullRfidFilePath);
+                FileWriter writer = new FileWriter(fullUserFilePath, false);
                 writer.write(jsonFile.toString());
                 writer.flush();
                 writer.close();
@@ -252,7 +337,7 @@ public class SaveData {
             }
 
         } else {
-            createFileInDataDirectory(RFID_FILE);
+            createFileInDataDirectory(USER_FILE);
 
             if (userData.keySet().size() > 0) {
                 JSONObject jsonFile = new JSONObject();
@@ -269,7 +354,7 @@ public class SaveData {
                 }
 
                 jsonFile.put("users", dataArray);
-                FileWriter writer = new FileWriter(fullRfidFilePath);
+                FileWriter writer = new FileWriter(fullUserFilePath);
                 writer.write(jsonFile.toString());
                 writer.flush();
                 writer.close();
@@ -281,10 +366,15 @@ public class SaveData {
         }
     }
 
-    private void loadIntoBuffer(SecretKey key) {
+    /**
+     * Reads user data from USER_FILE into the user buffer, userData. Since user
+     * strings contained in USER_FILE are encrypted they are decrpyted before
+     * being loaded into memory.
+     */
+    private void readUsersFromFile() {
 
         try {
-            String jsonString = readFileToString(fullRfidFilePath);
+            String jsonString = readFileToString(fullUserFilePath);
             if (jsonString == null) {
                 userDataReady = false;
                 return;
@@ -296,20 +386,35 @@ public class SaveData {
             JSONArray users = obj.getJSONArray("users");
 
             for (int i = 0; i < users.length(); i++) {
+                userDataReady = true;
                 JSONObject user = users.getJSONObject(i);
                 boolean admin = user.getBoolean("admin");
                 boolean voted = user.getBoolean("voted");
 
-                String id = decrypt(user.getString("id"), user.getString("iv"), key);
+                String id = decrypt(user.getString("id"), user.getString("iv"));
 
                 userData.put(id, new UserFlags(user.getString("iv"), admin, voted));
             }
 
         } catch (IOException | JSONException e) {
+            userDataReady = false;
             e.printStackTrace();
         }
     }
 
+    /**
+     * Encrypts the given string into a byte[] which is then encoded using
+     * base64 into string format for easier storage. During encryption an
+     * initialization vector, a byte[], is generated. This byte[] is unique to
+     * the encrypted string and is required upon the strings decrpytion. The
+     * initialization vector is also encoded into string format using base64
+     * before being returned.
+     * 
+     * @param plainText,
+     *            String to be encrpyted. Must not be the empty string.
+     * @return String[] of length 2 containing the encrypted plainText at index
+     *         0 and its corresponding initialization vector at index 1.
+     */
     private String[] encrypt(String plainText) {
         byte[] ciphertext = null;
         byte[] iv = null;
@@ -334,32 +439,37 @@ public class SaveData {
         return encrypted;
     }
 
-    private String decrypt(String encrypted, String iv, SecretKey key) {
+    /**
+     * Decrypts the given string using the provided initialization vector.
+     * 
+     * @param encrypted,
+     *            String to be decrypted. Mus not be the empty string.
+     * @param iv,
+     *            String giving the initialization vector to be used during the
+     *            decryption proccess.
+     * @return the decrypted String of encrypted.
+     */
+    private String decrypt(String encrypted, String iv) {
         byte[] ivBytes = null;
         byte[] encryptedBytes = null;
+        String decrypted = null;
+
 
         try {
             ivBytes = Base64.getDecoder().decode(iv.getBytes("UTF-8"));
             encryptedBytes = Base64.getDecoder().decode(encrypted.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e1) {
-            e1.printStackTrace();
-        }
-        
-        String decrypted = null;
-
-        try {
-            decryptCipher(key, ivBytes);
+            setCipherDecrypt(ivBytes);
             decrypted = new String(cipher.doFinal(encryptedBytes), "UTF-8");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException e1) {
+            e1.printStackTrace();
         }
 
         return decrypted;
     }
 
     /**
-     * This method updates JSON_FILE with the most recent data stored in
-     * beerRatings. JSON_FILE is completely overwritten during the process. If
+     * This method updates BEER_FILE with the most recent data stored in
+     * beerRatings. BEER_FILE is completely overwritten during the process. If
      * the JSON file cannot be found then a new file is created in the data
      * directory.
      * 
@@ -368,8 +478,8 @@ public class SaveData {
      * @throws IOException
      *             if data could not be written.
      */
-    public void writeData() throws JSONException, IOException {
-        if (checkFileExists(JSON_FILE)) {
+    public void writeBeerData() throws JSONException, IOException {
+        if (checkFileExists(BEER_FILE)) {
 
             if (beerRatings.keySet().size() > 0) {
                 JSONObject jsonToWrite = new JSONObject();
@@ -382,7 +492,7 @@ public class SaveData {
                 }
 
                 jsonToWrite.put("beers", jsonBeerList);
-                FileWriter writer = new FileWriter(fullJsonFilePath);
+                FileWriter writer = new FileWriter(fullBeerFilePath, false);
                 writer.write(jsonToWrite.toString());
                 writer.flush();
                 writer.close();
@@ -393,7 +503,7 @@ public class SaveData {
             }
 
         } else {
-            createFileInDataDirectory(JSON_FILE);
+            createFileInDataDirectory(BEER_FILE);
 
             if (beerRatings.keySet().size() > 0) {
                 JSONObject jsonToWrite = new JSONObject();
@@ -406,7 +516,7 @@ public class SaveData {
                 }
 
                 jsonToWrite.put("beers", jsonBeerList);
-                FileWriter writer = new FileWriter(fullJsonFilePath);
+                FileWriter writer = new FileWriter(fullBeerFilePath);
                 writer.write(jsonToWrite.toString());
                 writer.close();
 
@@ -419,14 +529,13 @@ public class SaveData {
     }
 
     /**
-     * Reads and parses JSON_FILE and loads the data into beerRatings and beers.
-     * Does not modify JSON_FILE in any way. If the JSON file cannot be located
-     * a new file is created.
+     * Reads and parses BEER_FILE and loads the data into beerRatings and beers.
+     * Does not modify BEER_FILE in any way.
      */
-    private void readJSONData() {
+    private void readBeerData() {
 
         try {
-            String jsonString = readFileToString(fullJsonFilePath);
+            String jsonString = readFileToString(fullBeerFilePath);
             if (jsonString == null) {
                 beerDataReady = false;
                 return;
@@ -453,9 +562,10 @@ public class SaveData {
     }
 
     /**
-     * Creates a new directory for the JSON_FILE to be stored in. The new
-     * directory will be in the same location as the .jar file for this
-     * application.
+     * Creates a new file given by fileName in the data directory of this
+     * program. The data directory location is determined by the location of the
+     * .jar file that corresponds to this program. If a file already exists at
+     * that location with the same name then no new file is created.
      */
     private void createFileInDataDirectory(String fileName) {
         String newDir = "";
@@ -504,6 +614,15 @@ public class SaveData {
         return testFile.exists();
     }
 
+    /**
+     * Reads the contents of the file at filePath into a single string.
+     * 
+     * @param filePath,
+     *            the full file path of the file to be read. This file must
+     *            exist.
+     * @return String with the contents of the file.
+     * @throws IOException
+     */
     private String readFileToString(String filePath) throws IOException {
         StringBuilder fileText = new StringBuilder();
         BufferedReader reader;
@@ -526,15 +645,13 @@ public class SaveData {
         return fileText.toString();
     }
 
+    /**
+     * Creates and writes the binary SALT value to SALT_FILE.
+     */
     private void writeSALT() {
         createFileInDataDirectory(SALT_FILE);
         SecureRandom secureRandom = new SecureRandom();
         SALT = secureRandom.generateSeed(8);
-        try {
-            System.out.println("write: " + new String(SALT, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
 
         try {
             FileOutputStream fos = new FileOutputStream(fullSaltPath);
@@ -546,6 +663,9 @@ public class SaveData {
         }
     }
 
+    /**
+     * Reads the binary SALT value from SALT_FILE.
+     */
     private void readSALT() {
         File saltFile = new File(fullSaltPath);
         SALT = new byte[(int) saltFile.length()];
@@ -555,12 +675,6 @@ public class SaveData {
             fis.read(SALT);
             fis.close();
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            System.out.println("read: " + new String(SALT, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
     }

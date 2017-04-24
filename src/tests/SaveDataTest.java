@@ -3,6 +3,9 @@ package tests;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,39 +19,39 @@ import backend.SaveData;
 
 public class SaveDataTest {
     
-    @Ignore
+    @Test
     public void addUserTest() {
         Map<String, Integer> map = new HashMap<String, Integer>();
         List<String> list = new ArrayList<String>();
         SaveData save = new SaveData(map, list);
         
-        save.addUserToBuffer("user0");
-        save.addUserToBuffer("user1");
-        save.addUserToBuffer("user2");
-        save.addUserToBuffer("user3");
-        save.addUserToBuffer("user4");
+        save.addUser("user0");
+        save.addUser("user1");
+        save.addUser("user2");
+        save.addUser("user3");
+        save.addUser("user4");
         
         try {
-            save.writeBufferToFile();
+            save.writeUsersToFile();
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
     }
     
-    @Ignore
+    @Test
     public void checkUserExistsTest() {
         Map<String, Integer> map = new HashMap<String, Integer>();
         List<String> list = new ArrayList<String>();
-        SaveData save = new SaveData(map, list);
+        SaveData save = new SaveData(map, list);    
         
-        assertTrue(save.checkUserInBuffer("user0"));
-        assertTrue(save.checkUserInBuffer("user1"));
-        assertTrue(save.checkUserInBuffer("user2"));
-        assertTrue(save.checkUserInBuffer("user3"));
-        assertTrue(save.checkUserInBuffer("user4"));
+        assertTrue(save.checkUserExists("user0"));
+        assertTrue(save.checkUserExists("user1"));
+        assertTrue(save.checkUserExists("user2"));
+        assertTrue(save.checkUserExists("user3"));
+        assertTrue(save.checkUserExists("user4"));
     }
     
-    @Test
+    @Ignore
     public void checkFlagsFalseTest() {
         Map<String, Integer> map = new HashMap<String, Integer>();
         List<String> list = new ArrayList<String>();
@@ -79,10 +82,41 @@ public class SaveDataTest {
         save.setVoted("user4", true);
         
         try {
-            save.writeBufferToFile();
+            save.writeUsersToFile();
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
+    }
+    
+    @Ignore
+    public void checkFlagsTrueTest() {
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        List<String> list = new ArrayList<String>();
+        SaveData save = new SaveData(map, list);
+        
+        assertEquals(true, save.checkAdmin("user0"));
+        assertEquals(true, save.checkAdmin("user1"));
+        assertEquals(true, save.checkAdmin("user2"));
+        assertEquals(true, save.checkAdmin("user3"));
+        assertEquals(true, save.checkAdmin("user4"));
+        
+        assertEquals(true, save.checkVoted("user0"));
+        assertEquals(true, save.checkVoted("user1"));
+        assertEquals(true, save.checkVoted("user2"));
+        assertEquals(true, save.checkVoted("user3"));
+        assertEquals(true, save.checkVoted("user4"));
+    }
+    
+    @Ignore
+    public void addExistingUsers() {
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        List<String> list = new ArrayList<String>();
+        SaveData save = new SaveData(map, list);
+        
+        save.addUser("user0");
+        
+        assertEquals(true, save.checkAdmin("user0"));
+        assertEquals(true, save.checkVoted("user0"));
     }
 
 }

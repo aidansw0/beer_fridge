@@ -129,7 +129,7 @@ public class VoteManager {
      */
     public void saveToFile() {
         try {
-            saveData.writeData();
+            saveData.writeBeerData();
         } catch (Exception e) {
             e.printStackTrace();
         }
