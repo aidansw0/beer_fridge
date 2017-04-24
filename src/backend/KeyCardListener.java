@@ -2,6 +2,7 @@ package backend;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
@@ -19,29 +20,51 @@ import java.util.TimerTask;
 
 public class KeyCardListener {
     private final Set<String> keyCardID = new HashSet<>();
+    private final Set<String> adminID = new HashSet<>();
     private final Timer timer = new Timer();
 
     private String readInput = "";
-    private final ReadOnlyBooleanWrapper keyVerified;
+    private String newCardBuffer = "";
+    private final SimpleStringProperty cardHintText;
+    private final ReadOnlyBooleanWrapper adminKeyVerified;
+    private final ReadOnlyBooleanWrapper regularKeyVerified;
+    private final ReadOnlyBooleanWrapper newAttempt;
 
     private final int KEY_CARD_ID_LENGTH = 25;
-    private final int KEY_EXPIRY_TIME = 60000; // in ms
+    private final int ACCESS_EXPIRY_TIME = 30000; // in ms
+    private final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
 
     public KeyCardListener() {
         // Added for testing - Richard's access card
-        keyCardID.add("0000000000000000708C14057");
+        adminID.add("0000000000000000708c14057");
 
-        keyVerified = new ReadOnlyBooleanWrapper();
-        keyVerified.set(false);
+        cardHintText = new SimpleStringProperty("Please Scan Card ...");
+        adminKeyVerified = new ReadOnlyBooleanWrapper(false);
+        regularKeyVerified = new ReadOnlyBooleanWrapper(false);
+        newAttempt = new ReadOnlyBooleanWrapper(false);
     }
 
-    public ReadOnlyBooleanProperty keyVerifiedProperty() { return keyVerified.getReadOnlyProperty(); }
+    public StringProperty getHintText() { return cardHintText; }
+
+    public ReadOnlyBooleanProperty regularKeyVerifiedProperty() { return regularKeyVerified.getReadOnlyProperty(); }
+
+    public ReadOnlyBooleanProperty adminKeyVerifiedProperty() { return adminKeyVerified.getReadOnlyProperty(); }
+
+    public void registerVote() {
+        keyCardID.add(newCardBuffer);
+    }
 
     /**
-     * @return Returns true if key card was verified but does not toggle the variable
+     * @param consumeAccess, consumes the access if set to true
+     * @return Returns true if a regular key card was verified
      */
-    public boolean checkKeyValidReadOnly() {
-        if (keyVerified.get()) {
+    public boolean checkRegularKeyVerified(boolean consumeAccess) {
+        if (regularKeyVerified.get()) {
+            if (consumeAccess) {
+                adminKeyVerified.set(false);
+                regularKeyVerified.set(false);
+                cardHintText.set("Please Scan Card ...");
+            }
             return true;
         }
         else {
@@ -50,11 +73,16 @@ public class KeyCardListener {
     }
 
     /**
-     * @return Returns true if key card was verified and toggles to false
+     * @param consumeAccess, consumes the access if set to true
+     * @return Returns true if admin key card was verified and toggles to false
      */
-    public boolean checkKeyValid() {
-        if (keyVerified.get()) {
-            keyVerified.set(false);
+    public boolean checkAdminKeyVerified(boolean consumeAccess) {
+        if (adminKeyVerified.get()) {
+            if (consumeAccess) {
+                adminKeyVerified.set(false);
+                regularKeyVerified.set(false);
+                cardHintText.set("Please Scan Card ...");
+            }
             return true;
         }
         else {
@@ -66,42 +94,105 @@ public class KeyCardListener {
      * Event handler for key events used by the application for continuously
      * listening for key strokes
      *
-     * @param event, KeyEvent must be passed in to check the event code
+     * @param keyEvent, KeyEvent must be passed in to check the event code
      */
-    public void handleEvent(KeyEvent event) {
-        if (event.getCode() == KeyCode.SLASH) {
-            String keyCardRead = readInput.substring(readInput.length()-KEY_CARD_ID_LENGTH);
+    public void handleEvent(KeyEvent keyEvent) {
+        if (keyEvent.getCode() == KeyCode.SLASH) {
+            if (readInput.length() >= KEY_CARD_ID_LENGTH) {
+                String keyCardRead = readInput.substring(readInput.length() - KEY_CARD_ID_LENGTH);
 
-            if (keyCardID.contains(keyCardRead)) {
-                timer.schedule(new ExpireAccess(keyVerified),KEY_EXPIRY_TIME);
+                // Administrative ID
+                if (adminID.contains(keyCardRead.toLowerCase())) {
+                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
 
-                System.out.print("Key Found: ");
-                keyVerified.set(true);
+                    System.out.print("Admin Key Found: ");
+                    cardHintText.set("Admin Card Verified");
+                    adminKeyVerified.set(true);
+                    regularKeyVerified.set(true);
+
+                // Already voted
+                } else if (keyCardID.contains(keyCardRead.toLowerCase())){
+                    System.out.print("Already Voted: ");
+                    cardHintText.set("Already Voted");
+                    adminKeyVerified.set(false);
+                    regularKeyVerified.set(false);
+                }
+                // New card
+                else {
+                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
+
+                    System.out.print("New Vote: ");
+                    cardHintText.set("Press Thumb to Vote");
+                    newCardBuffer = keyCardRead.toLowerCase();
+                    adminKeyVerified.set(false);
+                    regularKeyVerified.set(true);
+                }
+                System.out.println(keyCardRead);
             }
             else {
-                System.out.print("Key NOT found: ");
-                keyVerified.set(false);
+                System.out.println("Key NOT valid: " + readInput);
+                cardHintText.set("Invalid");
+                adminKeyVerified.set(false);
             }
-
-            System.out.println(keyCardRead);
             readInput = "";
         }
-        else {
-            readInput = readInput + event.getText();
+        else if (keyEvent.getCode() != KeyCode.ENTER && keyEvent.getCode() != KeyCode.ESCAPE){
+            if (!newAttempt.get()) {
+                timer.schedule(new ExpireAttempt(newAttempt,cardHintText, adminKeyVerified, regularKeyVerified), ATTEMPT_EXPIRY_TIME);
+                readInput = "";
+                adminKeyVerified.set(false);
+                regularKeyVerified.set(false);
+            }
+
+            newAttempt.set(true);
+            readInput = readInput + keyEvent.getText();
+            cardHintText.set(readInput.replaceAll(".",". "));
         }
     }
 }
 
 class ExpireAccess extends TimerTask {
 
-    private ReadOnlyBooleanWrapper disableAccess;
+    private ReadOnlyBooleanWrapper adminKeyVerified;
+    private ReadOnlyBooleanWrapper regularKeyVerified;
+    private SimpleStringProperty cardHintText;
 
-    public ExpireAccess(ReadOnlyBooleanWrapper disableAccess) {
-        this.disableAccess = disableAccess;
+    public ExpireAccess(ReadOnlyBooleanWrapper adminKeyVerified, ReadOnlyBooleanWrapper regularKeyVerified, SimpleStringProperty cardHintText) {
+        this.adminKeyVerified = adminKeyVerified;
+        this.regularKeyVerified = regularKeyVerified;
+        this.cardHintText = cardHintText;
     }
 
     @Override
     public void run() {
-        disableAccess.set(false);
+        // If no action is executed, expire the access
+        adminKeyVerified.set(false);
+        regularKeyVerified.set(false);
+        cardHintText.set("Please Scan Card ...");
+    }
+}
+
+class ExpireAttempt extends TimerTask {
+
+    private ReadOnlyBooleanWrapper newAttempt;
+    private ReadOnlyBooleanWrapper adminKeyVerified;
+    private ReadOnlyBooleanWrapper regularKeyVerified;
+    private SimpleStringProperty cardHintText;
+
+    public ExpireAttempt(ReadOnlyBooleanWrapper newAttempt, SimpleStringProperty cardHintText, ReadOnlyBooleanWrapper adminKeyVerified, ReadOnlyBooleanWrapper regularKeyVerified) {
+        this.newAttempt = newAttempt;
+        this.adminKeyVerified = adminKeyVerified;
+        this.regularKeyVerified = regularKeyVerified;
+        this.cardHintText = cardHintText;
+    }
+
+    @Override
+    public void run() {
+        newAttempt.set(false);
+
+        // If verification unsuccessful, expire the attempt
+        if (!adminKeyVerified.get() && !regularKeyVerified.get()) {
+            cardHintText.set("Please Scan Card ...");
+        }
     }
 }

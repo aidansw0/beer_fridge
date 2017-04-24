@@ -202,7 +202,7 @@ public class SaveData {
      * buffer should also contain user data read from USER_FILE. If the user
      * already exists then the user is not added to the buffer.
      * 
-     * @param rfid,
+     * @param user,
      *            String to identify the user. Must not be the empty string.
      * @return true if the user did not already exist and was successfully added
      *         to the buffer and false if otherwise.

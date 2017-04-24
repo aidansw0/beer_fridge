@@ -3,6 +3,7 @@ import backend.KegManager;
 import backend.KeyCardListener;
 import backend.VirtualKeyboard;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -10,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -29,6 +31,8 @@ public class Main extends Application {
     private final Label newBeerField = new Label();
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
+
+    private double initial = 0;
 
     private boolean keyboardOn = false;
 
@@ -127,21 +131,19 @@ public class Main extends Application {
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setPrefWidth(715);
         newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
-        newBeerField.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
-        addButton.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
+        addButton.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
         addButton.setOnAction(event -> {
             if (keyboardOn) {
-                keyCardListener.checkKeyValid();
+                keyCardListener.checkAdminKeyVerified(true);
                 votingFrame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
             }
             else {
                 newBeerField.setText("");
                 votingFrame.setBottom(newBeerField);
-                newBeerField.requestFocus();
                 toggleKeyboard();
             }
         });
@@ -155,17 +157,37 @@ public class Main extends Application {
         Button left = voteManager.createLeftButton(beerDisplay,navleft);
         Button right = voteManager.createRightButton(beerDisplay,navright);
         Button like = voteManager.createLikeButton(votes,thumb,keyCardListener);
-        like.disableProperty().bind(keyCardListener.keyVerifiedProperty().not());
+        like.disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
 
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
         pressToVote.getStyleClass().add("press-to-vote");
         pleaseScanCard.getStyleClass().add("votes-display");
-        pleaseScanCard.visibleProperty().bind(keyCardListener.keyVerifiedProperty().not());
+        pleaseScanCard.textProperty().bind(keyCardListener.getHintText());
 
         votingFrame.getStyleClass().addAll("all-frames","voting-frame");
         votingFrame.setPrefSize(715,150);
         votingFrame.setMaxWidth(715);
+
+        votingFrame.onMousePressedProperty().set(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                event.setDragDetect(true);
+                initial = event.getX();
+            }
+        });
+
+        votingFrame.onMouseReleasedProperty().set(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getX() < initial - 100) {
+                    voteManager.swipeLeft();
+                }
+                else if (event.getX() > initial + 100){
+                    voteManager.swipeRight();
+                }
+            }
+        });
 
         navPane.setLeft(left);
         navPane.setRight(right);
@@ -208,7 +230,7 @@ public class Main extends Application {
 
     private void createFooterFrame() {
         footerFrame = new BorderPane();
-        Label currentKeg = new Label("Steamworks IPA");
+        Label currentKeg = new Label("Steamworks Kolsch");
 
         // Import images
         ImageView footerheader = importImage("img/footerheader.png",53);
@@ -252,10 +274,10 @@ public class Main extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-        scene.setCursor(Cursor.NONE);
-        window.initStyle(StageStyle.UNDECORATED);
-//        window.setMaxWidth(1280);
-//        window.setMaxHeight(1024);
+//        scene.setCursor(Cursor.NONE);
+//        window.initStyle(StageStyle.UNDECORATED);
+        window.setMaxWidth(1280);
+        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();
@@ -289,26 +311,18 @@ public class Main extends Application {
         switch (event.getCode()) {
             case ENTER:
                 if (!newBeerField.getText().isEmpty()) {
-                    if (keyCardListener.checkKeyValidReadOnly()) {
-                        if (voteManager.addBeer(newBeerField.getText(), 0)) {
-                            keyCardListener.checkKeyValid();
-                            frame.setBottom(voteManager.getPollChart());
-                            toggleKeyboard();
-                        }
-                        newBeerField.setText("");
-                    }
-                    // Access has expired
-                    else {
+                    if (voteManager.addBeer(newBeerField.getText(), 0)) {
+                        keyCardListener.checkAdminKeyVerified(true);
                         frame.setBottom(voteManager.getPollChart());
                         toggleKeyboard();
-                        newBeerField.setText("");
                     }
+                    newBeerField.setText("");
                 }
                 break;
 
             case ESCAPE:
                 newBeerField.setText("");
-                keyCardListener.checkKeyValid();
+                keyCardListener.checkAdminKeyVerified(true);
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
                 break;
