@@ -7,6 +7,8 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleWrapper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +30,7 @@ public class KegManager {
     private final long DWEET_REFRESH_RATE = 5000; // time in ms
 
     private final ReadOnlyIntegerWrapper weight;
-    private final ReadOnlyIntegerWrapper temp;
+    private final ReadOnlyDoubleWrapper temp;
 
     public KegManager() {
         DweetParser dweetParser = new DweetParser(this, DWEET_URL);
@@ -36,7 +38,7 @@ public class KegManager {
         timer.schedule(dweetParser, 0, DWEET_REFRESH_RATE);
 
         weight = new ReadOnlyIntegerWrapper();
-        temp = new ReadOnlyIntegerWrapper();
+        temp = new ReadOnlyDoubleWrapper();
     }
 
     /**
@@ -49,7 +51,7 @@ public class KegManager {
     /**
      * @return ReadOnlyIntegerProperty of temp.
      */
-    public ReadOnlyIntegerProperty tempProperty() {
+    public ReadOnlyDoubleProperty tempProperty() {
         return temp.getReadOnlyProperty();
     }
 
@@ -67,7 +69,7 @@ public class KegManager {
         if (type == ContentType.WEIGHT) {
             weight.set((int) val);
         } else if (type == ContentType.TEMP) {
-            temp.set((int) val);
+            temp.set(val);
         }
     }
 }

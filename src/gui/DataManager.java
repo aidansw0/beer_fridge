@@ -26,7 +26,7 @@ import java.util.Random;
  */
 
 public class DataManager {
-    private final int MAX_DATA_POINTS   = 100, Y_MIN = 250, Y_MAX = 290;
+    private final int MAX_DATA_POINTS   = 200, Y_MIN = 270, Y_MAX = 285;
     private final double METER_HEIGHT   = 232.0;
     private final int MAX_KEG_WEIGHT    = 30;
 
@@ -34,7 +34,7 @@ public class DataManager {
     private final Label weightLabel = new Label("30L");
     private final Polygon weightMeter = new Polygon();
     private final XYChart.Series<Number, Number> tempData = new XYChart.Series<>();
-    private final NumberAxis xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 2);
+    private final NumberAxis xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 1);
     private final KegManager beerKeg;
 
     private double sequence = 0;
@@ -59,7 +59,7 @@ public class DataManager {
      */
     public Parent createLineChart() {
         LineChart<Number, Number> chart;
-        final NumberAxis yAxis = new NumberAxis(Y_MIN - 1, Y_MAX + 1, 1);
+        final NumberAxis yAxis = new NumberAxis(Y_MIN - 1, Y_MAX + 1, 0.1);
 
         // setup chart
         chart = new LineChart<>(xAxis, yAxis);
