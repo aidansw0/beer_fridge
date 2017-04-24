@@ -261,8 +261,7 @@ public class SaveData {
         if (checkUserExists(user)) {
             userData.get(user).setAdmin(value);
         } else {
-            String[] encryptedRFID = encrypt(user);
-            userData.put(encryptedRFID[0], new UserFlags(encryptedRFID[1], value, false));
+            userData.put(user, new UserFlags("", value, false));
         }
     }
 
@@ -280,8 +279,7 @@ public class SaveData {
         if (checkUserExists(user)) {
             userData.get(user).setVoted(value);
         } else {
-            String[] encryptedRFID = encrypt(user);
-            userData.put(encryptedRFID[0], new UserFlags(encryptedRFID[1], false, value));
+            userData.put(user, new UserFlags("", false, value));
         }
     }
 
