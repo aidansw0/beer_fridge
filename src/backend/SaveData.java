@@ -81,14 +81,6 @@ public class SaveData {
     /**
      * Assigns path names for data files and loads beer and user information
      * into memory if available.
-     * 
-     * @param map
-     *            Map<String, Integer> containing beer rating information.
-     *            map.keySet() should contain the exact same elements as list.
-     * @param list
-     *            List<String> containing a list of Beers. Should not contain
-     *            duplicate beers and should contain the exact same elements as
-     *            map.keySet();
      */
     public SaveData() {
         fullSaltPath = Util.getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
@@ -241,7 +233,7 @@ public class SaveData {
      */
     public boolean checkVoted(String user) {
         if (checkUserExists(user)) {
-            return userData.get(user).isAdmin();
+            return userData.get(user).hasVoted();
         } else {
             return false;
         }

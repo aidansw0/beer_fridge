@@ -60,7 +60,13 @@ public class Main extends Application {
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
 
         primaryStage.setOnCloseRequest(event -> {
-            voteManager.saveToFile();
+            try {
+                voteManager.saveBeerData();
+                saveData.writeUsersToFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             Platform.exit();
             System.exit(0);
         });
@@ -279,10 +285,10 @@ public class Main extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-        // scene.setCursor(Cursor.NONE);
-        // window.initStyle(StageStyle.UNDECORATED);
-        window.setMaxWidth(1280);
-        window.setMaxHeight(1024);
+         scene.setCursor(Cursor.NONE);
+         window.initStyle(StageStyle.UNDECORATED);
+//        window.setMaxWidth(1280);
+//        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();

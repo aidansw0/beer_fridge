@@ -27,7 +27,7 @@ import java.util.Random;
 
 public class DataManager {
     private final int MIN_DATA_POINTS   = 10;
-    private final int MAX_DATA_POINTS   = 600;
+    private final int MAX_DATA_POINTS   = 2000;
     private final int Y_MIN             = 270;
     private final int Y_MAX             = 285;
     private final double METER_HEIGHT   = 232.0;

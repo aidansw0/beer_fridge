@@ -6,8 +6,6 @@ import javafx.beans.property.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -19,8 +17,6 @@ import java.util.TimerTask;
  */
 
 public class KeyCardListener {
-    //private final Set<String> keyCardID = new HashSet<>();
-    //private final Set<String> adminID = new HashSet<>();
     private final Timer timer = new Timer();
     
     private final SaveData saveData;
@@ -37,9 +33,8 @@ public class KeyCardListener {
     private static final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
 
     public KeyCardListener(SaveData saveData) {
-        // Added for testing - Richard's access card
-        //adminID.add("0000000000000000708c14057");
         this.saveData = saveData;
+
         saveData.setAdmin("0000000000000000708c14057", true); // Richard
         saveData.setAdmin("0000000000000000708c14054", true); // Aidan
 
@@ -56,7 +51,6 @@ public class KeyCardListener {
     public ReadOnlyBooleanProperty adminKeyVerifiedProperty() { return adminKeyVerified.getReadOnlyProperty(); }
 
     public void registerVote() {
-        //keyCardID.add(newCardBuffer);
         saveData.setVoted(newCardBuffer, true);
     }
 
@@ -107,62 +101,34 @@ public class KeyCardListener {
             if (readInput.length() >= KEY_CARD_ID_LENGTH) {
                 String keyCardRead = readInput.substring(readInput.length() - KEY_CARD_ID_LENGTH);
 
-//                // Administrative ID
-//                if (adminID.contains(keyCardRead.toLowerCase())) {
-//                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
-//
-//                    System.out.print("Admin Key Found: ");
-//                    cardHintText.set("Admin Card Verified");
-//                    adminKeyVerified.set(true);
-//                    regularKeyVerified.set(true);
-//
-//                // Already voted
-//                } else if (keyCardID.contains(keyCardRead.toLowerCase())){
-//                    System.out.print("Already Voted: ");
-//                    cardHintText.set("Already Voted");
-//                    adminKeyVerified.set(false);
-//                    regularKeyVerified.set(false);
-//                }
-//                // New card
-//                else {
-//                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
-//
-//                    System.out.print("New Vote: ");
-//                    cardHintText.set("Press Thumb to Vote");
-//                    newCardBuffer = keyCardRead.toLowerCase();
-//                    adminKeyVerified.set(false);
-//                    regularKeyVerified.set(true);
-//                }
-//                System.out.println(keyCardRead);
-                
-                    // admin access
-                    if (saveData.checkAdmin(keyCardRead)) {
-                        timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
+                // admin access
+                if (saveData.checkAdmin(keyCardRead)) {
+                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
 
-                        System.out.print("Admin Key Found: ");
-                        cardHintText.set("Admin Card Verified");
-                        adminKeyVerified.set(true);
-                        regularKeyVerified.set(true);
-                        
-                    // already voted    
-                    } else if (saveData.checkVoted(keyCardRead)) {
-                        System.out.print("Already Voted: ");
-                        cardHintText.set("Already Voted");
-                        adminKeyVerified.set(false);
-                        regularKeyVerified.set(false);
-                        
-                    // new card    
-                    } else {
-                        timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
+                    System.out.print("Admin Key Found: ");
+                    cardHintText.set("Admin Card Verified");
+                    adminKeyVerified.set(true);
+                    regularKeyVerified.set(true);
 
-                        System.out.print("New Vote: ");
-                        cardHintText.set("Press Thumb to Vote");
-                        newCardBuffer = keyCardRead;
-                        adminKeyVerified.set(false);
-                        regularKeyVerified.set(true);
-                    }
-                    
-                
+                // already voted
+                } else if (saveData.checkVoted(keyCardRead)) {
+                    System.out.print("Already Voted: ");
+                    cardHintText.set("Already Voted");
+                    adminKeyVerified.set(false);
+                    regularKeyVerified.set(false);
+
+                // new card
+                } else {
+                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
+
+                    System.out.print("New Vote: ");
+                    cardHintText.set("Press Thumb to Vote");
+                    newCardBuffer = keyCardRead;
+                    adminKeyVerified.set(false);
+                    regularKeyVerified.set(true);
+                }
+
+                System.out.println(keyCardRead);
                 
             } else {
                 System.out.println("Key NOT valid: " + readInput);

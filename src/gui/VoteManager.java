@@ -127,14 +127,14 @@ public class VoteManager {
             likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
         }
 
-        saveToFile();
+        saveBeerData();
         return true;
     }
 
     /**
      * Attempts to save to file
      */
-    public void saveToFile() {
+    public void saveBeerData() {
         try {
             // makes copy of beerTypeLikes
             saveData.writeBeerData(new HashMap<String, Integer>(beerTypeLikes));
