@@ -120,7 +120,7 @@ public class KeyCardListener {
 
                 // Administrative ID
                 if (adminID.contains(keyCardRead.toLowerCase())) {
-                    timer.schedule(new ExpireAccess(keyVerified,cardHintText), KEY_EXPIRY_TIME);
+                    timer.schedule(new ExpireAccess(keyVerified,keyNotDuplicate,cardHintText), KEY_EXPIRY_TIME);
 
                     System.out.print("Admin Key Found: ");
                     cardHintText.set("Admin Card Verified");
@@ -128,7 +128,7 @@ public class KeyCardListener {
                     keyNotDuplicate.set(true);
 
                 // Already voted
-                } else if (keyCardID.contains(keyCardRead)){
+                } else if (keyCardID.contains(keyCardRead.toLowerCase())){
                     System.out.print("Already Voted: ");
                     cardHintText.set("Already Voted");
                     keyVerified.set(false);
@@ -138,7 +138,7 @@ public class KeyCardListener {
                 else {
                     System.out.print("New Vote: ");
                     cardHintText.set("Press Thumb to Vote");
-                    newCardBuffer = keyCardRead;
+                    newCardBuffer = keyCardRead.toLowerCase();
                     keyVerified.set(false);
                     keyNotDuplicate.set(true);
                 }
@@ -170,16 +170,19 @@ public class KeyCardListener {
 class ExpireAccess extends TimerTask {
 
     private ReadOnlyBooleanWrapper keyVerified;
+    private ReadOnlyBooleanWrapper keyNotDuplicate;
     private SimpleStringProperty cardHintText;
 
-    public ExpireAccess(ReadOnlyBooleanWrapper keyVerified, SimpleStringProperty cardHintText) {
+    public ExpireAccess(ReadOnlyBooleanWrapper keyVerified, ReadOnlyBooleanWrapper keyNotDuplicate, SimpleStringProperty cardHintText) {
         this.keyVerified = keyVerified;
+        this.keyNotDuplicate = keyNotDuplicate;
         this.cardHintText = cardHintText;
     }
 
     @Override
     public void run() {
         keyVerified.set(false);
+        keyNotDuplicate.set(false);
         cardHintText.set("Please Scan Card ...");
     }
 }
