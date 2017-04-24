@@ -131,7 +131,6 @@ public class Main extends Application {
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setPrefWidth(715);
         newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
-        newBeerField.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
@@ -145,7 +144,6 @@ public class Main extends Application {
             else {
                 newBeerField.setText("");
                 votingFrame.setBottom(newBeerField);
-                newBeerField.requestFocus();
                 toggleKeyboard();
             }
         });
@@ -276,10 +274,10 @@ public class Main extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-        scene.setCursor(Cursor.NONE);
-        window.initStyle(StageStyle.UNDECORATED);
-//        window.setMaxWidth(1280);
-//        window.setMaxHeight(1024);
+//        scene.setCursor(Cursor.NONE);
+//        window.initStyle(StageStyle.UNDECORATED);
+        window.setMaxWidth(1280);
+        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();
@@ -313,26 +311,18 @@ public class Main extends Application {
         switch (event.getCode()) {
             case ENTER:
                 if (!newBeerField.getText().isEmpty()) {
-                    if (keyCardListener.checkRegularKeyVerified(false)) {
-                        if (voteManager.addBeer(newBeerField.getText(), 0)) {
-                            keyCardListener.checkRegularKeyVerified(true);
-                            frame.setBottom(voteManager.getPollChart());
-                            toggleKeyboard();
-                        }
-                        newBeerField.setText("");
-                    }
-                    // Access has expired
-                    else {
+                    if (voteManager.addBeer(newBeerField.getText(), 0)) {
+                        keyCardListener.checkAdminKeyVerified(true);
                         frame.setBottom(voteManager.getPollChart());
                         toggleKeyboard();
-                        newBeerField.setText("");
                     }
+                    newBeerField.setText("");
                 }
                 break;
 
             case ESCAPE:
                 newBeerField.setText("");
-                keyCardListener.checkRegularKeyVerified(true);
+                keyCardListener.checkAdminKeyVerified(true);
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
                 break;

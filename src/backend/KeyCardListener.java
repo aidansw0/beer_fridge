@@ -29,7 +29,7 @@ public class KeyCardListener {
     private final ReadOnlyBooleanWrapper newAttempt;
 
     private final int KEY_CARD_ID_LENGTH = 25;
-    private final int KEY_EXPIRY_TIME = 60000; // in ms
+    private final int ACCESS_EXPIRY_TIME = 30000; // in ms
     private final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
 
     public KeyCardListener() {
@@ -54,13 +54,13 @@ public class KeyCardListener {
 
     /**
      * @param consumeAccess, consumes the access if set to true
-     * @return Returns true if key card was verified
+     * @return Returns true if a regular key card was verified
      */
     public boolean checkRegularKeyVerified(boolean consumeAccess) {
         if (regularKeyVerified.get()) {
             if (consumeAccess) {
-                regularKeyVerified.set(false);
                 adminKeyVerified.set(false);
+                regularKeyVerified.set(false);
                 cardHintText.set("Please Scan Card ...");
             }
             return true;
@@ -72,7 +72,7 @@ public class KeyCardListener {
 
     /**
      * @param consumeAccess, consumes the access if set to true
-     * @return Returns true if key card was verified and toggles to false
+     * @return Returns true if admin key card was verified and toggles to false
      */
     public boolean checkAdminKeyVerified(boolean consumeAccess) {
         if (adminKeyVerified.get()) {
@@ -101,7 +101,7 @@ public class KeyCardListener {
 
                 // Administrative ID
                 if (adminID.contains(keyCardRead.toLowerCase())) {
-                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), KEY_EXPIRY_TIME);
+                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
 
                     System.out.print("Admin Key Found: ");
                     cardHintText.set("Admin Card Verified");
@@ -117,7 +117,7 @@ public class KeyCardListener {
                 }
                 // New card
                 else {
-                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), KEY_EXPIRY_TIME);
+                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
 
                     System.out.print("New Vote: ");
                     cardHintText.set("Press Thumb to Vote");
