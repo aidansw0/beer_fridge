@@ -71,15 +71,16 @@ public class SaveData {
     private final int KEY_DERIVATION_ITERATION = 65536;
     private final int KEY_SIZE = 128;
     private final char[] PASSWORD = { 'a', 'b' };
-    private byte[] SALT;
+    private byte[] SALT;// = {0, 0, 0, 0, 0, 0, 0, 0};
     private Cipher cipher;
 
     private final Map<String, UserFlags> userData = new HashMap<String, UserFlags>();
     private boolean userDataReady = false;
 
-    SecretKey secretKey = null;
+    // SecretKey secretKey = null;
 
     public SaveData(Map<String, Integer> map, List<String> list) {
+        System.out.println("new SaveData instance created");
         fullSaltPath = getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
 
         if (!checkFileExists(fullSaltPath)) {
@@ -88,14 +89,14 @@ public class SaveData {
             readSALT();
         }
 
-        // SecretKey secretKey = null;
+        SecretKey secretKey = null;
 
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
             SecretKey tmpKey = factory.generateSecret(spec);
             secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
-            encryptCipher(secretKey);
+            cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,8 +122,9 @@ public class SaveData {
         if (!checkFileExists(fullRfidFilePath)) {
             createFileInDataDirectory(RFID_FILE);
             try {
+                encryptCipher(secretKey);
                 writeBufferToFile();
-            } catch (IOException | JSONException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 userDataReady = false;
             }
@@ -131,33 +133,32 @@ public class SaveData {
             loadIntoBuffer(secretKey);
         }
 
-//         addUserToBuffer("user0");
-//        
-//         try {
-//         writeBufferToFile();
-//         } catch (IOException | JSONException e) {
-//         e.printStackTrace();
-//         }
+        // addUserToBuffer("user0");
+        //
+        // try {
+        // writeBufferToFile();
+        // } catch (IOException | JSONException e) {
+        // e.printStackTrace();
+        // }
 
-        encrypt("user0");
-        //System.out.println(userData.keySet().toString());
+        // encrypt("user0");
+        // System.out.println(userData.keySet().toString());
     }
 
-    private void encryptCipher(SecretKey secretKey) throws Exception {
-//        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-//        KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
-
-        cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    private void encryptCipher(SecretKey ket) throws Exception {
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
+        SecretKey tmpKey = factory.generateSecret(spec);
+        SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
     }
 
-    private void decryptCipher(SecretKey secretKey, byte[] iv) throws Exception {
-//        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-//        KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
-
-        cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
-
+    private void decryptCipher(SecretKey ey, byte[] iv) throws Exception {
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(PASSWORD, SALT, KEY_DERIVATION_ITERATION, KEY_SIZE);
+        SecretKey tmpKey = factory.generateSecret(spec);
+        SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
     }
 
     /**
@@ -175,9 +176,12 @@ public class SaveData {
         return userDataReady;
     }
 
-    public void addUserToBuffer(String rfid) {
+    public boolean addUserToBuffer(String rfid) {
         if (!checkUserInBuffer(rfid)) {
             userData.put(rfid, new UserFlags("", false, false));
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -186,11 +190,19 @@ public class SaveData {
     }
 
     public boolean checkAdmin(String rfid) {
-        return userData.get(encrypt(rfid)).isAdmin();
+        if (checkUserInBuffer(rfid)) {
+            return userData.get(rfid).isAdmin();
+        } else {
+            return false;
+        }
     }
 
     public boolean checkVoted(String rfid) {
-        return userData.get(encrypt(rfid)).hasVoted();
+        if (checkUserInBuffer(rfid)) {
+            return userData.get(rfid).isAdmin();
+        } else {
+            return false;
+        }
     }
 
     public void setAdmin(String user, boolean value) {
@@ -211,7 +223,7 @@ public class SaveData {
         }
     }
 
-    public void writeBufferToFile() throws IOException, JSONException {
+    public void writeBufferToFile() throws IOException, JSONException {        
         if (checkFileExists(RFID_FILE)) {
 
             if (userData.keySet().size() > 0) {
@@ -318,36 +330,30 @@ public class SaveData {
 
         encrypted[0] = cipherString;
         encrypted[1] = ivString;
-        
-        System.out.println("iv from encrypt: " + ivString);
-        System.out.println(Arrays.equals(Base64.getDecoder().decode(ivString.getBytes()), iv));
 
-        try {
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(Base64.getDecoder().decode(ivString.getBytes())));
-            String plain = new String(cipher.doFinal(Base64.getDecoder().decode(cipherString.getBytes())), "UTF-8");
-            System.out.println("here: " + plain);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         return encrypted;
-
     }
 
     private String decrypt(String encrypted, String iv, SecretKey key) {
-        byte[] ivBytes = Base64.getDecoder().decode(iv.getBytes());
+        byte[] ivBytes = null;
+        byte[] encryptedBytes = null;
+
+        try {
+            ivBytes = Base64.getDecoder().decode(iv.getBytes("UTF-8"));
+            encryptedBytes = Base64.getDecoder().decode(encrypted.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e1) {
+            e1.printStackTrace();
+        }
         
-        System.out.println("iv from decrypt: " + iv);
-        System.out.println("iv length from decrypt(): " + ivBytes.length);
         String decrypted = null;
 
         try {
             decryptCipher(key, ivBytes);
-            decrypted = new String(cipher.doFinal(Base64.getDecoder().decode(iv.getBytes())), "UTF-8");
+            decrypted = new String(cipher.doFinal(encryptedBytes), "UTF-8");
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        System.out.println("decrypted:  " + decrypted);
         return decrypted;
     }
 
