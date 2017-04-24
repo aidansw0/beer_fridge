@@ -10,9 +10,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.application.Application;
@@ -133,14 +131,14 @@ public class Main extends Application {
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setPrefWidth(715);
         newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
-        newBeerField.disableProperty().bind(keyCardListener.adminVerifiedProperty().not());
+        newBeerField.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
-        addButton.disableProperty().bind(keyCardListener.adminVerifiedProperty().not());
+        addButton.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
         addButton.setOnAction(event -> {
             if (keyboardOn) {
-                keyCardListener.checkAdminValid();
+                keyCardListener.checkAdminKeyVerified(true);
                 votingFrame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
             }
@@ -161,7 +159,7 @@ public class Main extends Application {
         Button left = voteManager.createLeftButton(beerDisplay,navleft);
         Button right = voteManager.createRightButton(beerDisplay,navright);
         Button like = voteManager.createLikeButton(votes,thumb,keyCardListener);
-        like.disableProperty().bind(keyCardListener.keyNotUsedProperty().not());
+        like.disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
 
         beerDisplay.getStyleClass().add("beer-display");
         votes.getStyleClass().add("votes-display");
@@ -278,10 +276,10 @@ public class Main extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-//        scene.setCursor(Cursor.NONE);
-//        window.initStyle(StageStyle.UNDECORATED);
-        window.setMaxWidth(1280);
-        window.setMaxHeight(1024);
+        scene.setCursor(Cursor.NONE);
+        window.initStyle(StageStyle.UNDECORATED);
+//        window.setMaxWidth(1280);
+//        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();
@@ -315,9 +313,9 @@ public class Main extends Application {
         switch (event.getCode()) {
             case ENTER:
                 if (!newBeerField.getText().isEmpty()) {
-                    if (keyCardListener.checkKeyNotUsedReadOnly()) {
+                    if (keyCardListener.checkRegularKeyVerified(false)) {
                         if (voteManager.addBeer(newBeerField.getText(), 0)) {
-                            keyCardListener.checkKeyNotUsed();
+                            keyCardListener.checkRegularKeyVerified(true);
                             frame.setBottom(voteManager.getPollChart());
                             toggleKeyboard();
                         }
@@ -334,7 +332,7 @@ public class Main extends Application {
 
             case ESCAPE:
                 newBeerField.setText("");
-                keyCardListener.checkKeyNotUsed();
+                keyCardListener.checkRegularKeyVerified(true);
                 frame.setBottom(voteManager.getPollChart());
                 toggleKeyboard();
                 break;

@@ -135,6 +135,36 @@ public class VoteManager {
     }
 
     /**
+     * Swipe left through beer list
+     */
+    public void swipeLeft() {
+        if (beerTypes.size() > 1) {
+            if (currentBeer < beerTypes.size() - 1) {
+                goToElement(currentBeer + 1, false);
+            } else if (currentBeer == beerTypes.size() - 1) {
+                lowestIndexed = 0;
+                goToElement(0, true);
+            }
+        }
+    }
+
+    /**
+     * Swipe right through beer list
+     */
+    public void swipeRight() {
+        if (beerTypes.size() > 1) {
+            if (currentBeer > 0) {
+                goToElement(currentBeer - 1, false);
+            } else if (currentBeer == 0) {
+                if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
+                    lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
+                }
+                goToElement(beerTypes.size() - 1, true);
+            }
+        }
+    }
+
+    /**
      * Sets up the navigation button to scroll left through the list
      *
      * @param textObject, Text object that displays the current beer
@@ -146,19 +176,16 @@ public class VoteManager {
         Button left = new Button("", img);
         left.setBackground(Background.EMPTY);
 
-        left.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if (beerTypes.size() > 1) {
-                    if (currentBeer > 0) {
-                        goToElement(currentBeer - 1, false);
-                    } else if (currentBeer == 0) {
-                        if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
-                            lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
-                        }
-
-                        goToElement(beerTypes.size() - 1, true);
+        left.setOnAction(event -> {
+            if (beerTypes.size() > 1) {
+                if (currentBeer > 0) {
+                    goToElement(currentBeer - 1, false);
+                } else if (currentBeer == 0) {
+                    if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
+                        lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
                     }
+
+                    goToElement(beerTypes.size() - 1, true);
                 }
             }
         });
@@ -177,16 +204,13 @@ public class VoteManager {
         Button right = new Button("", img);
         right.setBackground(Background.EMPTY);
 
-        right.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if (beerTypes.size() > 1) {
-                    if (currentBeer < beerTypes.size() - 1) {
-                        goToElement(currentBeer + 1, false);
-                    } else if (currentBeer == beerTypes.size() - 1) {
-                        lowestIndexed = 0;
-                        goToElement(0, true);
-                    }
+        right.setOnAction(event -> {
+            if (beerTypes.size() > 1) {
+                if (currentBeer < beerTypes.size() - 1) {
+                    goToElement(currentBeer + 1, false);
+                } else if (currentBeer == beerTypes.size() - 1) {
+                    lowestIndexed = 0;
+                    goToElement(0, true);
                 }
             }
         });
@@ -214,8 +238,9 @@ public class VoteManager {
         }
 
         likeButton.setOnAction(event -> {
-            if (saveData.isDataReady() && keyCardListener.checkKeyNotUsed()) {
+            if (saveData.isDataReady() && keyCardListener.checkRegularKeyVerified(true)) {
                 listener.registerVote();
+
                 String beerToUpvote = beerTypes.get(currentBeer);
                 beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
                 likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
@@ -326,30 +351,6 @@ public class VoteManager {
         currentBeer = newIndex;
         display.setText(beerTypes.get(currentBeer));
         likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-    }
-
-    public void swipeLeft() {
-        if (beerTypes.size() > 1) {
-            if (currentBeer < beerTypes.size() - 1) {
-                goToElement(currentBeer + 1, false);
-            } else if (currentBeer == beerTypes.size() - 1) {
-                lowestIndexed = 0;
-                goToElement(0, true);
-            }
-        }
-    }
-
-    public void swipeRight() {
-        if (beerTypes.size() > 1) {
-            if (currentBeer > 0) {
-                goToElement(currentBeer - 1, false);
-            } else if (currentBeer == 0) {
-                if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
-                    lowestIndexed = beerTypes.size() - MAX_BEERS_DISPLAYED;
-                }
-                goToElement(beerTypes.size() - 1, true);
-            }
-        }
     }
 
     /**
