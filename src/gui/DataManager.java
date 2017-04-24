@@ -26,7 +26,10 @@ import java.util.Random;
  */
 
 public class DataManager {
-    private final int MAX_DATA_POINTS   = 200, Y_MIN = 270, Y_MAX = 285;
+    private final int MIN_DATA_POINTS   = 10;
+    private final int MAX_DATA_POINTS   = 600;
+    private final int Y_MIN             = 270;
+    private final int Y_MAX             = 285;
     private final double METER_HEIGHT   = 232.0;
     private final int MAX_KEG_WEIGHT    = 30;
 
@@ -34,7 +37,7 @@ public class DataManager {
     private final Label weightLabel = new Label("30L");
     private final Polygon weightMeter = new Polygon();
     private final XYChart.Series<Number, Number> tempData = new XYChart.Series<>();
-    private final NumberAxis xAxis = new NumberAxis(0, MAX_DATA_POINTS + 1, 1);
+    private final NumberAxis xAxis = new NumberAxis(0, MIN_DATA_POINTS + 1, 1);
     private final KegManager beerKeg;
 
     private double sequence = 0;
@@ -68,7 +71,7 @@ public class DataManager {
         xAxis.setForceZeroInRange(false);
 
         // create some starting data
-        tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, 273));
+        tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, 280));
         chart.getData().add(tempData);
 
         return chart;
@@ -164,6 +167,9 @@ public class DataManager {
         // move x axis
         if (sequence > MAX_DATA_POINTS - 1) {
             xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+            xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+        }
+        else if (sequence > MIN_DATA_POINTS - 1) {
             xAxis.setUpperBound(xAxis.getUpperBound() + 1);
         }
     }
