@@ -40,6 +40,7 @@ public class KeyCardListener {
         // Added for testing - Richard's access card
         //adminID.add("0000000000000000708c14057");
         this.saveData = saveData;
+        saveData.setAdmin("0000000000000000708c14057", true);
 
         cardHintText = new SimpleStringProperty("Please Scan Card ...");
         adminKeyVerified = new ReadOnlyBooleanWrapper(false);

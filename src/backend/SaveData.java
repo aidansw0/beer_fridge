@@ -82,10 +82,10 @@ public class SaveData {
      * Assigns path names for data files and loads beer and user information
      * into memory if available.
      * 
-     * @param map,
+     * @param map
      *            Map<String, Integer> containing beer rating information.
      *            map.keySet() should contain the exact same elements as list.
-     * @param list,
+     * @param list
      *            List<String> containing a list of Beers. Should not contain
      *            duplicate beers and should contain the exact same elements as
      *            map.keySet();
@@ -109,7 +109,7 @@ public class SaveData {
 
         if (!Util.checkFileExists(fullBeerFilePath)) {
             createFileInDataDirectory(BEER_FILE);
-            beerDataReady = false;        
+            beerDataReady = false;
         } else {
             readBeerData();
         }
@@ -539,7 +539,7 @@ public class SaveData {
                 String beerName = nextBeer.keys().next().toString();
 
                 beerRatings.put(beerName, nextBeer.getInt(beerName));
-                //beers.add(beerName);
+                // beers.add(beerName);
                 beerDataReady = true;
             }
 
@@ -547,7 +547,7 @@ public class SaveData {
             e.printStackTrace();
             beerDataReady = false;
         }
-        
+
         return beerRatings;
     }
 
