@@ -19,9 +19,11 @@ import java.util.TimerTask;
  */
 
 public class KeyCardListener {
-    private final Set<String> keyCardID = new HashSet<>();
-    private final Set<String> adminID = new HashSet<>();
+    //private final Set<String> keyCardID = new HashSet<>();
+    //private final Set<String> adminID = new HashSet<>();
     private final Timer timer = new Timer();
+    
+    private final SaveData saveData;
 
     private String readInput = "";
     private String newCardBuffer = "";
@@ -30,13 +32,14 @@ public class KeyCardListener {
     private final ReadOnlyBooleanWrapper regularKeyVerified;
     private final ReadOnlyBooleanWrapper newAttempt;
 
-    private final int KEY_CARD_ID_LENGTH = 25;
-    private final int ACCESS_EXPIRY_TIME = 30000; // in ms
-    private final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
+    private static final int KEY_CARD_ID_LENGTH = 25;
+    private static final int ACCESS_EXPIRY_TIME = 30000; // in ms
+    private static final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
 
-    public KeyCardListener() {
+    public KeyCardListener(SaveData saveData) {
         // Added for testing - Richard's access card
-        adminID.add("0000000000000000708c14057");
+        //adminID.add("0000000000000000708c14057");
+        this.saveData = saveData;
 
         cardHintText = new SimpleStringProperty("Please Scan Card ...");
         adminKeyVerified = new ReadOnlyBooleanWrapper(false);
@@ -51,7 +54,8 @@ public class KeyCardListener {
     public ReadOnlyBooleanProperty adminKeyVerifiedProperty() { return adminKeyVerified.getReadOnlyProperty(); }
 
     public void registerVote() {
-        keyCardID.add(newCardBuffer);
+        //keyCardID.add(newCardBuffer);
+        saveData.setVoted(newCardBuffer, true);
     }
 
     /**
@@ -101,35 +105,64 @@ public class KeyCardListener {
             if (readInput.length() >= KEY_CARD_ID_LENGTH) {
                 String keyCardRead = readInput.substring(readInput.length() - KEY_CARD_ID_LENGTH);
 
-                // Administrative ID
-                if (adminID.contains(keyCardRead.toLowerCase())) {
-                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
+//                // Administrative ID
+//                if (adminID.contains(keyCardRead.toLowerCase())) {
+//                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
+//
+//                    System.out.print("Admin Key Found: ");
+//                    cardHintText.set("Admin Card Verified");
+//                    adminKeyVerified.set(true);
+//                    regularKeyVerified.set(true);
+//
+//                // Already voted
+//                } else if (keyCardID.contains(keyCardRead.toLowerCase())){
+//                    System.out.print("Already Voted: ");
+//                    cardHintText.set("Already Voted");
+//                    adminKeyVerified.set(false);
+//                    regularKeyVerified.set(false);
+//                }
+//                // New card
+//                else {
+//                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
+//
+//                    System.out.print("New Vote: ");
+//                    cardHintText.set("Press Thumb to Vote");
+//                    newCardBuffer = keyCardRead.toLowerCase();
+//                    adminKeyVerified.set(false);
+//                    regularKeyVerified.set(true);
+//                }
+//                System.out.println(keyCardRead);
+                
+                    // admin access
+                    if (saveData.checkAdmin(keyCardRead)) {
+                        timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
 
-                    System.out.print("Admin Key Found: ");
-                    cardHintText.set("Admin Card Verified");
-                    adminKeyVerified.set(true);
-                    regularKeyVerified.set(true);
+                        System.out.print("Admin Key Found: ");
+                        cardHintText.set("Admin Card Verified");
+                        adminKeyVerified.set(true);
+                        regularKeyVerified.set(true);
+                        
+                    // already voted    
+                    } else if (saveData.checkVoted(keyCardRead)) {
+                        System.out.print("Already Voted: ");
+                        cardHintText.set("Already Voted");
+                        adminKeyVerified.set(false);
+                        regularKeyVerified.set(false);
+                        
+                    // new card    
+                    } else {
+                        timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
 
-                // Already voted
-                } else if (keyCardID.contains(keyCardRead.toLowerCase())){
-                    System.out.print("Already Voted: ");
-                    cardHintText.set("Already Voted");
-                    adminKeyVerified.set(false);
-                    regularKeyVerified.set(false);
-                }
-                // New card
-                else {
-                    timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
-
-                    System.out.print("New Vote: ");
-                    cardHintText.set("Press Thumb to Vote");
-                    newCardBuffer = keyCardRead.toLowerCase();
-                    adminKeyVerified.set(false);
-                    regularKeyVerified.set(true);
-                }
-                System.out.println(keyCardRead);
-            }
-            else {
+                        System.out.print("New Vote: ");
+                        cardHintText.set("Press Thumb to Vote");
+                        newCardBuffer = keyCardRead;
+                        adminKeyVerified.set(false);
+                        regularKeyVerified.set(true);
+                    }
+                    
+                
+                
+            } else {
                 System.out.println("Key NOT valid: " + readInput);
                 cardHintText.set("Invalid");
                 adminKeyVerified.set(false);

@@ -47,7 +47,7 @@ public class TempClass extends Application {
         beerTypes.add("beer2");
         beerTypes.add("beer3");
         
-        SaveData test = new SaveData(beerTypeLikes, beerTypes);
+        SaveData test = new SaveData();
         
         Text displayBeer = new Text(beerTypes.get(currentBeer));
         displayBeer.setVisible(true);

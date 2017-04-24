@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import tools.Util;
 
 import java.util.*;
 
@@ -25,28 +26,32 @@ import java.util.*;
 
 public class VoteManager {
 
-    private final Map<String, Integer> beerTypeLikes = new HashMap<String, Integer>();
-    private final List<String> beerTypes = new ArrayList<String>();
-    private final List<Rectangle> beerVotesBar = new ArrayList<>();
-    private final HBox pollsPane = new HBox();
-    private SaveData saveData;
-    private KeyCardListener keyCardListener;
+    private final Map<String, Integer> beerTypeLikes;
+    private final List<String> beerTypes;
+    private final List<Rectangle> beerVotesBar;
+    private final HBox pollsPane;
+    private final SaveData saveData;
 
-    private final int MAX_BAR_HEIGHT = 100;
-    private final int FIXED_BAR_WIDTH = 55;
-    private final int MIN_BAR_HEIGHT = 4;
-    private final int MAX_BEERS_DISPLAYED = 10;
-    private final Color UNSELECTED = Color.web("006B68");
-    private final Color SELECTED = Color.web("06D3CE");
+    private static final int MAX_BAR_HEIGHT = 100;
+    private static final int FIXED_BAR_WIDTH = 55;
+    private static final int MIN_BAR_HEIGHT = 4;
+    private static final int MAX_BEERS_DISPLAYED = 10;
+    private static final Color UNSELECTED = Color.web("006B68");
+    private static final Color SELECTED = Color.web("06D3CE");
 
     private Text display, likesDisplay;
     private int currentBeer = 0;
     private int lowestIndexed = 0;
     private int highestVote = 10;
 
-    public VoteManager() {
+    public VoteManager(SaveData saveData) {
         // Read data from saved file
-        saveData = new SaveData(beerTypeLikes, beerTypes);
+        beerTypeLikes = saveData.readBeerData();
+        beerTypes = Util.toList(beerTypeLikes);
+        beerVotesBar = new ArrayList<>();
+        pollsPane = new HBox();
+        
+        this.saveData = saveData;
     }
 
     /**
@@ -131,7 +136,8 @@ public class VoteManager {
      */
     public void saveToFile() {
         try {
-            saveData.writeBeerData();
+            // makes copy of beerTypeLikes
+            saveData.writeBeerData(new HashMap<String, Integer>(beerTypeLikes));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -236,7 +242,7 @@ public class VoteManager {
     public Button createLikeButton(Text likes, ImageView img, KeyCardListener listener) {
         Button likeButton = new Button("", img);
         likesDisplay = likes;
-        keyCardListener = listener;
+        KeyCardListener keyCardListener = listener;
         likeButton.setBackground(Background.EMPTY);
 
         // Find the highest vote and set the global variable used for drawing

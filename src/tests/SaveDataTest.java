@@ -21,9 +21,7 @@ public class SaveDataTest {
     
     @Test
     public void addUserTest() {
-        Map<String, Integer> map = new HashMap<String, Integer>();
-        List<String> list = new ArrayList<String>();
-        SaveData save = new SaveData(map, list);
+        SaveData save = new SaveData();
         
         save.addUser("user0");
         save.addUser("user1");
@@ -40,9 +38,7 @@ public class SaveDataTest {
     
     @Test
     public void checkUserExistsTest() {
-        Map<String, Integer> map = new HashMap<String, Integer>();
-        List<String> list = new ArrayList<String>();
-        SaveData save = new SaveData(map, list);    
+        SaveData save = new SaveData();    
         
         assertTrue(save.checkUserExists("user0"));
         assertTrue(save.checkUserExists("user1"));
@@ -53,9 +49,7 @@ public class SaveDataTest {
     
     @Ignore
     public void checkFlagsFalseTest() {
-        Map<String, Integer> map = new HashMap<String, Integer>();
-        List<String> list = new ArrayList<String>();
-        SaveData save = new SaveData(map, list);
+        SaveData save = new SaveData();
         
         assertEquals(false, save.checkAdmin("user0"));
         assertEquals(false, save.checkAdmin("user1"));
@@ -90,9 +84,7 @@ public class SaveDataTest {
     
     @Ignore
     public void checkFlagsTrueTest() {
-        Map<String, Integer> map = new HashMap<String, Integer>();
-        List<String> list = new ArrayList<String>();
-        SaveData save = new SaveData(map, list);
+        SaveData save = new SaveData();
         
         assertEquals(true, save.checkAdmin("user0"));
         assertEquals(true, save.checkAdmin("user1"));
@@ -109,9 +101,7 @@ public class SaveDataTest {
     
     @Ignore
     public void addExistingUsers() {
-        Map<String, Integer> map = new HashMap<String, Integer>();
-        List<String> list = new ArrayList<String>();
-        SaveData save = new SaveData(map, list);
+        SaveData save = new SaveData();
         
         save.addUser("user0");
         

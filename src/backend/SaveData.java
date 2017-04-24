@@ -38,6 +38,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import tools.Util;
+
 /**
  * This class is responsible for reading and writing data to and from the local
  * file system. All data is stored in JSON format. This class should be
@@ -62,8 +64,8 @@ public class SaveData {
     // full paths for BEER_FILE and USER_FILE to be stored (includes file name),
     // dependent on location of .jar file
 
-    private final Map<String, Integer> beerRatings;
-    private final List<String> beers;
+    // private final Map<String, Integer> beerRatings;
+    // private final List<String> beers;
     private boolean beerDataReady = false;
 
     // constants for encryption
@@ -88,47 +90,33 @@ public class SaveData {
      *            duplicate beers and should contain the exact same elements as
      *            map.keySet();
      */
-    public SaveData(Map<String, Integer> map, List<String> list) {
-        fullSaltPath = getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
-        fullBeerFilePath = getJarPath() + "data" + System.getProperty("file.separator") + BEER_FILE;
-        fullUserFilePath = getJarPath() + "data" + System.getProperty("file.separator") + USER_FILE;
-
-        beerRatings = map;
-        beers = list;
+    public SaveData() {
+        fullSaltPath = Util.getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
+        fullBeerFilePath = Util.getJarPath() + "data" + System.getProperty("file.separator") + BEER_FILE;
+        fullUserFilePath = Util.getJarPath() + "data" + System.getProperty("file.separator") + USER_FILE;
 
         try {
             cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         } catch (NoSuchAlgorithmException | NoSuchPaddingException e1) {
             e1.printStackTrace();
         }
-        
-        if (!checkFileExists(fullSaltPath)) {
+
+        if (!Util.checkFileExists(fullSaltPath)) {
             writeSALT();
         } else {
             readSALT();
         }
 
-        if (!checkFileExists(fullBeerFilePath)) {
+        if (!Util.checkFileExists(fullBeerFilePath)) {
             createFileInDataDirectory(BEER_FILE);
-            try {
-                writeBeerData();
-            } catch (JSONException | IOException e) {
-                e.printStackTrace();
-                beerDataReady = false;
-            }
+            beerDataReady = false;        
         } else {
             readBeerData();
         }
 
-        if (!checkFileExists(fullUserFilePath)) {
+        if (!Util.checkFileExists(fullUserFilePath)) {
             createFileInDataDirectory(USER_FILE);
-            try {
-                writeUsersToFile();
-            } catch (Exception e) {
-                e.printStackTrace();
-                userDataReady = false;
-            }
-
+            userDataReady = false;
         } else {
             readUsersFromFile();
         }
@@ -145,7 +133,7 @@ public class SaveData {
             SecretKey tmpKey = factory.generateSecret(spec);
             SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            
+
         } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
         }
@@ -168,7 +156,7 @@ public class SaveData {
             SecretKey tmpKey = factory.generateSecret(spec);
             SecretKey secretKey = new SecretKeySpec(tmpKey.getEncoded(), "AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
-            
+
         } catch (InvalidKeyException | InvalidAlgorithmParameterException | InvalidKeySpecException
                 | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -309,7 +297,7 @@ public class SaveData {
     public void writeUsersToFile() throws JSONException, IOException {
         setCipherEncrypt();
 
-        if (checkFileExists(USER_FILE)) {
+        if (Util.checkFileExists(USER_FILE)) {
 
             if (userData.keySet().size() > 0) {
                 JSONObject jsonFile = new JSONObject();
@@ -374,7 +362,7 @@ public class SaveData {
     private void readUsersFromFile() {
 
         try {
-            String jsonString = readFileToString(fullUserFilePath);
+            String jsonString = Util.readFileToString(fullUserFilePath);
             if (jsonString == null) {
                 userDataReady = false;
                 return;
@@ -454,7 +442,6 @@ public class SaveData {
         byte[] encryptedBytes = null;
         String decrypted = null;
 
-
         try {
             ivBytes = Base64.getDecoder().decode(iv.getBytes("UTF-8"));
             encryptedBytes = Base64.getDecoder().decode(encrypted.getBytes("UTF-8"));
@@ -478,8 +465,8 @@ public class SaveData {
      * @throws IOException
      *             if data could not be written.
      */
-    public void writeBeerData() throws JSONException, IOException {
-        if (checkFileExists(BEER_FILE)) {
+    public void writeBeerData(Map<String, Integer> beerRatings) throws JSONException, IOException {
+        if (Util.checkFileExists(BEER_FILE)) {
 
             if (beerRatings.keySet().size() > 0) {
                 JSONObject jsonToWrite = new JSONObject();
@@ -532,13 +519,14 @@ public class SaveData {
      * Reads and parses BEER_FILE and loads the data into beerRatings and beers.
      * Does not modify BEER_FILE in any way.
      */
-    private void readBeerData() {
+    public Map<String, Integer> readBeerData() {
+        Map<String, Integer> beerRatings = new HashMap<String, Integer>();
 
         try {
-            String jsonString = readFileToString(fullBeerFilePath);
+            String jsonString = Util.readFileToString(fullBeerFilePath);
             if (jsonString == null) {
                 beerDataReady = false;
-                return;
+                return beerRatings;
             }
 
             beerDataReady = false;
@@ -551,7 +539,7 @@ public class SaveData {
                 String beerName = nextBeer.keys().next().toString();
 
                 beerRatings.put(beerName, nextBeer.getInt(beerName));
-                beers.add(beerName);
+                //beers.add(beerName);
                 beerDataReady = true;
             }
 
@@ -559,6 +547,8 @@ public class SaveData {
             e.printStackTrace();
             beerDataReady = false;
         }
+        
+        return beerRatings;
     }
 
     /**
@@ -569,7 +559,7 @@ public class SaveData {
      */
     private void createFileInDataDirectory(String fileName) {
         String newDir = "";
-        String path = getJarPath();
+        String path = Util.getJarPath();
 
         String fileSeparator = System.getProperty("file.separator");
         newDir = path + "data" + fileSeparator;
@@ -582,67 +572,6 @@ public class SaveData {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Locates the directory in which the .jar executable file for this
-     * application exits.
-     * 
-     * @return String giving the full path of the .jar executable including a
-     *         system dependent file separator at the end of the path.
-     */
-    private String getJarPath() {
-        URL url = SaveData.class.getProtectionDomain().getCodeSource().getLocation();
-        String jarPath = "";
-        try {
-            jarPath = URLDecoder.decode(url.getFile(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        String parentPath = new File(jarPath).getParentFile().getPath();
-        return parentPath + System.getProperty("file.separator");
-    }
-
-    /**
-     * Checks weather a file at fullPath exists
-     * 
-     * @return true if a file at fullPath exists and false if otherwise.
-     */
-    private boolean checkFileExists(String fullPath) {
-        File testFile = null;
-        testFile = new File(fullPath);
-        return testFile.exists();
-    }
-
-    /**
-     * Reads the contents of the file at filePath into a single string.
-     * 
-     * @param filePath,
-     *            the full file path of the file to be read. This file must
-     *            exist.
-     * @return String with the contents of the file.
-     * @throws IOException
-     */
-    private String readFileToString(String filePath) throws IOException {
-        StringBuilder fileText = new StringBuilder();
-        BufferedReader reader;
-
-        reader = new BufferedReader(new FileReader(filePath));
-        String line = reader.readLine();
-
-        if (line == null) {
-            reader.close();
-            return null;
-        }
-
-        while (line != null) {
-            fileText.append(line);
-            line = reader.readLine();
-        }
-
-        reader.close();
-
-        return fileText.toString();
     }
 
     /**
