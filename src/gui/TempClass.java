@@ -154,6 +154,7 @@ public class TempClass extends Application {
 
         Scene scene = new Scene(root, 400, 300);
         window.setScene(scene);
-        window.show();
+        //window.show();
+        System.exit(0);
     }
 }
