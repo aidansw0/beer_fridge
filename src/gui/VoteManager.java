@@ -32,12 +32,12 @@ public class VoteManager {
     private final HBox pollsPane;
     private final SaveData saveData;
 
-    private static final int MAX_BAR_HEIGHT = 100;
-    private static final int FIXED_BAR_WIDTH = 55;
-    private static final int MIN_BAR_HEIGHT = 4;
-    private static final int MAX_BEERS_DISPLAYED = 10;
-    private static final Color UNSELECTED = Color.web("006B68");
-    private static final Color SELECTED = Color.web("06D3CE");
+    private static final int MAX_BAR_HEIGHT         = 100;
+    private static final int FIXED_BAR_WIDTH        = 55;
+    private static final int MIN_BAR_HEIGHT         = 4;
+    private static final int MAX_BEERS_DISPLAYED    = 10;
+    private static final Color UNSELECTED           = Color.web("006B68");
+    private static final Color SELECTED             = Color.web("06D3CE");
 
     private Text display, likesDisplay;
     private int currentBeer = 0;
@@ -50,7 +50,7 @@ public class VoteManager {
         beerTypes = Util.toList(beerTypeLikes);
         beerVotesBar = new ArrayList<>();
         pollsPane = new HBox();
-        
+
         this.saveData = saveData;
     }
 
@@ -136,8 +136,10 @@ public class VoteManager {
      */
     public void saveBeerData() {
         try {
-            // makes copy of beerTypeLikes
-            saveData.writeBeerData(new HashMap<String, Integer>(beerTypeLikes));
+            // makes deep copy of beerTypeLikes in case it is modified during
+            // save process
+            // saveData.writeBeerData(new HashMap<String, Integer>(beerTypeLikes));
+            saveData.writeBeerData(Util.deepCopy(beerTypeLikes));
         } catch (Exception e) {
             e.printStackTrace();
         }

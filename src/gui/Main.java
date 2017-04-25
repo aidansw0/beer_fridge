@@ -1,27 +1,36 @@
 package gui;
 
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.json.JSONException;
+
 import backend.KegManager;
 import backend.KeyCardListener;
 import backend.SaveData;
 import backend.VirtualKeyboard;
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
-import javafx.application.Application;
-import javafx.scene.Scene;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.scene.control.Label;
 import javafx.stage.StageStyle;
 
 public class Main extends Application {
@@ -32,6 +41,8 @@ public class Main extends Application {
     private final SaveData saveData = new SaveData();
     private final VoteManager voteManager = new VoteManager(saveData);
     private final KeyCardListener keyCardListener = new KeyCardListener(saveData);
+    
+    private static final long WRITE_DATA_PERIOD = 600000; // in ms
     
     private final Label newBeerField = new Label();
     private Stage window;
@@ -58,6 +69,23 @@ public class Main extends Application {
 
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
+        
+        // setup timer task to write beer/user data to file periodically
+        Timer saveTimer = new Timer();
+        TimerTask save = new TimerTask() {
+            
+            @Override
+            public void run() {
+                voteManager.saveBeerData();
+                try {
+                    saveData.writeUsersToFile();
+                } catch (JSONException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        
+        saveTimer.schedule(save, WRITE_DATA_PERIOD, WRITE_DATA_PERIOD);
 
         primaryStage.setOnCloseRequest(event -> {
             try {

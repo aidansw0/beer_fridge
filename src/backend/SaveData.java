@@ -287,7 +287,7 @@ public class SaveData {
      * @throws IOException
      * @throws JSONException
      */
-    public void writeUsersToFile() throws JSONException, IOException {
+    public synchronized void writeUsersToFile() throws JSONException, IOException {
         setCipherEncrypt();
 
         if (Util.checkFileExists(USER_FILE)) {
@@ -458,7 +458,7 @@ public class SaveData {
      * @throws IOException
      *             if data could not be written.
      */
-    public void writeBeerData(Map<String, Integer> beerRatings) throws JSONException, IOException {
+    public synchronized void writeBeerData(Map<String, Integer> beerRatings) throws JSONException, IOException {
         if (Util.checkFileExists(BEER_FILE)) {
 
             if (beerRatings.keySet().size() > 0) {

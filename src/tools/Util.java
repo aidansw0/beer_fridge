@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,23 @@ import backend.SaveData;
  *
  */
 public final class Util {
+
+    /**
+     * Makes a deep copy of the given map.
+     * 
+     * @param map
+     *            Map<String, Integer> to be copied.
+     * @return Map<String, Integer> deep copy of map.
+     */
+    public static Map<String, Integer> deepCopy(Map<String, Integer> map) {
+        Map<String, Integer> copy = new HashMap<String, Integer>();
+
+        for (String str : map.keySet()) {
+            copy.put(new String(str), map.get(str).intValue());
+        }
+
+        return copy;
+    }
 
     /**
      * Converts the given Map<String, Integer> keySet() to a LinkedList<String>
