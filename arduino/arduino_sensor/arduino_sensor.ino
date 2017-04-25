@@ -21,11 +21,11 @@
 
 // Your network SSID and password
 char ssid[] =         "Tera-Guest";
-char password[] =     "TeraPc0!P"; // test
+char password[] =     "";
 
 // HTTP Request
 #define HTTP_PORT             80  
-#define THING_NAME            "test-beer"
+#define THING_NAME            "teradici-beer-fridge"
 #define REQUEST_INTERVAL      2000    // dweet update interval in ms
 #define WIFI_CHECK_INTERVAL   60000   // check wifi interval in ms
 
@@ -109,10 +109,7 @@ void loop() {
 
 
 float getTemperature() {
-  //tmp006.wake();
-  //float temp =  tmp006.readDieTempC();
-  float temp = tmp006.readObjTempC();
-  //tmp006.sleep();
+  float temp = tmp006.readObjTempC() + 273.15; // convert to kelvins
   return temp;
 }
 

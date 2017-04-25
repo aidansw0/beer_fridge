@@ -26,7 +26,7 @@ import javafx.beans.property.ReadOnlyIntegerWrapper;
  */
 public class KegManager {
 
-    private static final String DWEET_URL = "https://dweet.io/get/latest/dweet/for/kris-is-gay";
+    private static final String DWEET_URL = "https://dweet.io/get/latest/dweet/for/teradici-beer-fridge";
     private static final long DWEET_REFRESH_RATE = 5000; // time in ms
 
     private final ReadOnlyIntegerWrapper weight;
