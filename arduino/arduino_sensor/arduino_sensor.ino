@@ -20,8 +20,8 @@
 #define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
 // Your network SSID and password
-char ssid[] =         "AndroidAP";
-char password[] =     "testpassword"; // test
+char ssid[] =         "Tera-Guest";
+char password[] =     "TeraPc0!P"; // test
 
 // HTTP Request
 #define HTTP_PORT             80  
@@ -110,7 +110,8 @@ void loop() {
 
 float getTemperature() {
   //tmp006.wake();
-  float temp =  tmp006.readDieTempC();
+  //float temp =  tmp006.readDieTempC();
+  float temp = tmp006.readObjTempC();
   //tmp006.sleep();
   return temp;
 }
