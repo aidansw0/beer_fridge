@@ -28,7 +28,7 @@ public class KeyCardListener {
     private final ReadOnlyBooleanWrapper regularKeyVerified;
     private final ReadOnlyBooleanWrapper newAttempt;
 
-    private static final int KEY_CARD_ID_LENGTH = 25;
+    private static final int KEY_CARD_ID_LENGTH = 4;
     private static final int ACCESS_EXPIRY_TIME = 60000; // in ms
     private static final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
 
@@ -37,6 +37,7 @@ public class KeyCardListener {
 
         saveData.setAdmin("0000000000000000708c14057", true); // Richard
         saveData.setAdmin("0000000000000000708c14054", true); // Aidan
+        saveData.setAdmin("1234", true);
 
         cardHintText = new SimpleStringProperty("Please Scan Card ...");
         adminKeyVerified = new ReadOnlyBooleanWrapper(false);
@@ -59,18 +60,16 @@ public class KeyCardListener {
      * @return Returns true if a regular key card was verified
      */
     public boolean checkRegularKeyVerified(boolean consumeAccess) {
-        if (regularKeyVerified.get()) {
-            if (consumeAccess) {
-                timer.cancel();
-                adminKeyVerified.set(false);
-                regularKeyVerified.set(false);
-                cardHintText.set("Please Scan Card ...");
-            }
-            return true;
+        boolean retVal = regularKeyVerified.get();
+
+        if (consumeAccess) {
+            timer.cancel();
+            adminKeyVerified.set(false);
+            regularKeyVerified.set(false);
+            cardHintText.set("Please Scan Card ...");
         }
-        else {
-            return false;
-        }
+
+        return retVal;
     }
 
     /**
@@ -78,18 +77,16 @@ public class KeyCardListener {
      * @return Returns true if admin key card was verified and toggles to false
      */
     public boolean checkAdminKeyVerified(boolean consumeAccess) {
-        if (adminKeyVerified.get()) {
-            if (consumeAccess) {
-                timer.cancel();
-                adminKeyVerified.set(false);
-                regularKeyVerified.set(false);
-                cardHintText.set("Please Scan Card ...");
-            }
-            return true;
+        boolean retVal = adminKeyVerified.get();
+
+        if (consumeAccess) {
+            timer.cancel();
+            adminKeyVerified.set(false);
+            regularKeyVerified.set(false);
+            cardHintText.set("Please Scan Card ...");
         }
-        else {
-            return false;
-        }
+
+        return retVal;
     }
 
     /**

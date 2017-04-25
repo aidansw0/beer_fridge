@@ -148,18 +148,7 @@ public class Main extends Application {
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
         addButton.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
-        addButton.setOnAction(event -> {
-            if (keyboardOn) {
-                keyCardListener.checkAdminKeyVerified(true);
-                votingFrame.setBottom(voteManager.getPollChart());
-                toggleKeyboard();
-            } else {
-                newBeerField.setText("");
-                votingFrame.setBottom(newBeerField);
-                newBeerField.requestFocus();
-                toggleKeyboard();
-            }
-        });
+        addButton.setOnAction(event -> toggleAdminPanel(votingFrame));
 
         votingHeader.getChildren().add(votingheaderimg);
         votingHeader.getChildren().add(addButton);
@@ -286,13 +275,26 @@ public class Main extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-        scene.setCursor(Cursor.NONE);
-        window.initStyle(StageStyle.UNDECORATED);
-//        window.setMaxWidth(1280);
-//        window.setMaxHeight(1024);
+//        scene.setCursor(Cursor.NONE);
+//        window.initStyle(StageStyle.UNDECORATED);
+        window.setMaxWidth(1280);
+        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();
+    }
+
+    private void toggleAdminPanel(BorderPane votingFrame) {
+        if (keyboardOn) {
+            keyCardListener.checkAdminKeyVerified(true);
+            votingFrame.setBottom(voteManager.getPollChart());
+            toggleKeyboard();
+        } else {
+            newBeerField.setText("");
+            votingFrame.setBottom(newBeerField);
+            newBeerField.requestFocus();
+            toggleKeyboard();
+        }
     }
 
     private void createKeyboardPopUp() {
