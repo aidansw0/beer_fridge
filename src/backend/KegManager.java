@@ -56,13 +56,13 @@ public class KegManager {
     }
 
     /**
-     * Modifies the value of weight and temp fields with new data polled
-     * from Dweet by a DweetParser object.
+     * Modifies the value of weight and temp fields with new data polled from
+     * Dweet by a DweetParser object.
      * 
-     * @param type,
+     * @param type
      *            ContentType which indicates the type of value to be updated
      *            (weight/temp).
-     * @param val,
+     * @param val
      *            double value polled from Dweet.
      */
     public void updateContent(ContentType type, double val) {
@@ -73,10 +73,6 @@ public class KegManager {
         }
     }
 }
-
-
-
-
 
 /**
  * This class is responsible for reading and parsing the JSON data polled from
@@ -130,12 +126,13 @@ class DweetParser extends TimerTask {
     /**
      * Sends newly polled values from the Dweet url to the KegManager.
      * 
-     * @param type, ContentType which gives the type of value to be sent.
-     * @param val, double value polled from the Dweet url.
+     * @param type
+     *            ContentType which gives the type of value to be sent.
+     * @param val
+     *            double value polled from the Dweet url.
      */
     private void sendToManager(ContentType type, double val) {
         kegManager.updateContent(type, val);
     }
 
 }
-

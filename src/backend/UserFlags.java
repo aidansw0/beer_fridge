@@ -1,5 +1,12 @@
 package backend;
 
+/**
+ * User flags include weather the user has voted and if a user has admin
+ * privileges.
+ * 
+ * @author Aidan
+ *
+ */
 public class UserFlags {
     
     private final String iv;

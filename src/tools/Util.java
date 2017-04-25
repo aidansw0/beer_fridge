@@ -13,14 +13,20 @@ import java.util.Map;
 
 import backend.SaveData;
 
-public class Util {
+/**
+ * Contains several static utility methods.
+ * 
+ * @author Aidan
+ *
+ */
+public final class Util {
 
     /**
      * Converts the given Map<String, Integer> keySet() to a LinkedList<String>
      * containing the exact same elements. The elements in the returned list are
      * not ordered in any specific way.
      * 
-     * @param map,
+     * @param map
      *            Map<String, Integer> whose keySet() is to be converted to a
      *            List.
      * @return LinkedList<String> containing the exact same elements as
@@ -35,11 +41,11 @@ public class Util {
 
         return list;
     }
-    
+
     /**
      * Reads the contents of the file at filePath into a single string.
      * 
-     * @param filePath,
+     * @param filePath
      *            the full file path of the file to be read. This file must
      *            exist.
      * @return String with the contents of the file.
@@ -66,7 +72,7 @@ public class Util {
 
         return fileText.toString();
     }
-    
+
     /**
      * Checks weather a file at fullPath exists
      * 
@@ -77,7 +83,7 @@ public class Util {
         testFile = new File(fullPath);
         return testFile.exists();
     }
-    
+
     /**
      * Locates the directory in which the .jar executable file for this
      * application exits.

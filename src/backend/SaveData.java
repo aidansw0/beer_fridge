@@ -137,7 +137,7 @@ public class SaveData {
      * iv. The initialization vector is generated upon encryption of the item
      * and is required to decrypt that same item.
      * 
-     * @param iv,
+     * @param iv
      *            byte[] giving the initialization vector generated upon
      *            encryption of its corresponding item.
      */
@@ -182,7 +182,7 @@ public class SaveData {
      * buffer should also contain user data read from USER_FILE. If the user
      * already exists then the user is not added to the buffer.
      * 
-     * @param user,
+     * @param user
      *            String to identify the user. Must not be the empty string.
      * @return true if the user did not already exist and was successfully added
      *         to the buffer and false if otherwise.
@@ -199,7 +199,7 @@ public class SaveData {
     /**
      * Checks if the given user exists in the buffer stored in RAM.
      * 
-     * @param user,
+     * @param user
      *            String giving the user to be identified.
      * @return true if the user exists and false if otherwise.
      */
@@ -210,7 +210,7 @@ public class SaveData {
     /**
      * Checks if the given user is flagged with administrative privileges.
      * 
-     * @param user,
+     * @param user
      *            String giving the user to be identified.
      * @return true if the user exists and has administrative privileges and
      *         false if otherwise or the user does not exist.
@@ -226,7 +226,7 @@ public class SaveData {
     /**
      * Checks if the given user is flagged as having already voted.
      * 
-     * @param user,
+     * @param user
      *            String giving the user to be identified.
      * @return true if the user exists and has already voted and false if
      *         otherwise or if the user has not voted.
@@ -244,9 +244,9 @@ public class SaveData {
      * did not already exist then a new user is added with admin set to 'value'
      * and voted set to false.
      * 
-     * @param user,
+     * @param user
      *            String giving user to be identified.
-     * @param value,
+     * @param value
      *            boolean giving value to set as administrative privileges.
      */
     public void setAdmin(String user, boolean value) {
@@ -262,9 +262,9 @@ public class SaveData {
      * already exist then a new user is added with voted set to 'value' and
      * admin set to false.
      * 
-     * @param user,
+     * @param user
      *            String giving user to be identified.
-     * @param value,
+     * @param value
      *            boolean giving value to set as user's voted status.
      */
     public void setVoted(String user, boolean value) {
@@ -388,7 +388,7 @@ public class SaveData {
      * initialization vector is also encoded into string format using base64
      * before being returned.
      * 
-     * @param plainText,
+     * @param plainText
      *            String to be encrpyted. Must not be the empty string.
      * @return String[] of length 2 containing the encrypted plainText at index
      *         0 and its corresponding initialization vector at index 1.
@@ -422,7 +422,7 @@ public class SaveData {
      * 
      * @param encrypted,
      *            String to be decrypted. Mus not be the empty string.
-     * @param iv,
+     * @param iv
      *            String giving the initialization vector to be used during the
      *            decryption proccess.
      * @return the decrypted String of encrypted.
