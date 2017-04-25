@@ -61,11 +61,9 @@ public class SaveData {
     private final String fullSaltPath;
     private final String fullBeerFilePath;
     private final String fullUserFilePath;
-    // full paths for BEER_FILE and USER_FILE to be stored (includes file name),
-    // dependent on location of .jar file
+    // full paths for SALT_FILE, BEER_FILE and USER_FILE to be stored (includes
+    // file name), dependent on location of .jar file
 
-    // private final Map<String, Integer> beerRatings;
-    // private final List<String> beers;
     private boolean beerDataReady = false;
 
     // constants for encryption
@@ -93,12 +91,14 @@ public class SaveData {
             e1.printStackTrace();
         }
 
+        // check SALT_FILE
         if (!Util.checkFileExists(fullSaltPath)) {
             writeSALT();
         } else {
             readSALT();
         }
 
+        // check BEER_FILE
         if (!Util.checkFileExists(fullBeerFilePath)) {
             createFileInDataDirectory(BEER_FILE);
             beerDataReady = false;
@@ -106,6 +106,7 @@ public class SaveData {
             readBeerData();
         }
 
+        // check USER_FILE
         if (!Util.checkFileExists(fullUserFilePath)) {
             createFileInDataDirectory(USER_FILE);
             userDataReady = false;
@@ -190,6 +191,8 @@ public class SaveData {
     public boolean addUser(String user) {
         if (!checkUserExists(user)) {
             userData.put(user, new UserFlags("", false, false));
+            // add temporary empty string for user's IV. this will be generated
+            // when the user string is encrypted and written to file
             return true;
         } else {
             return false;
@@ -495,6 +498,7 @@ public class SaveData {
                 jsonToWrite.put("beers", jsonBeerList);
                 FileWriter writer = new FileWriter(fullBeerFilePath);
                 writer.write(jsonToWrite.toString());
+                writer.flush();
                 writer.close();
 
                 beerDataReady = true;
