@@ -17,7 +17,7 @@ import java.util.TimerTask;
  */
 
 public class KeyCardListener {
-    private final Timer timer = new Timer();
+    private Timer timer = new Timer();
     
     private final SaveData saveData;
 
@@ -61,6 +61,7 @@ public class KeyCardListener {
     public boolean checkRegularKeyVerified(boolean consumeAccess) {
         if (regularKeyVerified.get()) {
             if (consumeAccess) {
+                timer.cancel();
                 adminKeyVerified.set(false);
                 regularKeyVerified.set(false);
                 cardHintText.set("Please Scan Card ...");
@@ -79,6 +80,7 @@ public class KeyCardListener {
     public boolean checkAdminKeyVerified(boolean consumeAccess) {
         if (adminKeyVerified.get()) {
             if (consumeAccess) {
+                timer.cancel();
                 adminKeyVerified.set(false);
                 regularKeyVerified.set(false);
                 cardHintText.set("Please Scan Card ...");
@@ -98,11 +100,15 @@ public class KeyCardListener {
      */
     public void handleEvent(KeyEvent keyEvent) {
         if (keyEvent.getCode() == KeyCode.SLASH) {
+            newAttempt.set(false);
+            timer.cancel();
+
             if (readInput.length() >= KEY_CARD_ID_LENGTH) {
                 String keyCardRead = readInput.substring(readInput.length() - KEY_CARD_ID_LENGTH);
 
                 // admin access
                 if (saveData.checkAdmin(keyCardRead)) {
+                    timer = new Timer();
                     timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
 
                     System.out.print("Admin Key Found: ");
@@ -119,6 +125,7 @@ public class KeyCardListener {
 
                 // new card
                 } else {
+                    timer = new Timer();
                     timer.schedule(new ExpireAccess(adminKeyVerified, regularKeyVerified,cardHintText), ACCESS_EXPIRY_TIME);
 
                     System.out.print("New Vote: ");
@@ -139,7 +146,10 @@ public class KeyCardListener {
         }
         else if (keyEvent.getCode() != KeyCode.ENTER && keyEvent.getCode() != KeyCode.ESCAPE){
             if (!newAttempt.get()) {
+                timer.cancel();
+                timer = new Timer();
                 timer.schedule(new ExpireAttempt(newAttempt,cardHintText, adminKeyVerified, regularKeyVerified), ATTEMPT_EXPIRY_TIME);
+
                 readInput = "";
                 adminKeyVerified.set(false);
                 regularKeyVerified.set(false);
