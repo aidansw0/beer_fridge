@@ -26,12 +26,13 @@ import java.util.Random;
  */
 
 public class DataManager {
-    private final int MIN_DATA_POINTS   = 10;
-    private final int MAX_DATA_POINTS   = 2000;
-    private final int Y_MIN             = 270;
-    private final int Y_MAX             = 285;
-    private final double METER_HEIGHT   = 232.0;
-    private final int MAX_KEG_WEIGHT    = 30;
+    private static final int MIN_DATA_POINTS        = 10;
+    private static final int MAX_DATA_POINTS        = 2000;
+    private static final int Y_MIN                  = 270;
+    private static final int Y_MAX                  = 285;
+    private static final double METER_HEIGHT        = 232.0;
+    private static final int MAX_KEG_WEIGHT         = 30;
+    private static final int CHART_REFRESH_RATE     = 2100; // time in ms
 
     private final Label tempLabel = new Label("273\u00B0K");
     private final Label weightLabel = new Label("30L");
@@ -41,10 +42,9 @@ public class DataManager {
     private final KegManager beerKeg;
 
     private double sequence = 0;
-    private boolean displayKelvin = true;
+    private boolean displayKelvin = false;
 
     public DataManager(KegManager kegManager) {
-        final int CHART_REFRESH_RATE = 2100; // time in ms
         beerKeg = kegManager;
 
         Timeline animation;

@@ -143,7 +143,7 @@ public class Main extends Application {
 
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setPrefWidth(715);
-        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event, votingFrame));
+        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
@@ -156,6 +156,7 @@ public class Main extends Application {
             } else {
                 newBeerField.setText("");
                 votingFrame.setBottom(newBeerField);
+                newBeerField.requestFocus();
                 toggleKeyboard();
             }
         });
@@ -319,23 +320,23 @@ public class Main extends Application {
 
     private void keyboardEvents(KeyEvent event, BorderPane frame) {
         switch (event.getCode()) {
-        case ENTER:
-            if (!newBeerField.getText().isEmpty()) {
-                if (voteManager.addBeer(newBeerField.getText(), 0)) {
-                    keyCardListener.checkAdminKeyVerified(true);
-                    frame.setBottom(voteManager.getPollChart());
-                    toggleKeyboard();
+            case ENTER:
+                if (!newBeerField.getText().isEmpty()) {
+                    if (voteManager.addBeer(newBeerField.getText(), 0)) {
+                        keyCardListener.checkAdminKeyVerified(true);
+                        frame.setBottom(voteManager.getPollChart());
+                        toggleKeyboard();
+                    }
+                    newBeerField.setText("");
                 }
-                newBeerField.setText("");
-            }
-            break;
+                break;
 
-        case ESCAPE:
-            newBeerField.setText("");
-            keyCardListener.checkAdminKeyVerified(true);
-            frame.setBottom(voteManager.getPollChart());
-            toggleKeyboard();
-            break;
+            case ESCAPE:
+                newBeerField.setText("");
+                keyCardListener.checkAdminKeyVerified(true);
+                frame.setBottom(voteManager.getPollChart());
+                toggleKeyboard();
+                break;
         }
     }
 

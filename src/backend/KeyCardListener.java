@@ -29,7 +29,7 @@ public class KeyCardListener {
     private final ReadOnlyBooleanWrapper newAttempt;
 
     private static final int KEY_CARD_ID_LENGTH = 25;
-    private static final int ACCESS_EXPIRY_TIME = 30000; // in ms
+    private static final int ACCESS_EXPIRY_TIME = 60000; // in ms
     private static final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
 
     public KeyCardListener(SaveData saveData) {
