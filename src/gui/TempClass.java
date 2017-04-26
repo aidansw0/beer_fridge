@@ -1,26 +1,60 @@
 package gui;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import org.json.JSONException;
+
+import backend.KegManager;
+import backend.KeyCardListener;
 import backend.SaveData;
+import backend.VirtualKeyboard;
+
 import javafx.application.Application;
-import javafx.event.ActionEvent;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class TempClass extends Application {
+
+    private final KegManager beerKeg = new KegManager();
+    private final DataManager dataManager = new DataManager(beerKeg);
     
-    int currentBeer = 0;
+    private final SaveData saveData = new SaveData();
+    private final VoteManager voteManager = new VoteManager(saveData);
+    private final KeyCardListener keyCardListener = new KeyCardListener(saveData);
+    
+    private static final long WRITE_DATA_PERIOD = 600000; // in ms
+    
+    private final Label newBeerField = new Label();
+    private Stage window;
+    private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
+    private StackPane adminPanel, finalStack; //asda
+
+    private double initial = 0;
+
+    private boolean keyboardOn = false;
+    private boolean adminPanelOn = false;
 
     public static void main(String[] args) {
         launch(args);
@@ -28,133 +62,416 @@ public class TempClass extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Stage window;
+        init(primaryStage);
+        createScene();
+    }
 
+    private void init(Stage primaryStage) {
         window = primaryStage;
         window.setTitle("Beer Keg Monitor");
-        
-        
+        window.isFullScreen();
 
-        Map<String, Integer> beerTypeLikes = new HashMap<String, Integer>();
-        beerTypeLikes.put("beer0", 0);
-        beerTypeLikes.put("beer1", 0);
-        beerTypeLikes.put("beer2", 0);
-        beerTypeLikes.put("beer3", 0);
+        Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
+        Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
         
-        List<String> beerTypes = new ArrayList<String>();
-        beerTypes.add("beer0");
-        beerTypes.add("beer1");
-        beerTypes.add("beer2");
-        beerTypes.add("beer3");
-        
-        SaveData test = new SaveData();
-        
-        Text displayBeer = new Text(beerTypes.get(currentBeer));
-        displayBeer.setVisible(true);
-        
-        TextField enterNewBeer = new TextField();
-
-        Button like = new Button("Like");
-        like.setOnAction(new EventHandler<ActionEvent>() {
-
+        // setup timer task to write beer/user data to file periodically
+        Timer saveTimer = new Timer();
+        TimerTask save = new TimerTask() {
+            
             @Override
-            public void handle(ActionEvent event) {
-                //event.consume();
-                String beerToUpvote = beerTypes.get(currentBeer);
-                beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
-                System.out.println(beerTypeLikes.get(beerToUpvote));
-            }
-        });
-
-        Button left = new Button("Left");
-        left.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if (currentBeer > 0) {
-                    currentBeer--;
-                } else if (currentBeer == 0) {
-                    currentBeer = beerTypes.size() - 1;
-                }
-                
-                displayBeer.setText(beerTypes.get(currentBeer));
-            }
-        });
-
-        Button right = new Button("Right");
-        right.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                if (currentBeer < beerTypes.size() - 1) {
-                    currentBeer++;
-                } else if (currentBeer == beerTypes.size() - 1) {
-                    currentBeer = 0;
-                }
-                
-                displayBeer.setText(beerTypes.get(currentBeer));
-            }
-        });
-
-        Button enter = new Button("Enter");
-        enter.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                String beerToAdd = enterNewBeer.getText();
-                enterNewBeer.clear();
-                
-                if (!beerTypeLikes.containsKey(beerToAdd)) {
-                    beerTypeLikes.put(beerToAdd, 0);
-                    beerTypes.add(beerToAdd);
-                } else {
-                    System.out.println("This beer is already in the database!");
+            public void run() {
+                voteManager.saveBeerData();
+                try {
+                    saveData.writeUsersToFile();
+                } catch (JSONException | IOException e) {
+                    e.printStackTrace();
                 }
             }
+        };
+        
+        saveTimer.schedule(save, WRITE_DATA_PERIOD, WRITE_DATA_PERIOD);
+
+        primaryStage.setOnCloseRequest(event -> {
+            try {
+                voteManager.saveBeerData();
+                saveData.writeUsersToFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Platform.exit();
+            System.exit(0);
         });
-        
+    }
 
-        BorderPane leftPane = new BorderPane();
-        BorderPane.setAlignment(left, Pos.TOP_LEFT);
-        leftPane.setCenter(left);
-        leftPane.setVisible(true);
-        
-        BorderPane rightPane = new BorderPane();
-        BorderPane.setAlignment(right, Pos.TOP_RIGHT);
-        rightPane.setCenter(right);
-        rightPane.setVisible(true);
-        
-        BorderPane likePane = new BorderPane();
-        BorderPane.setAlignment(like, Pos.BOTTOM_LEFT);
-        likePane.setCenter(like);
-        likePane.setVisible(true);
-        
-        BorderPane textPane = new BorderPane();
-        BorderPane.setAlignment(enterNewBeer, Pos.CENTER);
-        textPane.setCenter(enterNewBeer);
-        textPane.setVisible(true);
-        
-        BorderPane enterPane = new BorderPane();
-        BorderPane.setAlignment(enter, Pos.BOTTOM_RIGHT);
-        enterPane.setCenter(enter);
-        enterPane.setVisible(true);
-        
-        BorderPane displayPane =  new BorderPane();
-        BorderPane.setAlignment(displayBeer, Pos.TOP_CENTER);
-        displayPane.setCenter(displayBeer);
-        displayPane.setVisible(true);
-       
-        FlowPane root = new FlowPane();
-        root.getChildren().add(leftPane);
-        root.getChildren().add(rightPane);
-        root.getChildren().add(likePane);
-        root.getChildren().add(textPane);
-        root.getChildren().add(enterPane);
-        root.getChildren().add(displayPane);
-        root.setAlignment(Pos.CENTER);
+    private void createKegFrame() {
+        kegFrame = new BorderPane();
+        StackPane kegMeterStack = new StackPane();
+        Polygon kegMeter = dataManager.createWeightMeter();
+        Label kegVolume = dataManager.createWeightLabel();
 
-        Scene scene = new Scene(root, 400, 300);
+        // Import images
+        ImageView keg = importImage("img/keg.png", 345);
+        ImageView kegheader = importImage("img/kegheader.png", 53);
+
+        kegMeter.getStyleClass().add("keg-meter");
+        kegVolume.getStyleClass().add("data-labels");
+
+        kegMeterStack.getChildren().add(kegMeter);
+        kegMeterStack.getChildren().add(kegVolume);
+
+        StackPane.setAlignment(kegVolume, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(kegVolume, new Insets(0, 0, 20, 60));
+        StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(kegMeter, new Insets(0, 0, 43, 5));
+
+        kegFrame.getStyleClass().addAll("all-frames", "keg-frame");
+        kegFrame.setPrefSize(445, 450);
+        kegFrame.setTop(kegheader);
+        kegFrame.setLeft(keg);
+        kegFrame.setCenter(kegMeterStack);
+
+        BorderPane.setAlignment(keg, Pos.BOTTOM_LEFT);
+        BorderPane.setMargin(keg, new Insets(15, 10, 15, 30));
+    }
+
+    private BorderPane createTempFrame() {
+        BorderPane tempFrame = new BorderPane();
+        Label temperature = dataManager.createTempLabel();
+        ImageView tempheader = importImage("img/tempheader.png", 53);
+
+        temperature.getStyleClass().add("data-labels");
+
+        tempFrame.getStyleClass().addAll("all-frames", "temp-frame");
+        tempFrame.setPrefSize(715, 270);
+        tempFrame.setMaxWidth(715);
+        tempFrame.setTop(tempheader);
+        tempFrame.setCenter(dataManager.createLineChart());
+        tempFrame.setRight(temperature);
+
+        BorderPane.setAlignment(temperature, Pos.TOP_RIGHT);
+        BorderPane.setMargin(temperature, new Insets(5, 30, 0, 0));
+
+        return tempFrame;
+    }
+
+    private BorderPane createVotingFrame() {
+        StackPane votingHeader = new StackPane();
+        BorderPane votingFrame = new BorderPane();
+        BorderPane navPane = new BorderPane();
+        VBox likePane = new VBox();
+        Text pressToVote = new Text("Press to Vote");
+        Text pleaseScanCard = new Text("Please scan card ...");
+        Button addButton = new Button();
+
+        // Import images
+        ImageView navleft = importImage("img/navleft.png", 60);
+        ImageView navright = importImage("img/navright.png", 60);
+        ImageView votingheaderimg = importImage("img/votingheader.png", 53);
+        ImageView thumb = importImage("img/like.png", 60);
+        ImageView plusimg = importImage("img/add.png", 30);
+
+        newBeerField.getStyleClass().add("new-beer-field");
+        newBeerField.setPrefWidth(715);
+        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
+
+        addButton.setGraphic(plusimg);
+        addButton.setBackground(Background.EMPTY);
+        addButton.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
+        addButton.setOnAction(event -> toggleAdminKeyboard(votingFrame));
+
+        votingHeader.getChildren().add(votingheaderimg);
+        votingHeader.getChildren().add(addButton);
+        votingHeader.getChildren().add(pleaseScanCard);
+        StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
+        StackPane.setMargin(addButton, new Insets(0, 15, 0, 0));
+
+        Button left = voteManager.createLeftButton(navleft);
+        Button right = voteManager.createRightButton(navright);
+        Button like = voteManager.createLikeButton(thumb, keyCardListener);
+        like.disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
+
+        pressToVote.getStyleClass().add("press-to-vote");
+        pleaseScanCard.getStyleClass().add("votes-display");
+        pleaseScanCard.textProperty().bind(keyCardListener.getHintText());
+
+        votingFrame.getStyleClass().addAll("all-frames", "voting-frame");
+        votingFrame.setPrefSize(715, 150);
+        votingFrame.setMaxWidth(715);
+
+        votingFrame.onMousePressedProperty().set(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                event.setDragDetect(true);
+                initial = event.getX();
+            }
+        });
+
+        votingFrame.onMouseReleasedProperty().set(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getX() < initial - 100) {
+                    voteManager.swipeLeft();
+                } else if (event.getX() > initial + 100) {
+                    voteManager.swipeRight();
+                }
+            }
+        });
+
+        navPane.setLeft(left);
+        navPane.setRight(right);
+        navPane.setCenter(voteManager.createBeerDisplay());
+        navPane.setPrefSize(490, 90);
+
+        likePane.getChildren().add(pressToVote);
+        likePane.getChildren().add(voteManager.createLikesDisplay());
+        likePane.alignmentProperty().set(Pos.CENTER);
+
+        votingFrame.setTop(votingHeader);
+        votingFrame.setRight(navPane);
+        votingFrame.setCenter(like);
+        votingFrame.setLeft(likePane);
+        votingFrame.setBottom(voteManager.createPollChart());
+
+        BorderPane.setAlignment(left, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
+        BorderPane.setAlignment(like, Pos.CENTER_LEFT);
+        BorderPane.setMargin(likePane, new Insets(0, 5, 0, 20));
+        BorderPane.setMargin(navPane, new Insets(5, 10, 5, 10));
+        BorderPane.setMargin(votingFrame.getBottom(), new Insets(5, 5, 20, 5));
+
+        return votingFrame;
+    }
+
+    private void createTempAndVotingFrame() {
+        BorderPane tempFrame = createTempFrame();
+        BorderPane votingFrame = createVotingFrame();
+
+        tempAndVotingFrame = new BorderPane();
+        tempAndVotingFrame.getStyleClass().add("temp-voting-frame");
+        tempAndVotingFrame.setPrefSize(715, 450);
+        tempAndVotingFrame.setTop(tempFrame);
+        tempAndVotingFrame.setCenter(votingFrame);
+
+        BorderPane.setAlignment(votingFrame, Pos.TOP_LEFT);
+        BorderPane.setAlignment(tempFrame, Pos.TOP_LEFT);
+    }
+
+    private void createFooterFrame() {
+        footerFrame = new BorderPane();
+        StackPane headerStack = new StackPane();
+        //Label currentKeg = new Label("Steamworks Kolsch");
+        Label currentKeg = voteManager.getCurrentKeg();
+        Button adminSettings = new Button();
+
+        // Import images
+        ImageView footerheader = importImage("img/footerheader.png", 53);
+        ImageView teralogo = importImage("img/teralogo.png", 146);
+        ImageView settingsimg = importImage("img/settings.png", 30);
+
+        adminSettings.setGraphic(settingsimg);
+        adminSettings.setBackground(Background.EMPTY);
+        adminSettings.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
+        adminSettings.setOnAction(event -> toggleAdminPanel());
+
+        headerStack.getChildren().addAll(footerheader,adminSettings);
+        StackPane.setAlignment(adminSettings,Pos.CENTER_RIGHT);
+        StackPane.setMargin(adminSettings, new Insets(0,15,0,0));
+
+        currentKeg.getStyleClass().add("data-labels");
+
+        footerFrame.getStyleClass().addAll("all-frames", "footer-frame");
+        footerFrame.setPrefWidth(1190);
+        footerFrame.setMaxWidth(1190);
+        footerFrame.setTop(headerStack);
+        footerFrame.setLeft(currentKeg);
+        footerFrame.setRight(teralogo);
+
+        BorderPane.setAlignment(currentKeg, Pos.BOTTOM_LEFT);
+        BorderPane.setMargin(currentKeg, new Insets(5, 0, 0, 14));
+        BorderPane.setAlignment(teralogo, Pos.BOTTOM_RIGHT);
+        BorderPane.setMargin(teralogo, new Insets(5, 0, 15, 0));
+    }
+
+    private void createScene() {
+        createKegFrame();
+        createTempAndVotingFrame();
+        createFooterFrame();
+        createKeyboardPopUp();
+        createAdminPanel();
+
+        root = new BorderPane();
+        root.setPrefSize(1190, 450);
+        root.getStyleClass().add("main-window");
+        root.setLeft(kegFrame);
+        root.setCenter(tempAndVotingFrame);
+        root.setBottom(footerFrame);
+        root.setOnKeyPressed((KeyEvent event) -> keyCardListener.handleEvent(event));
+
+        finalStack = new StackPane();
+        finalStack.getChildren().addAll(root);
+
+        BorderPane.setAlignment(kegFrame, Pos.CENTER_RIGHT);
+        BorderPane.setAlignment(tempAndVotingFrame, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(footerFrame, Pos.TOP_LEFT);
+
+        Scene scene = new Scene(finalStack, 1280, 1024);
+        scene.getStylesheets().add("css/linechart.css");
+        scene.getStylesheets().add("css/keyboard.css");
+        scene.getStylesheets().add("css/main.css");
+
+//        scene.setCursor(Cursor.NONE);
+//        window.initStyle(StageStyle.UNDECORATED);
+        window.setMaxWidth(1280);
+        window.setMaxHeight(1024);
+
         window.setScene(scene);
-        //window.show();
-        System.exit(0);
+        window.show();
+    }
+
+    private void createKeyboardPopUp() {
+        VirtualKeyboard vkb = new VirtualKeyboard(newBeerField);
+        Node keys = vkb.view();
+
+        keyboardFrame = new BorderPane();
+        keyboardFrame.setCenter(keys);
+        keyboardFrame.setPrefWidth(1190);
+        keyboardFrame.setMaxWidth(1190);
+
+        BorderPane.setAlignment(keyboardFrame, Pos.TOP_LEFT);
+        BorderPane.setMargin(keyboardFrame, new Insets(15, 50, 45, 50));
+    }
+
+    private void createAdminPanel() {
+        adminPanel = new StackPane();
+        BorderPane navPane = new BorderPane();
+        VBox adminPopup = new VBox(30);
+        StackPane header = new StackPane();
+        HBox buttonRow = new HBox(30);
+        Rectangle backgroundDim = new Rectangle(1280,1024);
+        Rectangle adminContainer = new Rectangle(620,500);
+
+        backgroundDim.setFill(Color.web("06d3ce"));
+        backgroundDim.setOpacity(0.05);
+        adminContainer.setFill(Color.web("1e1e1e"));
+        adminContainer.setOpacity(0.9);
+
+        ImageView close = importImage("img/close.png", 30);
+        ImageView navleft = importImage("img/navleft.png", 60);
+        ImageView navright = importImage("img/navright.png", 60);
+
+        Button closeButton = new Button();
+        closeButton.setGraphic(close);
+        closeButton.setBackground(Background.EMPTY);
+        closeButton.setOnAction(event -> toggleAdminPanel());
+
+        header.setAlignment(Pos.CENTER_RIGHT);
+        header.getChildren().addAll(closeButton);
+        header.setPrefHeight(70);
+
+        Button left = voteManager.createLeftButton(navleft);
+        Button right = voteManager.createRightButton(navright);
+        navPane.setLeft(left);
+        navPane.setCenter(voteManager.createBeerDisplay());
+        navPane.setRight(right);
+        navPane.setMaxWidth(570);
+
+        Button resetVote = new Button("Reset Votes");
+        Button delete = new Button("Delete");
+        Button setToCurrent = new Button("Set to Current Keg");
+        resetVote.getStyleClass().add("admin-button");
+        delete.getStyleClass().add("admin-button");
+        setToCurrent.getStyleClass().add("admin-button");
+        
+        delete.setOnAction(event -> {
+            System.out.println("Deletings current beer");
+            voteManager.deleteCurrentBeer();
+        });
+        
+        resetVote.setOnAction(event -> {
+            System.out.println("Reseting votes");
+            voteManager.resetVotes();
+            saveData.resetVotes();
+        });
+        
+        setToCurrent.setOnAction(event -> {
+            System.out.println("Setting to current keg");
+            voteManager.setCurrentKeg();
+        });
+
+        buttonRow.setAlignment(Pos.CENTER);
+        buttonRow.getChildren().addAll(setToCurrent,resetVote,delete);
+        adminPopup.setMaxWidth(600);
+        adminPopup.setMaxHeight(500);
+        adminPopup.setAlignment(Pos.TOP_CENTER);
+        adminPopup.getChildren().addAll(header,navPane,buttonRow);
+
+        BorderPane.setAlignment(left, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
+
+        adminPanel.getChildren().addAll(backgroundDim,adminContainer,adminPopup);
+    }
+
+    private void toggleAdminPanel() {
+        if (adminPanelOn) {
+            finalStack.getChildren().remove(adminPanel);
+        }
+        else {
+            finalStack.getChildren().add(adminPanel);
+        }
+        adminPanelOn = !adminPanelOn;
+    }
+
+    private void toggleAdminKeyboard(BorderPane votingFrame) {
+        if (keyboardOn) {
+            keyCardListener.checkAdminKeyVerified(true);
+            votingFrame.setBottom(voteManager.getPollChart());
+            toggleKeyboard();
+        } else {
+            newBeerField.setText("");
+            votingFrame.setBottom(newBeerField);
+            newBeerField.requestFocus();
+            toggleKeyboard();
+        }
+    }
+
+    private void toggleKeyboard() {
+        if (keyboardOn) {
+            root.setBottom(footerFrame);
+            keyboardOn = !keyboardOn;
+        } else {
+            root.setBottom(keyboardFrame);
+            keyboardOn = !keyboardOn;
+        }
+    }
+
+    private void keyboardEvents(KeyEvent event, BorderPane frame) {
+        switch (event.getCode()) {
+            case ENTER:
+                if (!newBeerField.getText().isEmpty()) {
+                    if (voteManager.addBeer(newBeerField.getText(), 0)) {
+                        keyCardListener.checkAdminKeyVerified(true);
+                        frame.setBottom(voteManager.getPollChart());
+                        toggleKeyboard();
+                    }
+                    newBeerField.setText("");
+                }
+                break;
+
+            case ESCAPE:
+                newBeerField.setText("");
+                keyCardListener.checkAdminKeyVerified(true);
+                frame.setBottom(voteManager.getPollChart());
+                toggleKeyboard();
+                break;
+        }
+    }
+
+    private ImageView importImage(String imgPath, int fitHeight) {
+        ImageView imgView = new ImageView(imgPath);
+        imgView.setFitHeight(fitHeight);
+        imgView.setPreserveRatio(true);
+
+        return imgView;
     }
 }

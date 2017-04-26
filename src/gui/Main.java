@@ -51,7 +51,7 @@ public class Main extends Application {
     private Label currentKeg;
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
-    private StackPane adminPanel, finalStack;
+    private StackPane adminPanel, finalStack; //asda
 
     private double initial = 0;
 
