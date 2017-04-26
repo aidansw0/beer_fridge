@@ -159,7 +159,7 @@ public class SaveData {
 
     /**
      * @return true if data has been loaded into memory and false if an error an
-     *         occured or if no data was transferred during the last call to
+     *         occurred or if no data was transferred during the last call to
      *         readBeerData()/writeBeerData(). This may happen if either:
      *         beerRatings contained no data to write to BEER_FILE or if
      *         BEER_FILE did not contain any data to read.
@@ -170,7 +170,7 @@ public class SaveData {
 
     /**
      * @return true if data was successfully loaded into memory and false if an
-     *         error occured or if no data was transferred during the last call
+     *         error occurred or if no data was transferred during the last call
      *         to writeUsersToFile()/readUsersFromFile(). This may happen if
      *         either: userData did not contain any data to write to USER_FILE
      *         or USER_FILE did not contain any data to read.
@@ -404,7 +404,7 @@ public class SaveData {
      * before being returned.
      * 
      * @param plainText
-     *            String to be encrpyted. Must not be the empty string.
+     *            String to be encrypted. Must not be the empty string.
      * @return String[] of length 2 containing the encrypted plainText at index
      *         0 and its corresponding initialization vector at index 1.
      */
@@ -435,11 +435,11 @@ public class SaveData {
     /**
      * Decrypts the given string using the provided initialization vector.
      * 
-     * @param encrypted,
-     *            String to be decrypted. Mus not be the empty string.
+     * @param encrypted
+     *            String to be decrypted. Musy not be the empty string.
      * @param iv
      *            String giving the initialization vector to be used during the
-     *            decryption proccess.
+     *            decryption process.
      * @return the decrypted String of encrypted.
      */
     private String decrypt(String encrypted, String iv) {
