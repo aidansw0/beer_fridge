@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -276,6 +277,15 @@ public class SaveData {
     }
 
     /**
+     * Resets all users voted status to false.
+     */
+    public void resetVotes() {
+        for (String user : userData.keySet()) {
+            setVoted(user, false);
+        }
+    }
+
+    /**
      * Overwrites USER_FILE with any user data that is contained in the user
      * buffer, userData. If USER_FILE does not exist then a new file is created
      * and written to. All user identification strings are encrypted before
@@ -287,7 +297,7 @@ public class SaveData {
     public void writeUsersToFile() throws JSONException, IOException {
         setCipherEncrypt();
 
-        if (Util.checkFileExists(USER_FILE)) {
+        if (Util.checkFileExists(fullUserFilePath)) {
 
             if (userData.keySet().size() > 0) {
                 JSONObject jsonFile = new JSONObject();
@@ -311,6 +321,8 @@ public class SaveData {
 
                 userDataReady = true;
             } else {
+                File file = new File(fullUserFilePath);
+                file.delete();
                 userDataReady = false;
             }
 
@@ -456,9 +468,9 @@ public class SaveData {
      *             if data could not be written.
      */
     public void writeBeerData(Map<String, Integer> beerRatings) throws JSONException, IOException {
-        if (Util.checkFileExists(BEER_FILE)) {
-
-            if (beerRatings.keySet().size() > 0) {
+        if (Util.checkFileExists(fullBeerFilePath)) {
+            
+            if (beerRatings.keySet().size() > 0) { 
                 JSONObject jsonToWrite = new JSONObject();
                 JSONArray jsonBeerList = new JSONArray();
 
@@ -476,6 +488,8 @@ public class SaveData {
 
                 beerDataReady = true;
             } else {
+                File file = new File(fullBeerFilePath);
+                file.delete();
                 beerDataReady = false;
             }
 

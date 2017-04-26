@@ -351,6 +351,17 @@ public class Main extends Application {
         resetVote.getStyleClass().add("admin-button");
         delete.getStyleClass().add("admin-button");
         setToCurrent.getStyleClass().add("admin-button");
+        
+        delete.setOnAction(event -> {
+            System.out.println("Deletings current beer");
+            voteManager.deleteCurrentBeer();
+        });
+        
+        resetVote.setOnAction(event -> {
+            System.out.println("Reseting votes");
+            voteManager.resetVotes();
+            saveData.resetVotes();
+        });
 
         buttonRow.setAlignment(Pos.CENTER);
         buttonRow.getChildren().addAll(setToCurrent,resetVote,delete);
