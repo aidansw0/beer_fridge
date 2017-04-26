@@ -36,4 +36,14 @@ CLone this repo and open the project in your Java IDE. Locate the file `src/back
 
 * In it's current state the GUI for the application is not completely responsive on a 16:9 aspect ratio display.
 
-The GUI itself is straight forward to use and is most natural on a touch screen, however a mouse can still be used HOW_TO_ENABLE. Users are verified using a USB RFID card scanner; administrators can add beers along with other options found in the admin panel while regular users can only up-vote a single beer until an admin resets the voting. To add an admin locate the file `src/backend/KeyCardListener.java` and add the line `saveData.setAdmin("your key card id here", true);` in the constructor below the initialization of `saveData`. See the RFID scanner setup section for info on how to find your key card ID. Once an initial admin has been set new ones can be added via the admin panel. 
+The GUI itself is straight forward to use and is most natural on a touch screen, however a mouse can still be used HOW_TO_ENABLE. Users are verified using a USB RFID card scanner; administrators can add beers along with other options found in the admin panel while regular users can only up-vote a single beer until an admin resets the voting. To add an admin locate the file `src/backend/KeyCardListener.java` and add the line `saveData.setAdmin("your key card id here", true);` (before exporting the `.jar` file) in the constructor below the initialization of `saveData`. See the RFID scanner setup section for info on how to find your key card ID. Once an initial admin has been set new ones can be added via the admin panel. 
+
+### Setting up the RFID Scanner
+The beer fridge uses a <a href="https://www.rfideas.com/products/readers/pcprox">RFIDeas pcProx card reader</a> to track and verify users however, with some modification to the source code this can be disabled to allow anyone to access the system. 
+
+Start the pcProx <a href="https://www.rfideas.com/support/product-support/pcprox-plus">configuration utility</a> and connect the scanner. Navigate first to the `SDK` tab and ensure that the `Disable Keystrokes for SDK` field is unchecked and then move to the `Format` tab and check the fields `Send ID` and `Send ID as hexidecimal number`; click the `Write Settings` button and wait for the program to finish. At the bottom of the window there is a green text field, give this field focus by clicking on it and scan your RFID card to ensure that the it is working. Here you can also copy and paste your card ID (without the forward slash) into the `.setAdmin()` call in the Java program.
+
+Simply plug the RFID scanner into whichever computer is being used to run the application while the application is running and key card should automatically be verified.
+
+### Bringing the System Together
+TODO
