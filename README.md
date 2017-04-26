@@ -11,4 +11,16 @@ The project was initially intended to be used as a coffee pot monitoring program
 
 Credit to <a href="https://www.linkedin.com/in/greg-powell-b3b88515/">Greg Powell</a> for the original idea.
 
-## How to Setup
+## Setting up the Sensor
+The sensor module consists of the CC3200 Launchpad as well as a <a href="https://www.sparkfun.com/products/13879">HX711 load cell amplifier</a>, a <a href="https://www.sparkfun.com/products/13878?_ga=1.196320228.931348548.1481592610">load cell combinator board</a> and four <a href="https://www.sparkfun.com/products/10245">50 kg load cells</a>. Follow the respective documentation of the latter three items for exact information on wire connections.
+
+Once completed the load cell unit can be connected to the launchpad (refer to <a href="http://energia.nu/wordpress/wp-content/uploads/2014/06/LaunchPads-CC3200-%E2%80%94-Pins-Maps-12-28.jpeg">this</a> document for Launchpad pins):
+
+HX711 -----> Launchpad
+Vcc   -----> 3.3V   (pin 1)
+Vdd   -----> 5V     (pin 2)
+DAT   -----> pin 27
+CLK   -----> pin 28
+GND   -----> GND
+
+* DAT and CLK can be connected to any digital pins on the Launchpad but must be configured as such in the .ino file.
