@@ -30,3 +30,6 @@ Next start Energia and open the `arduino_sensor.ino` file. Near the top of the f
 There is also un-implemented code in this file that can be used to send notifications to a <a href="https://slack.com/?cvosrc=ppc.google.slack&cvo_campaign=&cvo_crid=189426831117&Matchtype=p&utm_source=google&utm_medium=ppc&utm_campaign=generalbrand&c3api=5542,189426831117,slack&gclid=CM2m-ZT7wNMCFQt3fgodmmIHtQ">Slack</a> chat channel, however this code may need to be heavily editied for it to work.
 
 Connect the Launchpad to the computer via USB and short pins ENTER_PIN_HERE and ENTER_PIN_HERE to set it to programming mode then upload the .ino file.
+
+#### Setting up the Java Application
+CLone this repo and open the projet in your Java IDE. Locate the file `src/backend/KegManager.java` and change the field `DWEET_URL` declared just below the class declaration to the **same** "thing name" that you used when editing `arduino_sensor.ino`. Compile the program to ensure there are no errors and then export the application as a runnable .jar file.
