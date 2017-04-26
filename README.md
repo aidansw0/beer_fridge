@@ -31,5 +31,9 @@ There is also un-implemented code in this file that can be used to send notifica
 
 Connect the Launchpad to the computer via USB and short pins ENTER_PIN_HERE and ENTER_PIN_HERE to set it to programming mode then upload the .ino file.
 
-#### Setting up the Java Application
-CLone this repo and open the projet in your Java IDE. Locate the file `src/backend/KegManager.java` and change the field `DWEET_URL` declared just below the class declaration to the **same** "thing name" that you used when editing `arduino_sensor.ino`. Compile the program to ensure there are no errors and then export the application as a runnable .jar file.
+### Setting up the Java Application
+CLone this repo and open the project in your Java IDE. Locate the file `src/backend/KegManager.java` and change the field `DWEET_URL` declared just below the class declaration to the **same** "thing name" that you used when editing `arduino_sensor.ino`. Compile the program to ensure there are no errors and then export the application as a runnable `.jar` file; place the `.jar` file where desired but note that data files for the program will be generated at the same location.
+
+* In it's current state the GUI for the application is not completely responsive on a 16:9 aspect ratio display.
+
+The GUI itself is straight forward to use and is most natural on a touch screen, however a mouse can still be used HOW_TO_ENABLE. Users are verified using a USB RFID card scanner; administrators can add beers along with other options found in the admin panel while regular users can only up-vote a single beer until an admin resets the voting. To add an admin locate the file `src/backend/KeyCardListener.java` and add the line `saveData.setAdmin("your key card id here", true);` in the constructor below the initialization of `saveData`. See the RFID scanner setup section for info on how to find your key card ID. Once an initial admin has been set new ones can be added via the admin panel. 
