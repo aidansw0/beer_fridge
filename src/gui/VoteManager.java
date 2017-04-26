@@ -29,12 +29,11 @@ public class VoteManager {
 
     private final Map<String, Integer> beerTypeLikes;
     private final List<String> beerTypes;
-    private final Label currentKeg;
-    
+
     private final List<Rectangle> beerVotesBar;
     private final List<Text> beerDisplay, likesDisplay;
     private final HBox pollsPane;
-    
+
     private final SaveData saveData;
 
     private static final int MAX_BAR_HEIGHT         = 100;
@@ -52,22 +51,13 @@ public class VoteManager {
         // Read data from saved file
         beerTypeLikes = saveData.readBeerData();
         beerTypes = Util.toList(beerTypeLikes);
-        currentKeg = new Label();
-        
+
         beerVotesBar = new ArrayList<>();
         beerDisplay = new ArrayList<>();
         likesDisplay = new ArrayList<>();
         pollsPane = new HBox();
 
         this.saveData = saveData;
-    }
-    
-    public Label getCurrentKeg() {
-        return currentKeg;
-    }
-    
-    public void setCurrentKeg() {
-        currentKeg.setText(beerTypes.get(currentBeer));
     }
 
     /**

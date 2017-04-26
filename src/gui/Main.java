@@ -403,11 +403,6 @@ public class Main extends Application {
             voteManager.resetVotes();
             saveData.resetVotes();
         });
-        
-        setToCurrent.setOnAction(event -> {
-            System.out.println("Setting to current keg");
-            voteManager.setCurrentKeg();
-        });
 
         kegTapped.getStyleClass().add("admin-button");
         kegTapped.setOnAction(event -> {
