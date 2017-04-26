@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
@@ -28,17 +29,20 @@ public class VoteManager {
 
     private final Map<String, Integer> beerTypeLikes;
     private final List<String> beerTypes;
+    private final Label currentKeg;
+    
     private final List<Rectangle> beerVotesBar;
     private final List<Text> beerDisplay, likesDisplay;
     private final HBox pollsPane;
+    
     private final SaveData saveData;
 
-    private static final int MAX_BAR_HEIGHT = 100;
-    private static final int FIXED_BAR_WIDTH = 55;
-    private static final int MIN_BAR_HEIGHT = 4;
-    private static final int MAX_BEERS_DISPLAYED = 10;
-    private static final Color UNSELECTED = Color.web("006B68");
-    private static final Color SELECTED = Color.web("06D3CE");
+    private static final int MAX_BAR_HEIGHT         = 100;
+    private static final int FIXED_BAR_WIDTH        = 55;
+    private static final int MIN_BAR_HEIGHT         = 4;
+    private static final int MAX_BEERS_DISPLAYED    = 10;
+    private static final Color UNSELECTED           = Color.web("006B68");
+    private static final Color SELECTED             = Color.web("06D3CE");
 
     private int currentBeer = 0;
     private int lowestIndexed = 0;
@@ -48,12 +52,22 @@ public class VoteManager {
         // Read data from saved file
         beerTypeLikes = saveData.readBeerData();
         beerTypes = Util.toList(beerTypeLikes);
+        currentKeg = new Label();
+        
         beerVotesBar = new ArrayList<>();
         beerDisplay = new ArrayList<>();
         likesDisplay = new ArrayList<>();
         pollsPane = new HBox();
-        
+
         this.saveData = saveData;
+    }
+    
+    public Label getCurrentKeg() {
+        return currentKeg;
+    }
+    
+    public void setCurrentKeg() {
+        currentKeg.setText(beerTypes.get(currentBeer));
     }
 
     /**
@@ -68,6 +82,42 @@ public class VoteManager {
     }
 
     /**
+     * Removes the current beer displayed from the internal beer list and writes
+     * the change to file.
+     */
+    public void deleteCurrentBeer() {
+
+        if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
+            beerTypeLikes.remove(beerTypes.get(currentBeer));
+            beerTypes.remove(currentBeer);
+
+            System.out.println("here");
+            if (currentBeer > 0) {
+                currentBeer--;
+            }
+
+            updateBeerScrollList();
+            updatePollChart(currentBeer, true);
+
+        } else {
+            beerTypeLikes.remove(beerTypes.get(currentBeer));
+            beerTypes.remove(currentBeer);
+
+            pollsPane.getChildren().remove(currentBeer);
+            beerVotesBar.remove(currentBeer);
+
+            if (currentBeer > 0) {
+                currentBeer--;
+            }
+
+            updateBeerScrollList();
+            updatePollChart(currentBeer, true);
+        }
+
+        saveBeerData();
+    }
+
+    /**
      * @return Number of votes for the current beer.
      */
     public String getCurrentVotes() {
@@ -76,6 +126,22 @@ public class VoteManager {
             retval = beerTypeLikes.get(beerTypes.get(currentBeer)).toString();
         }
         return retval;
+    }
+
+    /**
+     * Resets all the votes to 0 for each beer in the internal beer list.
+     */
+    public void resetVotes() {
+        for (String beer : beerTypeLikes.keySet()) {
+            beerTypeLikes.put(beer, 0);
+        }
+
+        for (int i = 0; i < likesDisplay.size(); i++) {
+            likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+        }
+
+        updatePollChart(0, true);
+        saveBeerData();
     }
 
     /**
@@ -126,12 +192,7 @@ public class VoteManager {
             // Highlight the current element
             beerVotesBar.get(currentBeer).setFill(SELECTED);
 
-            for (int i=0; i<beerDisplay.size(); i++) {
-                beerDisplay.get(i).setText(beerTypes.get(currentBeer));
-            }
-            for (int i=0; i<likesDisplay.size(); i++) {
-                likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-            }
+            updateBeerScrollList();
         }
 
         saveBeerData();
@@ -139,12 +200,27 @@ public class VoteManager {
     }
 
     /**
+     * Updates the scrolling list of beers and votes based on the current values
+     * held in beerDisplay and likesDisplay.
+     */
+    private void updateBeerScrollList() {
+        for (int i = 0; i < beerDisplay.size(); i++) {
+            beerDisplay.get(i).setText(beerTypes.get(currentBeer));
+        }
+        for (int i = 0; i < likesDisplay.size(); i++) {
+            likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+        }
+    }
+
+    /**
      * Attempts to save to file
      */
     public void saveBeerData() {
         try {
-            // makes copy of beerTypeLikes
-            saveData.writeBeerData(new HashMap<String, Integer>(beerTypeLikes));
+            // makes deep copy of beerTypeLikes in case it is modified during
+            // save process
+            // saveData.writeBeerData(new HashMap<String, Integer>(beerTypeLikes));
+            saveData.writeBeerData(Util.deepCopy(beerTypeLikes));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -186,7 +262,7 @@ public class VoteManager {
 
         likesDisplay.add(newLikesDisplay);
 
-        return likesDisplay.get(likesDisplay.size()-1);
+        return likesDisplay.get(likesDisplay.size() - 1);
     }
 
     public Text createBeerDisplay() {
@@ -195,7 +271,7 @@ public class VoteManager {
 
         beerDisplay.add(newBeerDisplay);
 
-        return beerDisplay.get(beerDisplay.size()-1);
+        return beerDisplay.get(beerDisplay.size() - 1);
     }
 
     /**
@@ -275,7 +351,7 @@ public class VoteManager {
                 String beerToUpvote = beerTypes.get(currentBeer);
                 beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
 
-                for (int i=0; i<likesDisplay.size(); i++) {
+                for (int i = 0; i < likesDisplay.size(); i++) {
                     likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
                 }
 
@@ -386,10 +462,10 @@ public class VoteManager {
 
         currentBeer = newIndex;
 
-        for (int i=0; i<beerDisplay.size(); i++) {
+        for (int i = 0; i < beerDisplay.size(); i++) {
             beerDisplay.get(i).setText(beerTypes.get(currentBeer));
         }
-        for (int i=0; i<likesDisplay.size(); i++) {
+        for (int i = 0; i < likesDisplay.size(); i++) {
             likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
         }
     }

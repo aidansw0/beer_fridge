@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -61,11 +62,9 @@ public class SaveData {
     private final String fullSaltPath;
     private final String fullBeerFilePath;
     private final String fullUserFilePath;
-    // full paths for BEER_FILE and USER_FILE to be stored (includes file name),
-    // dependent on location of .jar file
+    // full paths for SALT_FILE, BEER_FILE and USER_FILE to be stored (includes
+    // file name), dependent on location of .jar file
 
-    // private final Map<String, Integer> beerRatings;
-    // private final List<String> beers;
     private boolean beerDataReady = false;
 
     // constants for encryption
@@ -93,12 +92,14 @@ public class SaveData {
             e1.printStackTrace();
         }
 
+        // check SALT_FILE
         if (!Util.checkFileExists(fullSaltPath)) {
             writeSALT();
         } else {
             readSALT();
         }
 
+        // check BEER_FILE
         if (!Util.checkFileExists(fullBeerFilePath)) {
             createFileInDataDirectory(BEER_FILE);
             beerDataReady = false;
@@ -106,6 +107,7 @@ public class SaveData {
             readBeerData();
         }
 
+        // check USER_FILE
         if (!Util.checkFileExists(fullUserFilePath)) {
             createFileInDataDirectory(USER_FILE);
             userDataReady = false;
@@ -157,7 +159,7 @@ public class SaveData {
 
     /**
      * @return true if data has been loaded into memory and false if an error an
-     *         occured or if no data was transferred during the last call to
+     *         occurred or if no data was transferred during the last call to
      *         readBeerData()/writeBeerData(). This may happen if either:
      *         beerRatings contained no data to write to BEER_FILE or if
      *         BEER_FILE did not contain any data to read.
@@ -168,7 +170,7 @@ public class SaveData {
 
     /**
      * @return true if data was successfully loaded into memory and false if an
-     *         error occured or if no data was transferred during the last call
+     *         error occurred or if no data was transferred during the last call
      *         to writeUsersToFile()/readUsersFromFile(). This may happen if
      *         either: userData did not contain any data to write to USER_FILE
      *         or USER_FILE did not contain any data to read.
@@ -190,6 +192,8 @@ public class SaveData {
     public boolean addUser(String user) {
         if (!checkUserExists(user)) {
             userData.put(user, new UserFlags("", false, false));
+            // add temporary empty string for user's IV. this will be generated
+            // when the user string is encrypted and written to file
             return true;
         } else {
             return false;
@@ -276,6 +280,15 @@ public class SaveData {
     }
 
     /**
+     * Resets all users voted status to false.
+     */
+    public void resetVotes() {
+        for (String user : userData.keySet()) {
+            setVoted(user, false);
+        }
+    }
+
+    /**
      * Overwrites USER_FILE with any user data that is contained in the user
      * buffer, userData. If USER_FILE does not exist then a new file is created
      * and written to. All user identification strings are encrypted before
@@ -284,10 +297,10 @@ public class SaveData {
      * @throws IOException
      * @throws JSONException
      */
-    public void writeUsersToFile() throws JSONException, IOException {
+    public synchronized void writeUsersToFile() throws JSONException, IOException {
         setCipherEncrypt();
 
-        if (Util.checkFileExists(USER_FILE)) {
+        if (Util.checkFileExists(fullUserFilePath)) {
 
             if (userData.keySet().size() > 0) {
                 JSONObject jsonFile = new JSONObject();
@@ -311,6 +324,8 @@ public class SaveData {
 
                 userDataReady = true;
             } else {
+                File file = new File(fullUserFilePath);
+                file.delete();
                 userDataReady = false;
             }
 
@@ -389,7 +404,7 @@ public class SaveData {
      * before being returned.
      * 
      * @param plainText
-     *            String to be encrpyted. Must not be the empty string.
+     *            String to be encrypted. Must not be the empty string.
      * @return String[] of length 2 containing the encrypted plainText at index
      *         0 and its corresponding initialization vector at index 1.
      */
@@ -420,11 +435,11 @@ public class SaveData {
     /**
      * Decrypts the given string using the provided initialization vector.
      * 
-     * @param encrypted,
-     *            String to be decrypted. Mus not be the empty string.
+     * @param encrypted
+     *            String to be decrypted. Musy not be the empty string.
      * @param iv
      *            String giving the initialization vector to be used during the
-     *            decryption proccess.
+     *            decryption process.
      * @return the decrypted String of encrypted.
      */
     private String decrypt(String encrypted, String iv) {
@@ -455,10 +470,11 @@ public class SaveData {
      * @throws IOException
      *             if data could not be written.
      */
-    public void writeBeerData(Map<String, Integer> beerRatings) throws JSONException, IOException {
-        if (Util.checkFileExists(BEER_FILE)) {
 
-            if (beerRatings.keySet().size() > 0) {
+    public void writeBeerData(Map<String, Integer> beerRatings) throws JSONException, IOException {
+        if (Util.checkFileExists(fullBeerFilePath)) {
+            
+            if (beerRatings.keySet().size() > 0) { 
                 JSONObject jsonToWrite = new JSONObject();
                 JSONArray jsonBeerList = new JSONArray();
 
@@ -476,6 +492,8 @@ public class SaveData {
 
                 beerDataReady = true;
             } else {
+                File file = new File(fullBeerFilePath);
+                file.delete();
                 beerDataReady = false;
             }
 
@@ -495,6 +513,7 @@ public class SaveData {
                 jsonToWrite.put("beers", jsonBeerList);
                 FileWriter writer = new FileWriter(fullBeerFilePath);
                 writer.write(jsonToWrite.toString());
+                writer.flush();
                 writer.close();
 
                 beerDataReady = true;
