@@ -14,8 +14,8 @@
 #define UPDATE_DWEET
 
 // This is for the scale HX711
-#define DOUT          8 //PIN_62
-#define CLK           30 //PIN_50
+#define DOUT          27 //8 //PIN_62
+#define CLK           28 //30 //PIN_50
 #define SCALE         454
 #define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
@@ -25,7 +25,7 @@ char password[] =     "";
 
 // HTTP Request
 #define HTTP_PORT             80  
-#define THING_NAME            "teradici-beer-fridge"
+#define THING_NAME            "test-beer"
 #define REQUEST_INTERVAL      2000    // dweet update interval in ms
 #define WIFI_CHECK_INTERVAL   60000   // check wifi interval in ms
 
