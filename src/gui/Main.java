@@ -10,12 +10,12 @@ import backend.KegManager;
 import backend.KeyCardListener;
 import backend.SaveData;
 import backend.VirtualKeyboard;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -27,11 +27,13 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 public class Main extends Application {
 
@@ -47,10 +49,12 @@ public class Main extends Application {
     private final Label newBeerField = new Label();
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
+    private StackPane adminPanel, finalStack;
 
     private double initial = 0;
 
     private boolean keyboardOn = false;
+    private boolean adminPanelOn = false;
 
     public static void main(String[] args) {
         launch(args);
@@ -156,17 +160,15 @@ public class Main extends Application {
         BorderPane votingFrame = new BorderPane();
         BorderPane navPane = new BorderPane();
         VBox likePane = new VBox();
-        Text beerDisplay = new Text(voteManager.getCurrentBeer());
-        Text votes = new Text(voteManager.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
         Text pleaseScanCard = new Text("Please scan card ...");
         Button addButton = new Button();
 
         // Import images
-        ImageView votingheaderimg = importImage("img/votingheader.png", 53);
-        ImageView thumb = importImage("img/like.png", 60);
         ImageView navleft = importImage("img/navleft.png", 60);
         ImageView navright = importImage("img/navright.png", 60);
+        ImageView votingheaderimg = importImage("img/votingheader.png", 53);
+        ImageView thumb = importImage("img/like.png", 60);
         ImageView plusimg = importImage("img/add.png", 30);
 
         newBeerField.getStyleClass().add("new-beer-field");
@@ -176,18 +178,7 @@ public class Main extends Application {
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
         addButton.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
-        addButton.setOnAction(event -> {
-            if (keyboardOn) {
-                keyCardListener.checkAdminKeyVerified(true);
-                votingFrame.setBottom(voteManager.getPollChart());
-                toggleKeyboard();
-            } else {
-                newBeerField.setText("");
-                votingFrame.setBottom(newBeerField);
-                newBeerField.requestFocus();
-                toggleKeyboard();
-            }
-        });
+        addButton.setOnAction(event -> toggleAdminKeyboard(votingFrame));
 
         votingHeader.getChildren().add(votingheaderimg);
         votingHeader.getChildren().add(addButton);
@@ -195,13 +186,11 @@ public class Main extends Application {
         StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
         StackPane.setMargin(addButton, new Insets(0, 15, 0, 0));
 
-        Button left = voteManager.createLeftButton(beerDisplay, navleft);
-        Button right = voteManager.createRightButton(beerDisplay, navright);
-        Button like = voteManager.createLikeButton(votes, thumb, keyCardListener);
+        Button left = voteManager.createLeftButton(navleft);
+        Button right = voteManager.createRightButton(navright);
+        Button like = voteManager.createLikeButton(thumb, keyCardListener);
         like.disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
 
-        beerDisplay.getStyleClass().add("beer-display");
-        votes.getStyleClass().add("votes-display");
         pressToVote.getStyleClass().add("press-to-vote");
         pleaseScanCard.getStyleClass().add("votes-display");
         pleaseScanCard.textProperty().bind(keyCardListener.getHintText());
@@ -231,11 +220,11 @@ public class Main extends Application {
 
         navPane.setLeft(left);
         navPane.setRight(right);
-        navPane.setCenter(beerDisplay);
+        navPane.setCenter(voteManager.createBeerDisplay());
         navPane.setPrefSize(490, 90);
 
         likePane.getChildren().add(pressToVote);
-        likePane.getChildren().add(votes);
+        likePane.getChildren().add(voteManager.createLikesDisplay());
         likePane.alignmentProperty().set(Pos.CENTER);
 
         votingFrame.setTop(votingHeader);
@@ -270,18 +259,31 @@ public class Main extends Application {
 
     private void createFooterFrame() {
         footerFrame = new BorderPane();
-        Label currentKeg = new Label("Steamworks Kolsch");
+        StackPane headerStack = new StackPane();
+        //Label currentKeg = new Label("Steamworks Kolsch");
+        Label currentKeg = voteManager.getCurrentKeg();
+        Button adminSettings = new Button();
 
         // Import images
         ImageView footerheader = importImage("img/footerheader.png", 53);
         ImageView teralogo = importImage("img/teralogo.png", 146);
+        ImageView settingsimg = importImage("img/settings.png", 30);
+
+        adminSettings.setGraphic(settingsimg);
+        adminSettings.setBackground(Background.EMPTY);
+        adminSettings.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
+        adminSettings.setOnAction(event -> toggleAdminPanel());
+
+        headerStack.getChildren().addAll(footerheader,adminSettings);
+        StackPane.setAlignment(adminSettings,Pos.CENTER_RIGHT);
+        StackPane.setMargin(adminSettings, new Insets(0,15,0,0));
 
         currentKeg.getStyleClass().add("data-labels");
 
         footerFrame.getStyleClass().addAll("all-frames", "footer-frame");
         footerFrame.setPrefWidth(1190);
         footerFrame.setMaxWidth(1190);
-        footerFrame.setTop(footerheader);
+        footerFrame.setTop(headerStack);
         footerFrame.setLeft(currentKeg);
         footerFrame.setRight(teralogo);
 
@@ -296,6 +298,7 @@ public class Main extends Application {
         createTempAndVotingFrame();
         createFooterFrame();
         createKeyboardPopUp();
+        createAdminPanel();
 
         root = new BorderPane();
         root.setPrefSize(1190, 450);
@@ -305,19 +308,22 @@ public class Main extends Application {
         root.setBottom(footerFrame);
         root.setOnKeyPressed((KeyEvent event) -> keyCardListener.handleEvent(event));
 
+        finalStack = new StackPane();
+        finalStack.getChildren().addAll(root);
+
         BorderPane.setAlignment(kegFrame, Pos.CENTER_RIGHT);
         BorderPane.setAlignment(tempAndVotingFrame, Pos.CENTER_LEFT);
         BorderPane.setAlignment(footerFrame, Pos.TOP_LEFT);
 
-        Scene scene = new Scene(root, 1280, 1024);
+        Scene scene = new Scene(finalStack, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-         scene.setCursor(Cursor.NONE);
-         window.initStyle(StageStyle.UNDECORATED);
-//        window.setMaxWidth(1280);
-//        window.setMaxHeight(1024);
+//        scene.setCursor(Cursor.NONE);
+//        window.initStyle(StageStyle.UNDECORATED);
+        window.setMaxWidth(1280);
+        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();
@@ -334,6 +340,99 @@ public class Main extends Application {
 
         BorderPane.setAlignment(keyboardFrame, Pos.TOP_LEFT);
         BorderPane.setMargin(keyboardFrame, new Insets(15, 50, 45, 50));
+    }
+
+    private void createAdminPanel() {
+        adminPanel = new StackPane();
+        BorderPane navPane = new BorderPane();
+        VBox adminPopup = new VBox(30);
+        StackPane header = new StackPane();
+        HBox buttonRow = new HBox(30);
+        Rectangle backgroundDim = new Rectangle(1280,1024);
+        Rectangle adminContainer = new Rectangle(620,500);
+
+        backgroundDim.setFill(Color.web("06d3ce"));
+        backgroundDim.setOpacity(0.05);
+        adminContainer.setFill(Color.web("1e1e1e"));
+        adminContainer.setOpacity(0.9);
+
+        ImageView close = importImage("img/close.png", 30);
+        ImageView navleft = importImage("img/navleft.png", 60);
+        ImageView navright = importImage("img/navright.png", 60);
+
+        Button closeButton = new Button();
+        closeButton.setGraphic(close);
+        closeButton.setBackground(Background.EMPTY);
+        closeButton.setOnAction(event -> toggleAdminPanel());
+
+        header.setAlignment(Pos.CENTER_RIGHT);
+        header.getChildren().addAll(closeButton);
+        header.setPrefHeight(70);
+
+        Button left = voteManager.createLeftButton(navleft);
+        Button right = voteManager.createRightButton(navright);
+        navPane.setLeft(left);
+        navPane.setCenter(voteManager.createBeerDisplay());
+        navPane.setRight(right);
+        navPane.setMaxWidth(570);
+
+        Button resetVote = new Button("Reset Votes");
+        Button delete = new Button("Delete");
+        Button setToCurrent = new Button("Set to Current Keg");
+        resetVote.getStyleClass().add("admin-button");
+        delete.getStyleClass().add("admin-button");
+        setToCurrent.getStyleClass().add("admin-button");
+        
+        delete.setOnAction(event -> {
+            System.out.println("Deletings current beer");
+            voteManager.deleteCurrentBeer();
+        });
+        
+        resetVote.setOnAction(event -> {
+            System.out.println("Reseting votes");
+            voteManager.resetVotes();
+            saveData.resetVotes();
+        });
+        
+        setToCurrent.setOnAction(event -> {
+            System.out.println("Setting to current keg");
+            voteManager.setCurrentKeg();
+        });
+
+        buttonRow.setAlignment(Pos.CENTER);
+        buttonRow.getChildren().addAll(setToCurrent,resetVote,delete);
+        adminPopup.setMaxWidth(600);
+        adminPopup.setMaxHeight(500);
+        adminPopup.setAlignment(Pos.TOP_CENTER);
+        adminPopup.getChildren().addAll(header,navPane,buttonRow);
+
+        BorderPane.setAlignment(left, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
+
+        adminPanel.getChildren().addAll(backgroundDim,adminContainer,adminPopup);
+    }
+
+    private void toggleAdminPanel() {
+        if (adminPanelOn) {
+            finalStack.getChildren().remove(adminPanel);
+        }
+        else {
+            finalStack.getChildren().add(adminPanel);
+        }
+        adminPanelOn = !adminPanelOn;
+    }
+
+    private void toggleAdminKeyboard(BorderPane votingFrame) {
+        if (keyboardOn) {
+            keyCardListener.checkAdminKeyVerified(true);
+            votingFrame.setBottom(voteManager.getPollChart());
+            toggleKeyboard();
+        } else {
+            newBeerField.setText("");
+            votingFrame.setBottom(newBeerField);
+            newBeerField.requestFocus();
+            toggleKeyboard();
+        }
     }
 
     private void toggleKeyboard() {

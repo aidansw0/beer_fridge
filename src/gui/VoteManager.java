@@ -6,6 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
@@ -28,8 +29,12 @@ public class VoteManager {
 
     private final Map<String, Integer> beerTypeLikes;
     private final List<String> beerTypes;
+    private final Label currentKeg;
+    
     private final List<Rectangle> beerVotesBar;
+    private final List<Text> beerDisplay, likesDisplay;
     private final HBox pollsPane;
+    
     private final SaveData saveData;
 
     private static final int MAX_BAR_HEIGHT         = 100;
@@ -39,7 +44,6 @@ public class VoteManager {
     private static final Color UNSELECTED           = Color.web("006B68");
     private static final Color SELECTED             = Color.web("06D3CE");
 
-    private Text display, likesDisplay;
     private int currentBeer = 0;
     private int lowestIndexed = 0;
     private int highestVote = 10;
@@ -48,10 +52,22 @@ public class VoteManager {
         // Read data from saved file
         beerTypeLikes = saveData.readBeerData();
         beerTypes = Util.toList(beerTypeLikes);
+        currentKeg = new Label();
+        
         beerVotesBar = new ArrayList<>();
+        beerDisplay = new ArrayList<>();
+        likesDisplay = new ArrayList<>();
         pollsPane = new HBox();
 
         this.saveData = saveData;
+    }
+    
+    public Label getCurrentKeg() {
+        return currentKeg;
+    }
+    
+    public void setCurrentKeg() {
+        currentKeg.setText(beerTypes.get(currentBeer));
     }
 
     /**
@@ -66,6 +82,42 @@ public class VoteManager {
     }
 
     /**
+     * Removes the current beer displayed from the internal beer list and writes
+     * the change to file.
+     */
+    public void deleteCurrentBeer() {
+
+        if (beerTypes.size() > MAX_BEERS_DISPLAYED) {
+            beerTypeLikes.remove(beerTypes.get(currentBeer));
+            beerTypes.remove(currentBeer);
+
+            System.out.println("here");
+            if (currentBeer > 0) {
+                currentBeer--;
+            }
+
+            updateBeerScrollList();
+            updatePollChart(currentBeer, true);
+
+        } else {
+            beerTypeLikes.remove(beerTypes.get(currentBeer));
+            beerTypes.remove(currentBeer);
+
+            pollsPane.getChildren().remove(currentBeer);
+            beerVotesBar.remove(currentBeer);
+
+            if (currentBeer > 0) {
+                currentBeer--;
+            }
+
+            updateBeerScrollList();
+            updatePollChart(currentBeer, true);
+        }
+
+        saveBeerData();
+    }
+
+    /**
      * @return Number of votes for the current beer.
      */
     public String getCurrentVotes() {
@@ -74,6 +126,18 @@ public class VoteManager {
             retval = beerTypeLikes.get(beerTypes.get(currentBeer)).toString();
         }
         return retval;
+    }
+
+    /**
+     * Resets all the votes to 0 for each beer in the internal beer list.
+     */
+    public void resetVotes() {
+        for (String beer : beerTypeLikes.keySet()) {
+            beerTypeLikes.put(beer, 0);
+        }
+
+        updatePollChart(0, true);
+        saveBeerData();
     }
 
     /**
@@ -123,12 +187,25 @@ public class VoteManager {
 
             // Highlight the current element
             beerVotesBar.get(currentBeer).setFill(SELECTED);
-            display.setText(beerTypes.get(currentBeer));
-            likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+
+            updateBeerScrollList();
         }
 
         saveBeerData();
         return true;
+    }
+
+    /**
+     * Updates the scrolling list of beers and votes based on the current values
+     * held in beerDisplay and likesDisplay.
+     */
+    private void updateBeerScrollList() {
+        for (int i = 0; i < beerDisplay.size(); i++) {
+            beerDisplay.get(i).setText(beerTypes.get(currentBeer));
+        }
+        for (int i = 0; i < likesDisplay.size(); i++) {
+            likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+        }
     }
 
     /**
@@ -175,17 +252,32 @@ public class VoteManager {
         }
     }
 
+    public Text createLikesDisplay() {
+        Text newLikesDisplay = new Text(getCurrentVotes() + " Votes");
+        newLikesDisplay.getStyleClass().add("votes-display");
+
+        likesDisplay.add(newLikesDisplay);
+
+        return likesDisplay.get(likesDisplay.size() - 1);
+    }
+
+    public Text createBeerDisplay() {
+        Text newBeerDisplay = new Text(getCurrentBeer());
+        newBeerDisplay.getStyleClass().add("beer-display");
+
+        beerDisplay.add(newBeerDisplay);
+
+        return beerDisplay.get(beerDisplay.size() - 1);
+    }
+
     /**
      * Sets up the navigation button to scroll left through the list
      *
-     * @param textObject,
-     *            Text object that displays the current beer
      * @param img,
      *            Graphic used to represent the button
      * @return returns Button left
      */
-    public Button createLeftButton(Text textObject, ImageView img) {
-        display = textObject;
+    public Button createLeftButton(ImageView img) {
         Button left = new Button("", img);
         left.setBackground(Background.EMPTY);
 
@@ -208,14 +300,11 @@ public class VoteManager {
     /**
      * Sets up the navigation button to scroll right through the list
      *
-     * @param textObject,
-     *            Text object that displays the current beer
      * @param img,
      *            Graphic used to represent the button
      * @return returns Button right
      */
-    public Button createRightButton(Text textObject, ImageView img) {
-        display = textObject;
+    public Button createRightButton(ImageView img) {
         Button right = new Button("", img);
         right.setBackground(Background.EMPTY);
 
@@ -235,15 +324,12 @@ public class VoteManager {
     /**
      * Sets up the like button used to upvote
      *
-     * @param likes,
-     *            Text object that displays number of votes
      * @param img,
      *            Graphic used to represent the button
      * @return returns Button likesButton
      */
-    public Button createLikeButton(Text likes, ImageView img, KeyCardListener listener) {
+    public Button createLikeButton(ImageView img, KeyCardListener listener) {
         Button likeButton = new Button("", img);
-        likesDisplay = likes;
         KeyCardListener keyCardListener = listener;
         likeButton.setBackground(Background.EMPTY);
 
@@ -260,7 +346,10 @@ public class VoteManager {
 
                 String beerToUpvote = beerTypes.get(currentBeer);
                 beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
-                likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+
+                for (int i = 0; i < likesDisplay.size(); i++) {
+                    likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+                }
 
                 if (beerTypeLikes.get(beerToUpvote) > highestVote) {
                     // Update all chart elements if highestVote increases
@@ -368,8 +457,13 @@ public class VoteManager {
         }
 
         currentBeer = newIndex;
-        display.setText(beerTypes.get(currentBeer));
-        likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+
+        for (int i = 0; i < beerDisplay.size(); i++) {
+            beerDisplay.get(i).setText(beerTypes.get(currentBeer));
+        }
+        for (int i = 0; i < likesDisplay.size(); i++) {
+            likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+        }
     }
 
     /**
