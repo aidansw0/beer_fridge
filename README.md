@@ -17,10 +17,10 @@ The sensor module consists of the CC3200 Launchpad as well as a <a href="https:/
 Once completed the load cell unit can be connected to the launchpad (refer to <a href="http://energia.nu/wordpress/wp-content/uploads/2014/06/LaunchPads-CC3200-%E2%80%94-Pins-Maps-12-28.jpeg">this</a> document for Launchpad pins):
 
 HX711 -----> Launchpad
-Vcc   -----> 3.3V   (pin 1)
-Vdd   -----> 5V     (pin 2)
-DAT   -----> pin 27
-CLK   -----> pin 28
-GND   -----> GND
+* Vcc   -----> 3.3V   (pin 1)
+* Vdd   -----> 5V     (pin 2)
+* DAT   -----> pin 27
+* CLK   -----> pin 28
+* GND   -----> GND
 
-* DAT and CLK can be connected to any digital pins on the Launchpad but must be configured as such in the .ino file.
+DAT and CLK can be connected to any digital pins on the Launchpad but must be configured as such in the .ino file.
