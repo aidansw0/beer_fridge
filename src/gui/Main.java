@@ -9,7 +9,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -21,8 +21,8 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import javafx.scene.control.Label;
 
 public class Main extends Application {
 
@@ -34,6 +34,7 @@ public class Main extends Application {
     private final KeyCardListener keyCardListener = new KeyCardListener(saveData);
     
     private final Label newBeerField = new Label();
+    private Label currentKeg;
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
     private StackPane adminPanel, finalStack;
@@ -229,8 +230,8 @@ public class Main extends Application {
 
     private void createFooterFrame() {
         footerFrame = new BorderPane();
+        currentKeg = new Label("Steamworks Kolsch");
         StackPane headerStack = new StackPane();
-        Label currentKeg = new Label("Steamworks Kolsch");
         Button adminSettings = new Button();
 
         // Import images
@@ -315,17 +316,16 @@ public class Main extends Application {
         adminPanel = new StackPane();
         BorderPane navPane = new BorderPane();
         VBox adminPopup = new VBox(30);
+        VBox newKeggedTapped = new VBox(20);
+        VBox beerDisplay = new VBox();
         StackPane header = new StackPane();
-        HBox buttonRow = new HBox(30);
-        Rectangle backgroundDim = new Rectangle(1280,1024);
+        VBox buttonList = new VBox(15);
         Rectangle adminContainer = new Rectangle(620,500);
 
-        backgroundDim.setFill(Color.web("06d3ce"));
-        backgroundDim.setOpacity(0.05);
         adminContainer.setFill(Color.web("1e1e1e"));
         adminContainer.setOpacity(0.9);
 
-        ImageView close = importImage("img/close.png", 30);
+        ImageView close = importImage("img/close.png", 25);
         ImageView navleft = importImage("img/navleft.png", 60);
         ImageView navright = importImage("img/navright.png", 60);
 
@@ -338,36 +338,77 @@ public class Main extends Application {
         header.getChildren().addAll(closeButton);
         header.setPrefHeight(70);
 
+        beerDisplay.setAlignment(Pos.CENTER);
+        beerDisplay.getChildren().addAll(voteManager.createBeerDisplay(),voteManager.createLikesDisplay());
+
         Button left = voteManager.createLeftButton(navleft);
         Button right = voteManager.createRightButton(navright);
         navPane.setLeft(left);
-        navPane.setCenter(voteManager.createBeerDisplay());
+        navPane.setCenter(beerDisplay);
         navPane.setRight(right);
         navPane.setMaxWidth(570);
 
-        Button resetVote = new Button("Reset Votes");
-        Button delete = new Button("Delete");
-        Button setToCurrent = new Button("Set to Current Keg");
-        resetVote.getStyleClass().add("admin-button");
-        delete.getStyleClass().add("admin-button");
-        setToCurrent.getStyleClass().add("admin-button");
+        Button resetVote = new Button("Reset All Votes");
+        resetVote.setMinWidth(500);
+        Button delete = new Button("Delete This Beer");
+        delete.setMinWidth(500);
+        Button setToCurrent = new Button("Set This Beer to the Current Keg");
+        setToCurrent.setMinWidth(500);
+        Button kegTapped = new Button("Tap a New Beer Keg");
+        kegTapped.setMinWidth(500);
 
-        buttonRow.setAlignment(Pos.CENTER);
-        buttonRow.getChildren().addAll(setToCurrent,resetVote,delete);
+        delete.getStyleClass().add("admin-button");
+        resetVote.getStyleClass().add("admin-button");
+        setToCurrent.getStyleClass().add("admin-button");
+        setToCurrent.setOnAction(event -> currentKeg.setText(voteManager.getCurrentBeer()));
+
+        kegTapped.getStyleClass().add("admin-button");
+        kegTapped.setOnAction(event -> {
+            adminPopup.getChildren().remove(buttonList);
+            adminPopup.getChildren().add(newKeggedTapped);
+        });
+
+        buttonList.setAlignment(Pos.CENTER);
+        buttonList.getChildren().addAll(setToCurrent,delete,resetVote,kegTapped);
         adminPopup.setMaxWidth(600);
         adminPopup.setMaxHeight(500);
         adminPopup.setAlignment(Pos.TOP_CENTER);
-        adminPopup.getChildren().addAll(header,navPane,buttonRow);
+        adminPopup.getChildren().addAll(header,navPane,buttonList);
+
+        Button thirtyLitre = new Button("30L Keg");
+        Button fiftyLitre = new Button("50L Keg");
+        Button cancel = new Button("Cancel");
+
+        thirtyLitre.getStyleClass().add("admin-button");
+        fiftyLitre.getStyleClass().add("admin-button");
+        cancel.getStyleClass().add("admin-button");
+        cancel.setOnAction(event -> {
+            adminPopup.getChildren().remove(newKeggedTapped);
+            adminPopup.getChildren().add(buttonList);
+        });
+        HBox buttonRow2 = new HBox(thirtyLitre,fiftyLitre,cancel);
+        buttonRow2.setAlignment(Pos.CENTER);
+        buttonRow2.setSpacing(30);
+        Text line1 = new Text("\n1. Scroll through the beer list to choose the new keg\n" +
+                "2. Select the correct keg size\n\n" +
+                "Please make sure the keg is already tapped before selecting the keg size so that the scale can tare correctly. " +
+                "This will also reset all the votes and allow users to vote again.");
+        line1.getStyleClass().add("admin-warning-msg");
+        line1.setWrappingWidth(550);
+        newKeggedTapped.setMaxWidth(600);
+        newKeggedTapped.setAlignment(Pos.TOP_CENTER);
+        newKeggedTapped.getChildren().addAll(buttonRow2,line1);
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
 
-        adminPanel.getChildren().addAll(backgroundDim,adminContainer,adminPopup);
+        adminPanel.getChildren().addAll(adminContainer,adminPopup);
     }
 
     private void toggleAdminPanel() {
         if (adminPanelOn) {
             finalStack.getChildren().remove(adminPanel);
+            keyCardListener.checkAdminKeyVerified(true);
         }
         else {
             finalStack.getChildren().add(adminPanel);
