@@ -230,7 +230,8 @@ public class Main extends Application {
     private void createFooterFrame() {
         footerFrame = new BorderPane();
         StackPane headerStack = new StackPane();
-        Label currentKeg = new Label("Steamworks Kolsch");
+        //Label currentKeg = new Label("Steamworks Kolsch");
+        Label currentKeg = voteManager.getCurrentKeg();
         Button adminSettings = new Button();
 
         // Import images
@@ -361,6 +362,11 @@ public class Main extends Application {
             System.out.println("Reseting votes");
             voteManager.resetVotes();
             saveData.resetVotes();
+        });
+        
+        setToCurrent.setOnAction(event -> {
+            System.out.println("Setting to current keg");
+            voteManager.setCurrentKeg();
         });
 
         buttonRow.setAlignment(Pos.CENTER);
