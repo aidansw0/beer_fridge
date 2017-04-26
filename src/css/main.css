@@ -62,3 +62,11 @@
     -fx-font-size: 15;
     -fx-fill: #cacaca;
 }
+
+.admin-button {
+    -fx-background-color: #343434;
+    -fx-padding: 10 10 10 10;
+    -fx-text-fill: #a0a0a0;
+    -fx-font-size: 24;
+    -fx-font-family: 'Lato Light';
+}

@@ -29,6 +29,7 @@ public class VoteManager {
     private final Map<String, Integer> beerTypeLikes;
     private final List<String> beerTypes;
     private final List<Rectangle> beerVotesBar;
+    private final List<Text> beerDisplay, likesDisplay;
     private final HBox pollsPane;
     private final SaveData saveData;
 
@@ -39,7 +40,6 @@ public class VoteManager {
     private static final Color UNSELECTED = Color.web("006B68");
     private static final Color SELECTED = Color.web("06D3CE");
 
-    private Text display, likesDisplay;
     private int currentBeer = 0;
     private int lowestIndexed = 0;
     private int highestVote = 10;
@@ -49,6 +49,8 @@ public class VoteManager {
         beerTypeLikes = saveData.readBeerData();
         beerTypes = Util.toList(beerTypeLikes);
         beerVotesBar = new ArrayList<>();
+        beerDisplay = new ArrayList<>();
+        likesDisplay = new ArrayList<>();
         pollsPane = new HBox();
         
         this.saveData = saveData;
@@ -123,8 +125,13 @@ public class VoteManager {
 
             // Highlight the current element
             beerVotesBar.get(currentBeer).setFill(SELECTED);
-            display.setText(beerTypes.get(currentBeer));
-            likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+
+            for (int i=0; i<beerDisplay.size(); i++) {
+                beerDisplay.get(i).setText(beerTypes.get(currentBeer));
+            }
+            for (int i=0; i<likesDisplay.size(); i++) {
+                likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+            }
         }
 
         saveBeerData();
@@ -173,17 +180,32 @@ public class VoteManager {
         }
     }
 
+    public Text createLikesDisplay() {
+        Text newLikesDisplay = new Text(getCurrentVotes() + " Votes");
+        newLikesDisplay.getStyleClass().add("votes-display");
+
+        likesDisplay.add(newLikesDisplay);
+
+        return likesDisplay.get(likesDisplay.size()-1);
+    }
+
+    public Text createBeerDisplay() {
+        Text newBeerDisplay = new Text(getCurrentBeer());
+        newBeerDisplay.getStyleClass().add("beer-display");
+
+        beerDisplay.add(newBeerDisplay);
+
+        return beerDisplay.get(beerDisplay.size()-1);
+    }
+
     /**
      * Sets up the navigation button to scroll left through the list
      *
-     * @param textObject,
-     *            Text object that displays the current beer
      * @param img,
      *            Graphic used to represent the button
      * @return returns Button left
      */
-    public Button createLeftButton(Text textObject, ImageView img) {
-        display = textObject;
+    public Button createLeftButton(ImageView img) {
         Button left = new Button("", img);
         left.setBackground(Background.EMPTY);
 
@@ -206,14 +228,11 @@ public class VoteManager {
     /**
      * Sets up the navigation button to scroll right through the list
      *
-     * @param textObject,
-     *            Text object that displays the current beer
      * @param img,
      *            Graphic used to represent the button
      * @return returns Button right
      */
-    public Button createRightButton(Text textObject, ImageView img) {
-        display = textObject;
+    public Button createRightButton(ImageView img) {
         Button right = new Button("", img);
         right.setBackground(Background.EMPTY);
 
@@ -233,15 +252,12 @@ public class VoteManager {
     /**
      * Sets up the like button used to upvote
      *
-     * @param likes,
-     *            Text object that displays number of votes
      * @param img,
      *            Graphic used to represent the button
      * @return returns Button likesButton
      */
-    public Button createLikeButton(Text likes, ImageView img, KeyCardListener listener) {
+    public Button createLikeButton(ImageView img, KeyCardListener listener) {
         Button likeButton = new Button("", img);
-        likesDisplay = likes;
         KeyCardListener keyCardListener = listener;
         likeButton.setBackground(Background.EMPTY);
 
@@ -258,7 +274,10 @@ public class VoteManager {
 
                 String beerToUpvote = beerTypes.get(currentBeer);
                 beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
-                likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+
+                for (int i=0; i<likesDisplay.size(); i++) {
+                    likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+                }
 
                 if (beerTypeLikes.get(beerToUpvote) > highestVote) {
                     // Update all chart elements if highestVote increases
@@ -366,8 +385,13 @@ public class VoteManager {
         }
 
         currentBeer = newIndex;
-        display.setText(beerTypes.get(currentBeer));
-        likesDisplay.setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+
+        for (int i=0; i<beerDisplay.size(); i++) {
+            beerDisplay.get(i).setText(beerTypes.get(currentBeer));
+        }
+        for (int i=0; i<likesDisplay.size(); i++) {
+            likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
+        }
     }
 
     /**
