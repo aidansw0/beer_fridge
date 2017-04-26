@@ -12,11 +12,11 @@ The project was initially intended to be used as a coffee pot monitoring program
 Credit to <a href="https://www.linkedin.com/in/greg-powell-b3b88515/">Greg Powell</a> for the original idea.
 
 ## Setting up the Sensor
-The sensor module consists of the CC3200 Launchpad as well as a <a href="https://www.sparkfun.com/products/13879">HX711 load cell amplifier</a>, a <a href="https://www.sparkfun.com/products/13878?_ga=1.196320228.931348548.1481592610">load cell combinator board</a> and four <a href="https://www.sparkfun.com/products/10245">50 kg load cells</a>. Follow the respective documentation of the latter three items for exact information on wire connections.
+The sensor module consists of the CC3200 Launchpad as well as a <a href="https://www.sparkfun.com/products/13879">HX711 load cell amplifier</a>, a <a href="https://www.sparkfun.com/products/13878?_ga=1.196320228.931348548.1481592610">load cell combinator board</a> and four <a href="https://www.sparkfun.com/products/10245">50 kg load cells</a>. Follow the respective documentation of the latter three items for exact information on their wire connections.
 
 Once completed the load cell unit can be connected to the launchpad (refer to <a href="http://energia.nu/wordpress/wp-content/uploads/2014/06/LaunchPads-CC3200-%E2%80%94-Pins-Maps-12-28.jpeg">this</a> document for Launchpad pins):
 
-HX711 -----> Launchpad
+#### HX711 -----> Launchpad
 * Vcc   -----> 3.3V   (pin 1)
 * Vdd   -----> 5V     (pin 2)
 * DAT   -----> pin 27
@@ -24,3 +24,9 @@ HX711 -----> Launchpad
 * GND   -----> GND
 
 DAT and CLK can be connected to any digital pins on the Launchpad but must be configured as such in the .ino file.
+
+Next start Energia and open the `arduino_sensor.ino` file. Near the top of the file fill in your wifi credentials in the fields `char ssid[]` and `char password[]` respectively. Lastly, enter a unqiue "thing name" for your device in the field `#define THING_NAME` also near the top of the file; this is used to relay sensor data to the Java application via dweet.io.
+
+There is also un-implemented code in this file that can be used to send notifications to a <a href="https://slack.com/?cvosrc=ppc.google.slack&cvo_campaign=&cvo_crid=189426831117&Matchtype=p&utm_source=google&utm_medium=ppc&utm_campaign=generalbrand&c3api=5542,189426831117,slack&gclid=CM2m-ZT7wNMCFQt3fgodmmIHtQ">Slack</a> chat channel, however this code may need to be heavily editied for it to work.
+
+Connect the Launchpad to the computer via USB and short pins ENTER_PIN_HERE and ENTER_PIN_HERE to set it to programming mode then upload the .ino file.
