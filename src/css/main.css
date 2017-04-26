@@ -32,7 +32,6 @@
     -fx-background-insets: 15.0 50.0 45.0 50.0;
 }
 
-
 // Elements
 
 .keg-meter {
@@ -65,8 +64,19 @@
 
 .admin-button {
     -fx-background-color: #343434;
+    -fx-background-radius: 0 0 0 0;
     -fx-padding: 10 10 10 10;
     -fx-text-fill: #a0a0a0;
     -fx-font-size: 24;
     -fx-font-family: 'Lato Light';
+}
+
+.admin-button:hover {
+    -fx-background-color: #404040;
+}
+
+.admin-warning-msg {
+    -fx-font-family: 'Lato Light';
+    -fx-font-size: 20;
+    -fx-fill: #aaaaaa;
 }
