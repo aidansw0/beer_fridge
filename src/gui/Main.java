@@ -130,8 +130,6 @@ public class Main extends Application {
         BorderPane votingFrame = new BorderPane();
         BorderPane navPane = new BorderPane();
         VBox likePane = new VBox();
-        Text beerDisplay = new Text(voteManager.getCurrentBeer());
-        Text votes = new Text(voteManager.getCurrentVotes() + " Votes");
         Text pressToVote = new Text("Press to Vote");
         Text pleaseScanCard = new Text("Please scan card ...");
         Button addButton = new Button();
@@ -158,13 +156,11 @@ public class Main extends Application {
         StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
         StackPane.setMargin(addButton, new Insets(0, 15, 0, 0));
 
-        Button left = voteManager.createLeftButton(beerDisplay, navleft);
-        Button right = voteManager.createRightButton(beerDisplay, navright);
-        Button like = voteManager.createLikeButton(votes, thumb, keyCardListener);
+        Button left = voteManager.createLeftButton(navleft);
+        Button right = voteManager.createRightButton(navright);
+        Button like = voteManager.createLikeButton(thumb, keyCardListener);
         like.disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
 
-        beerDisplay.getStyleClass().add("beer-display");
-        votes.getStyleClass().add("votes-display");
         pressToVote.getStyleClass().add("press-to-vote");
         pleaseScanCard.getStyleClass().add("votes-display");
         pleaseScanCard.textProperty().bind(keyCardListener.getHintText());
@@ -194,11 +190,11 @@ public class Main extends Application {
 
         navPane.setLeft(left);
         navPane.setRight(right);
-        navPane.setCenter(beerDisplay);
+        navPane.setCenter(voteManager.createBeerDisplay());
         navPane.setPrefSize(490, 90);
 
         likePane.getChildren().add(pressToVote);
-        likePane.getChildren().add(votes);
+        likePane.getChildren().add(voteManager.createLikesDisplay());
         likePane.alignmentProperty().set(Pos.CENTER);
 
         votingFrame.setTop(votingHeader);
@@ -317,26 +313,35 @@ public class Main extends Application {
 
     private void createAdminPanel() {
         adminPanel = new StackPane();
-        Text beerDisplay = new Text(voteManager.getCurrentBeer());
         BorderPane navPane = new BorderPane();
         VBox adminPopup = new VBox(30);
+        StackPane header = new StackPane();
         HBox buttonRow = new HBox(30);
         Rectangle backgroundDim = new Rectangle(1280,1024);
-        Rectangle adminContainer = new Rectangle(600,500);
+        Rectangle adminContainer = new Rectangle(620,500);
 
         backgroundDim.setFill(Color.web("06d3ce"));
         backgroundDim.setOpacity(0.05);
         adminContainer.setFill(Color.web("1e1e1e"));
         adminContainer.setOpacity(0.9);
 
+        ImageView close = importImage("img/close.png", 30);
         ImageView navleft = importImage("img/navleft.png", 60);
         ImageView navright = importImage("img/navright.png", 60);
-        beerDisplay.getStyleClass().add("beer-display");
 
-        Button left = voteManager.createLeftButton(beerDisplay, navleft);
-        Button right = voteManager.createRightButton(beerDisplay, navright);
+        Button closeButton = new Button();
+        closeButton.setGraphic(close);
+        closeButton.setBackground(Background.EMPTY);
+        closeButton.setOnAction(event -> toggleAdminPanel());
+
+        header.setAlignment(Pos.CENTER_RIGHT);
+        header.getChildren().addAll(closeButton);
+        header.setPrefHeight(70);
+
+        Button left = voteManager.createLeftButton(navleft);
+        Button right = voteManager.createRightButton(navright);
         navPane.setLeft(left);
-        navPane.setCenter(beerDisplay);
+        navPane.setCenter(voteManager.createBeerDisplay());
         navPane.setRight(right);
         navPane.setMaxWidth(570);
 
@@ -348,9 +353,11 @@ public class Main extends Application {
         setToCurrent.getStyleClass().add("admin-button");
 
         buttonRow.setAlignment(Pos.CENTER);
-        buttonRow.getChildren().addAll(resetVote,delete,setToCurrent);
-        adminPopup.setAlignment(Pos.CENTER);
-        adminPopup.getChildren().addAll(navPane,buttonRow);
+        buttonRow.getChildren().addAll(setToCurrent,resetVote,delete);
+        adminPopup.setMaxWidth(600);
+        adminPopup.setMaxHeight(500);
+        adminPopup.setAlignment(Pos.TOP_CENTER);
+        adminPopup.getChildren().addAll(header,navPane,buttonRow);
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
