@@ -22,7 +22,7 @@
 
 // Your network SSID and password
 char ssid[] =         "Tera-Guest";
-char password[] =     "TeraPc0!P";
+char password[] =     "";
 
 // HTTP Request
 #define HTTP_PORT             80  
