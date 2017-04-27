@@ -420,6 +420,20 @@ public class Main extends Application {
         Button thirtyLitre = new Button("30L Keg");
         Button fiftyLitre = new Button("50L Keg");
         Button cancel = new Button("Cancel");
+        thirtyLitre.setOnAction(event -> {
+            dataManager.setMaxKegWeight(30);
+            dataManager.tareToMaxWeight();
+            currentKeg.setText(voteManager.getCurrentBeer());
+            adminPopup.getChildren().remove(newKeggedTapped);
+            adminPopup.getChildren().add(buttonList);
+        });
+        fiftyLitre.setOnAction(event -> {
+            dataManager.setMaxKegWeight(50);
+            dataManager.tareToMaxWeight();
+            currentKeg.setText(voteManager.getCurrentBeer());
+            adminPopup.getChildren().remove(newKeggedTapped);
+            adminPopup.getChildren().add(buttonList);
+        });
 
         thirtyLitre.getStyleClass().add("admin-button");
         fiftyLitre.getStyleClass().add("admin-button");
