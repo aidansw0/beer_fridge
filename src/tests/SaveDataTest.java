@@ -114,12 +114,12 @@ public class SaveDataTest {
         SaveData save = new SaveData();
 
         try {
-            save.writeCurrentBeer("beer0", 100.1);
+            save.writeCurrentKeg("beer0", 100.1);
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
 
-        Object[] obj = save.readCurrentBeer();
+        Object[] obj = save.readCurrentKeg();
 
         assertEquals("beer0", obj[0]);
         assertEquals(100.1, obj[1]);
@@ -128,7 +128,7 @@ public class SaveDataTest {
     @Test
     public void readCurrentBeerTest() {
         SaveData save = new SaveData();
-        Object[] obj = save.readCurrentBeer();
+        Object[] obj = save.readCurrentKeg();
 
         assertEquals("beer0", obj[0]);
         assertEquals(100.1, obj[1]);

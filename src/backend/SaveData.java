@@ -102,7 +102,7 @@ public class SaveData {
         if (!Util.checkFileExists(beerFilePath)) {
             createFileInDataDirectory(BEER_FILE);
         }
-        
+
         // check CURRENT_BEER_FILE
         if (!Util.checkFileExists(currentBeerPath)) {
             createFileInDataDirectory(CURRENT_BEER_FILE);
@@ -128,7 +128,7 @@ public class SaveData {
      * @throws JSONException
      * @throws IOException
      */
-    public synchronized void writeCurrentBeer(String beer, double tare) throws JSONException, IOException {
+    public synchronized void writeCurrentKeg(String beer, double tare) throws JSONException, IOException {
         if (Util.checkFileExists(currentBeerPath)) {
 
             JSONObject currentBeer = new JSONObject();
@@ -157,17 +157,22 @@ public class SaveData {
     /**
      * Reads CURRENT_BEER_FILE and returns an Object[] of .length() = 2 with the
      * String name of the beer at index 0 and the Double tare value for the beer
-     * at index 1.
+     * at index 1. If the file does not exist or is empty then the empty string
+     * and 0.0 are turned instead.
      * 
      * @return Object[] with the String beer name at index 0 and the Double tare
      *         value at index 1.
      */
-    public synchronized Object[] readCurrentBeer() {
+    public synchronized Object[] readCurrentKeg() {
         String beer = "";
         Double tare = 0.0;
+        Object[] retval = new Object[2];
 
         try {
             String jsonString = Util.readFileToString(currentBeerPath);
+            if (jsonString == null) {
+                return retval;
+            }
 
             JSONObject currentBeer = (JSONObject) new JSONTokener(jsonString).nextValue();
             beer = currentBeer.getString("name");
@@ -176,9 +181,10 @@ public class SaveData {
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
-
-        Object[] retval = { beer, tare };
-
+        
+        retval[0] = beer;
+        retval[1] = tare;
+        
         return retval;
     }
 

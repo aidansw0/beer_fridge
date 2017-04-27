@@ -40,13 +40,13 @@ public class Main extends Application {
 
     private final KegManager beerKeg = new KegManager();
     private final DataManager dataManager = new DataManager(beerKeg);
-    
+
     private final SaveData saveData = new SaveData();
     private final VoteManager voteManager = new VoteManager(saveData);
     private final KeyCardListener keyCardListener = new KeyCardListener(saveData);
-    
+
     private static final long WRITE_DATA_PERIOD = 600000; // in ms
-    
+
     private final Label newBeerField = new Label();
     private Label currentKeg;
     private Stage window;
@@ -75,28 +75,30 @@ public class Main extends Application {
 
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
-        
+
         // setup timer task to write beer/user data to file periodically
         Timer saveTimer = new Timer();
         TimerTask save = new TimerTask() {
-            
+
             @Override
             public void run() {
                 voteManager.saveBeerData();
                 try {
+                    saveData.writeCurrentKeg(currentKeg.getText(), dataManager.getTare());
                     saveData.writeUsersToFile();
                 } catch (JSONException | IOException e) {
                     e.printStackTrace();
                 }
             }
         };
-        
+
         saveTimer.schedule(save, WRITE_DATA_PERIOD, WRITE_DATA_PERIOD);
 
         primaryStage.setOnCloseRequest(event -> {
             try {
                 voteManager.saveBeerData();
                 saveData.writeUsersToFile();
+                saveData.writeCurrentKeg(currentKeg.getText(), dataManager.getTare());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -175,7 +177,7 @@ public class Main extends Application {
 
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setPrefWidth(715);
-        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event,votingFrame));
+        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event, votingFrame));
 
         addButton.setGraphic(plusimg);
         addButton.setBackground(Background.EMPTY);
@@ -265,6 +267,12 @@ public class Main extends Application {
         StackPane headerStack = new StackPane();
         Button adminSettings = new Button();
 
+        // get current keg data from saveData
+        // get current keg info from file
+        Object[] keg = saveData.readCurrentKeg();
+        currentKeg.setText((String) keg[0]);
+        dataManager.setTare((double) keg[1]);
+
         // Import images
         ImageView footerheader = importImage("img/footerheader.png", 53);
         ImageView teralogo = importImage("img/teralogo.png", 146);
@@ -275,9 +283,9 @@ public class Main extends Application {
         adminSettings.disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
         adminSettings.setOnAction(event -> toggleAdminPanel());
 
-        headerStack.getChildren().addAll(footerheader,adminSettings);
-        StackPane.setAlignment(adminSettings,Pos.CENTER_RIGHT);
-        StackPane.setMargin(adminSettings, new Insets(0,15,0,0));
+        headerStack.getChildren().addAll(footerheader, adminSettings);
+        StackPane.setAlignment(adminSettings, Pos.CENTER_RIGHT);
+        StackPane.setMargin(adminSettings, new Insets(0, 15, 0, 0));
 
         currentKeg.getStyleClass().add("data-labels");
 
@@ -321,8 +329,8 @@ public class Main extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-//        scene.setCursor(Cursor.NONE);
-//        window.initStyle(StageStyle.UNDECORATED);
+        // scene.setCursor(Cursor.NONE);
+        // window.initStyle(StageStyle.UNDECORATED);
         window.setMaxWidth(1280);
         window.setMaxHeight(1024);
 
@@ -351,7 +359,7 @@ public class Main extends Application {
         VBox beerDisplay = new VBox();
         StackPane header = new StackPane();
         VBox buttonList = new VBox(15);
-        Rectangle adminContainer = new Rectangle(620,500);
+        Rectangle adminContainer = new Rectangle(620, 500);
 
         adminContainer.setFill(Color.web("1e1e1e"));
         adminContainer.setOpacity(0.9);
@@ -370,7 +378,7 @@ public class Main extends Application {
         header.setPrefHeight(70);
 
         beerDisplay.setAlignment(Pos.CENTER);
-        beerDisplay.getChildren().addAll(voteManager.createBeerDisplay(),voteManager.createLikesDisplay());
+        beerDisplay.getChildren().addAll(voteManager.createBeerDisplay(), voteManager.createLikesDisplay());
 
         Button left = voteManager.createLeftButton(navleft);
         Button right = voteManager.createRightButton(navright);
@@ -397,7 +405,7 @@ public class Main extends Application {
             System.out.println("Deletings current beer");
             voteManager.deleteCurrentBeer();
         });
-        
+
         resetVote.setOnAction(event -> {
             System.out.println("Reseting votes");
             voteManager.resetVotes();
@@ -411,11 +419,11 @@ public class Main extends Application {
         });
 
         buttonList.setAlignment(Pos.CENTER);
-        buttonList.getChildren().addAll(setToCurrent,delete,resetVote,kegTapped);
+        buttonList.getChildren().addAll(setToCurrent, delete, resetVote, kegTapped);
         adminPopup.setMaxWidth(600);
         adminPopup.setMaxHeight(500);
         adminPopup.setAlignment(Pos.TOP_CENTER);
-        adminPopup.getChildren().addAll(header,navPane,buttonList);
+        adminPopup.getChildren().addAll(header, navPane, buttonList);
 
         Button thirtyLitre = new Button("30L Keg");
         Button fiftyLitre = new Button("50L Keg");
@@ -442,31 +450,30 @@ public class Main extends Application {
             adminPopup.getChildren().remove(newKeggedTapped);
             adminPopup.getChildren().add(buttonList);
         });
-        HBox buttonRow2 = new HBox(thirtyLitre,fiftyLitre,cancel);
+        HBox buttonRow2 = new HBox(thirtyLitre, fiftyLitre, cancel);
         buttonRow2.setAlignment(Pos.CENTER);
         buttonRow2.setSpacing(30);
-        Text line1 = new Text("\n1. Scroll through the beer list to choose the new keg\n" +
-                "2. Select the correct keg size\n\n" +
-                "Please make sure the keg is already tapped before selecting the keg size so that the scale can tare correctly. " +
-                "This will also reset all the votes and allow users to vote again.");
+        Text line1 = new Text(
+                "\n1. Scroll through the beer list to choose the new keg\n" + "2. Select the correct keg size\n\n"
+                        + "Please make sure the keg is already tapped before selecting the keg size so that the scale can tare correctly. "
+                        + "This will also reset all the votes and allow users to vote again.");
         line1.getStyleClass().add("admin-warning-msg");
         line1.setWrappingWidth(550);
         newKeggedTapped.setMaxWidth(600);
         newKeggedTapped.setAlignment(Pos.TOP_CENTER);
-        newKeggedTapped.getChildren().addAll(buttonRow2,line1);
+        newKeggedTapped.getChildren().addAll(buttonRow2, line1);
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
 
-        adminPanel.getChildren().addAll(adminContainer,adminPopup);
+        adminPanel.getChildren().addAll(adminContainer, adminPopup);
     }
 
     private void toggleAdminPanel() {
         if (adminPanelOn) {
             finalStack.getChildren().remove(adminPanel);
             keyCardListener.checkAdminKeyVerified(true);
-        }
-        else {
+        } else {
             finalStack.getChildren().add(adminPanel);
         }
         adminPanelOn = !adminPanelOn;
@@ -497,23 +504,23 @@ public class Main extends Application {
 
     private void keyboardEvents(KeyEvent event, BorderPane frame) {
         switch (event.getCode()) {
-            case ENTER:
-                if (!newBeerField.getText().isEmpty()) {
-                    if (voteManager.addBeer(newBeerField.getText(), 0)) {
-                        keyCardListener.checkAdminKeyVerified(true);
-                        frame.setBottom(voteManager.getPollChart());
-                        toggleKeyboard();
-                    }
-                    newBeerField.setText("");
+        case ENTER:
+            if (!newBeerField.getText().isEmpty()) {
+                if (voteManager.addBeer(newBeerField.getText(), 0)) {
+                    keyCardListener.checkAdminKeyVerified(true);
+                    frame.setBottom(voteManager.getPollChart());
+                    toggleKeyboard();
                 }
-                break;
-
-            case ESCAPE:
                 newBeerField.setText("");
-                keyCardListener.checkAdminKeyVerified(true);
-                frame.setBottom(voteManager.getPollChart());
-                toggleKeyboard();
-                break;
+            }
+            break;
+
+        case ESCAPE:
+            newBeerField.setText("");
+            keyCardListener.checkAdminKeyVerified(true);
+            frame.setBottom(voteManager.getPollChart());
+            toggleKeyboard();
+            break;
         }
     }
 
