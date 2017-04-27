@@ -29,14 +29,14 @@ Next start Energia and open the `arduino_sensor.ino` file. Near the top of the f
 
 There is also un-implemented code in this file that can be used to send notifications to a <a href="https://slack.com/?cvosrc=ppc.google.slack&cvo_campaign=&cvo_crid=189426831117&Matchtype=p&utm_source=google&utm_medium=ppc&utm_campaign=generalbrand&c3api=5542,189426831117,slack&gclid=CM2m-ZT7wNMCFQt3fgodmmIHtQ">Slack</a> chat channel, however this code may need to be heavily editied for it to work.
 
-Connect the Launchpad to the computer via USB and short pins ENTER_PIN_HERE and ENTER_PIN_HERE to set it to programming mode then upload the .ino file.
+Connect the Launchpad to the computer via USB and short pins TCK 2 (marked by white line in above link) to set it to programming mode then upload the .ino file.
 
 ### Setting up the Java Application
 CLone this repo and open the project in your Java IDE. Locate the file `src/backend/KegManager.java` and change the field `DWEET_URL` declared just below the class declaration to the **same** "thing name" that you used when editing `arduino_sensor.ino`. Compile the program to ensure there are no errors and then export the application as a runnable `.jar` file; place the `.jar` file where desired but note that data files for the program will be generated at the same location.
 
 * In it's current state the GUI for the application is not completely responsive on a 16:9 aspect ratio display.
 
-The GUI itself is straight forward to use and is most natural on a touch screen, however a mouse can still be used HOW_TO_ENABLE. Users are verified using a USB RFID card scanner; administrators can add beers along with other options found in the admin panel while regular users can only up-vote a single beer until an admin resets the voting. To add an admin locate the file `src/backend/KeyCardListener.java` and add the line `saveData.setAdmin("your key card id here", true);` (before exporting the `.jar` file) in the constructor below the initialization of `saveData`. See the RFID scanner setup section for info on how to find your key card ID. Once an initial admin has been set new ones can be added via the admin panel. 
+The GUI itself is straight forward to use and is most natural on a touch screen, however a mouse can still be used. Users are verified using a USB RFID card scanner; administrators can add beers along with other options found in the admin panel while regular users can only up-vote a single beer until an admin resets the voting. To add an admin locate the file `src/backend/KeyCardListener.java` and add the line `saveData.setAdmin("your key card id here", true);` (before exporting the `.jar` file) in the constructor below the initialization of `saveData`. See the RFID scanner setup section for info on how to find your key card ID. Once an initial admin has been set new ones can be added via the admin panel. 
 
 ### Setting up the RFID Scanner
 The beer fridge uses a <a href="https://www.rfideas.com/products/readers/pcprox">RFIDeas pcProx card reader</a> to track and verify users however, with some modification to the source code this can be disabled to allow anyone to access the system. 
@@ -45,5 +45,9 @@ Start the pcProx <a href="https://www.rfideas.com/support/product-support/pcprox
 
 Simply plug the RFID scanner into whichever computer is being used to run the application while the application is running and key card should automatically be verified.
 
-### Bringing the System Together
-TODO
+### Setting up the Scale
+The four load cells can be mounted on either a metal or wooden bottom plate using two metal screws each. The mounting fixture for the load cells can be downloaded <a href="http://www.thingiverse.com/thing:2274593">here</a> and 3D printed with %50 fill; credit to Greg Powell for the design. The bottom plate should be about as wide as the beer keg.
+
+To calibrate the scale open `arduino/scale_calibration/scale_calibration.ino` in Engergia and upload the file to the Launchpad. Open the serial monitor set the baud rate to 115200 and place a known weight on the scale. Then change the values of `#define CALIBRATION` and `#define CONVERSION_FACTOR` until the correct weight of the item is shown. See the documentation for the HX711 library linked above for more information on scale calibration. Once these two values have been determined open `arduino/arduino_sensor/arduino_sensor.ino` and enter their values into the fields `#define SCALE` and `#define CONVERSION`. 
+
+The top plate for the scale will simply rest freely on the load cells and can be made out of wood or metal as well (the beer keg will sit directly on top of this plate).
