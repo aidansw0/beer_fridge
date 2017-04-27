@@ -1,16 +1,12 @@
 package backend;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLDecoder;
+
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -19,9 +15,9 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
+
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.crypto.BadPaddingException;
@@ -56,12 +52,14 @@ public class SaveData {
 
     private static final String BEER_FILE = "beer_data.json";
     private static final String USER_FILE = "user_data.json";
+    private static final String CURRENT_BEER_FILE = "current_beer.json";
     private static final String SALT_FILE = "hac.bin"; // stores salt for
                                                        // encryption
 
-    private final String fullSaltPath;
-    private final String fullBeerFilePath;
-    private final String fullUserFilePath;
+    private final String saltPath;
+    private final String beerFilePath;
+    private final String userFilePath;
+    private final String currentBeerPath;
     // full paths for SALT_FILE, BEER_FILE and USER_FILE to be stored (includes
     // file name), dependent on location of .jar file
 
@@ -82,9 +80,10 @@ public class SaveData {
      * into memory if available.
      */
     public SaveData() {
-        fullSaltPath = Util.getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
-        fullBeerFilePath = Util.getJarPath() + "data" + System.getProperty("file.separator") + BEER_FILE;
-        fullUserFilePath = Util.getJarPath() + "data" + System.getProperty("file.separator") + USER_FILE;
+        saltPath = Util.getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
+        beerFilePath = Util.getJarPath() + "data" + System.getProperty("file.separator") + BEER_FILE;
+        userFilePath = Util.getJarPath() + "data" + System.getProperty("file.separator") + USER_FILE;
+        currentBeerPath = Util.getJarPath() + "data" + System.getProperty("file.separator") + CURRENT_BEER_FILE;
 
         try {
             cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -93,27 +92,94 @@ public class SaveData {
         }
 
         // check SALT_FILE
-        if (!Util.checkFileExists(fullSaltPath)) {
+        if (!Util.checkFileExists(saltPath)) {
             writeSALT();
         } else {
             readSALT();
         }
 
         // check BEER_FILE
-        if (!Util.checkFileExists(fullBeerFilePath)) {
+        if (!Util.checkFileExists(beerFilePath)) {
             createFileInDataDirectory(BEER_FILE);
-            beerDataReady = false;
-        } else {
-            readBeerData();
+        }
+        
+        // check CURRENT_BEER_FILE
+        if (!Util.checkFileExists(currentBeerPath)) {
+            createFileInDataDirectory(CURRENT_BEER_FILE);
         }
 
         // check USER_FILE
-        if (!Util.checkFileExists(fullUserFilePath)) {
+        if (!Util.checkFileExists(userFilePath)) {
             createFileInDataDirectory(USER_FILE);
             userDataReady = false;
         } else {
             readUsersFromFile();
         }
+    }
+
+    /**
+     * Overwrites the current beer data to CURRENT_BEER_FILE. If the file does
+     * not exist a new file is created.
+     * 
+     * @param beer
+     *            String, name of current beer
+     * @param tare
+     *            double, tare value of current beer.
+     * @throws JSONException
+     * @throws IOException
+     */
+    public synchronized void writeCurrentBeer(String beer, double tare) throws JSONException, IOException {
+        if (Util.checkFileExists(currentBeerPath)) {
+
+            JSONObject currentBeer = new JSONObject();
+            currentBeer.put("name", beer);
+            currentBeer.put("tare", tare);
+
+            FileWriter writer = new FileWriter(currentBeerPath, false);
+            writer.write(currentBeer.toString());
+            writer.flush();
+            writer.close();
+
+        } else {
+            createFileInDataDirectory(CURRENT_BEER_FILE);
+
+            JSONObject currentBeer = new JSONObject();
+            currentBeer.put("name", beer);
+            currentBeer.put("tare", tare);
+
+            FileWriter writer = new FileWriter(currentBeerPath, false);
+            writer.write(currentBeer.toString());
+            writer.flush();
+            writer.close();
+        }
+    }
+
+    /**
+     * Reads CURRENT_BEER_FILE and returns an Object[] of .length() = 2 with the
+     * String name of the beer at index 0 and the Double tare value for the beer
+     * at index 1.
+     * 
+     * @return Object[] with the String beer name at index 0 and the Double tare
+     *         value at index 1.
+     */
+    public synchronized Object[] readCurrentBeer() {
+        String beer = "";
+        Double tare = 0.0;
+
+        try {
+            String jsonString = Util.readFileToString(currentBeerPath);
+
+            JSONObject currentBeer = (JSONObject) new JSONTokener(jsonString).nextValue();
+            beer = currentBeer.getString("name");
+            tare = currentBeer.getDouble("tare");
+
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+
+        Object[] retval = { beer, tare };
+
+        return retval;
     }
 
     /**
@@ -300,7 +366,7 @@ public class SaveData {
     public synchronized void writeUsersToFile() throws JSONException, IOException {
         setCipherEncrypt();
 
-        if (Util.checkFileExists(fullUserFilePath)) {
+        if (Util.checkFileExists(userFilePath)) {
 
             if (userData.keySet().size() > 0) {
                 JSONObject jsonFile = new JSONObject();
@@ -317,14 +383,14 @@ public class SaveData {
                 }
 
                 jsonFile.put("users", dataArray);
-                FileWriter writer = new FileWriter(fullUserFilePath, false);
+                FileWriter writer = new FileWriter(userFilePath, false);
                 writer.write(jsonFile.toString());
                 writer.flush();
                 writer.close();
 
                 userDataReady = true;
             } else {
-                File file = new File(fullUserFilePath);
+                File file = new File(userFilePath);
                 file.delete();
                 userDataReady = false;
             }
@@ -347,7 +413,7 @@ public class SaveData {
                 }
 
                 jsonFile.put("users", dataArray);
-                FileWriter writer = new FileWriter(fullUserFilePath);
+                FileWriter writer = new FileWriter(userFilePath);
                 writer.write(jsonFile.toString());
                 writer.flush();
                 writer.close();
@@ -367,7 +433,7 @@ public class SaveData {
     private void readUsersFromFile() {
 
         try {
-            String jsonString = Util.readFileToString(fullUserFilePath);
+            String jsonString = Util.readFileToString(userFilePath);
             if (jsonString == null) {
                 userDataReady = false;
                 return;
@@ -472,9 +538,9 @@ public class SaveData {
      */
 
     public void writeBeerData(Map<String, Integer> beerRatings) throws JSONException, IOException {
-        if (Util.checkFileExists(fullBeerFilePath)) {
-            
-            if (beerRatings.keySet().size() > 0) { 
+        if (Util.checkFileExists(beerFilePath)) {
+
+            if (beerRatings.keySet().size() > 0) {
                 JSONObject jsonToWrite = new JSONObject();
                 JSONArray jsonBeerList = new JSONArray();
 
@@ -485,14 +551,14 @@ public class SaveData {
                 }
 
                 jsonToWrite.put("beers", jsonBeerList);
-                FileWriter writer = new FileWriter(fullBeerFilePath, false);
+                FileWriter writer = new FileWriter(beerFilePath, false);
                 writer.write(jsonToWrite.toString());
                 writer.flush();
                 writer.close();
 
                 beerDataReady = true;
             } else {
-                File file = new File(fullBeerFilePath);
+                File file = new File(beerFilePath);
                 file.delete();
                 beerDataReady = false;
             }
@@ -511,7 +577,7 @@ public class SaveData {
                 }
 
                 jsonToWrite.put("beers", jsonBeerList);
-                FileWriter writer = new FileWriter(fullBeerFilePath);
+                FileWriter writer = new FileWriter(beerFilePath);
                 writer.write(jsonToWrite.toString());
                 writer.flush();
                 writer.close();
@@ -528,11 +594,11 @@ public class SaveData {
      * Reads and parses BEER_FILE and loads the data into beerRatings and beers.
      * Does not modify BEER_FILE in any way.
      */
-    public Map<String, Integer> readBeerData() {
+    public synchronized Map<String, Integer> readBeerData() {
         Map<String, Integer> beerRatings = new HashMap<String, Integer>();
 
         try {
-            String jsonString = Util.readFileToString(fullBeerFilePath);
+            String jsonString = Util.readFileToString(beerFilePath);
             if (jsonString == null) {
                 beerDataReady = false;
                 return beerRatings;
@@ -592,7 +658,7 @@ public class SaveData {
         SALT = secureRandom.generateSeed(8);
 
         try {
-            FileOutputStream fos = new FileOutputStream(fullSaltPath);
+            FileOutputStream fos = new FileOutputStream(saltPath);
             fos.write(SALT);
             fos.flush();
             fos.close();
@@ -605,11 +671,11 @@ public class SaveData {
      * Reads the binary SALT value from SALT_FILE.
      */
     private void readSALT() {
-        File saltFile = new File(fullSaltPath);
+        File saltFile = new File(saltPath);
         SALT = new byte[(int) saltFile.length()];
 
         try {
-            FileInputStream fis = new FileInputStream(fullSaltPath);
+            FileInputStream fis = new FileInputStream(saltPath);
             fis.read(SALT);
             fis.close();
         } catch (IOException e) {
