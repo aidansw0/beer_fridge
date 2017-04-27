@@ -22,7 +22,7 @@
 
 // Your network SSID and password
 char ssid[] =         "Tera-Guest";
-char password[] =     "";
+char password[] =     "TeraPc0!P";
 
 // HTTP Request
 #define HTTP_PORT             80  
@@ -74,7 +74,7 @@ void setup() {
 }
 
 void loop() {
-  float weight = round(scale.get_units(10) / CONVERSION);
+  float weight = scale.get_units(10) / CONVERSION;
   float temp = getTemperature();
 #ifdef DEBUG_SCALE
   Serial.print("weight: ");
