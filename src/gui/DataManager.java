@@ -40,7 +40,7 @@ public class DataManager {
     private final NumberAxis xAxis = new NumberAxis(0, MIN_DATA_POINTS + 1, 1);
     private final KegManager beerKeg;
 
-    private int taredValue = 30;
+    private double taredValue = 30;
     private int maxKegWeight = 30;
     private double sequence = 0;
     private boolean displayKelvin = false;
@@ -54,6 +54,14 @@ public class DataManager {
                 (ActionEvent actionEvent) -> updateData()));
         animation.setCycleCount(Animation.INDEFINITE);
         animation.play();
+    }
+    
+    public double getTare() {
+        return taredValue;
+    }
+    
+    public void setTare(double tare) {
+        taredValue = tare;
     }
 
     public void setMaxKegWeight(int maxKegWeight) { this.maxKegWeight = maxKegWeight; }
@@ -135,7 +143,7 @@ public class DataManager {
      * @param weight, weight used to calculate percentage of beer left
      * @return List with updated coordinates
      */
-    private List calculateCoordinates (int weight) {
+    private List<Double> calculateCoordinates (double weight) {
         List <Double> coords = new ArrayList<Double>();
         double newY = METER_HEIGHT - METER_HEIGHT * weight / maxKegWeight;
         double newX1, newX2;
@@ -151,8 +159,8 @@ public class DataManager {
         return coords;
     }
 
-    private int returnTaredWeight(int weightFromSensor) {
-        int retVal = weightFromSensor - taredValue + maxKegWeight;
+    private double returnTaredWeight(int weightFromSensor) {
+        double retVal = weightFromSensor - taredValue + maxKegWeight;
 
         if (retVal > maxKegWeight) {
             retVal = maxKegWeight;
