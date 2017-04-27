@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javafx.scene.Cursor;
+import javafx.stage.StageStyle;
 import org.json.JSONException;
 
 import backend.KegManager;
@@ -321,10 +323,10 @@ public class Main extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-//        scene.setCursor(Cursor.NONE);
-//        window.initStyle(StageStyle.UNDECORATED);
-        window.setMaxWidth(1280);
-        window.setMaxHeight(1024);
+        scene.setCursor(Cursor.NONE);
+        window.initStyle(StageStyle.UNDECORATED);
+//        window.setMaxWidth(1280);
+//        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();

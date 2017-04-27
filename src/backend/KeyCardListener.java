@@ -28,7 +28,7 @@ public class KeyCardListener {
     private final ReadOnlyBooleanWrapper regularKeyVerified;
     private final ReadOnlyBooleanWrapper newAttempt;
 
-    private static final int KEY_CARD_ID_LENGTH = 4;
+    private static final int KEY_CARD_ID_LENGTH = 25;
     private static final int ACCESS_EXPIRY_TIME = 60000; // in ms
     private static final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
 
@@ -37,7 +37,6 @@ public class KeyCardListener {
 
         saveData.setAdmin("0000000000000000708c14057", true); // Richard
         saveData.setAdmin("0000000000000000708c14054", true); // Aidan
-        saveData.setAdmin("1234", true);
 
         cardHintText = new SimpleStringProperty("Please Scan Card ...");
         adminHintText = new SimpleStringProperty("Please Scan Card ...");
