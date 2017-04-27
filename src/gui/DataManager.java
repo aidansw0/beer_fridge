@@ -31,7 +31,6 @@ public class DataManager {
     private static final int Y_MIN                  = 270;
     private static final int Y_MAX                  = 285;
     private static final double METER_HEIGHT        = 232.0;
-    private static final int MAX_KEG_WEIGHT         = 30;
     private static final int CHART_REFRESH_RATE     = 2100; // time in ms
 
     private final Label tempLabel = new Label("273\u00B0K");
@@ -41,6 +40,8 @@ public class DataManager {
     private final NumberAxis xAxis = new NumberAxis(0, MIN_DATA_POINTS + 1, 1);
     private final KegManager beerKeg;
 
+    private int taredValue = 30;
+    private int maxKegWeight = 30;
     private double sequence = 0;
     private boolean displayKelvin = false;
 
@@ -53,6 +54,21 @@ public class DataManager {
                 (ActionEvent actionEvent) -> updateData()));
         animation.setCycleCount(Animation.INDEFINITE);
         animation.play();
+    }
+
+    public void setMaxKegWeight(int maxKegWeight) { this.maxKegWeight = maxKegWeight; }
+
+    public void tareToMaxWeight() {
+        List <Double> updatedCoord;
+        int weightFromSensor = beerKeg.weightProperty().intValue();
+        taredValue = beerKeg.weightProperty().intValue();
+
+        // Update GUI
+        weightLabel.setText(returnTaredWeight(weightFromSensor) + "L");
+        updatedCoord = calculateCoordinates(returnTaredWeight(weightFromSensor));
+        for (int i=0; i<4; i++) {
+            weightMeter.getPoints().set(i,updatedCoord.get(i));
+        }
     }
 
     /**
@@ -121,11 +137,11 @@ public class DataManager {
      */
     private List calculateCoordinates (int weight) {
         List <Double> coords = new ArrayList<Double>();
-        double newY = METER_HEIGHT - METER_HEIGHT * weight / MAX_KEG_WEIGHT;
+        double newY = METER_HEIGHT - METER_HEIGHT * weight / maxKegWeight;
         double newX1, newX2;
 
-        newX1 = 4.7 * weight / MAX_KEG_WEIGHT;
-        newX2 = (71.8 - 30.6) * weight / MAX_KEG_WEIGHT + 30.6;
+        newX1 = 4.7 * weight / maxKegWeight;
+        newX2 = (71.8 - 30.6) * weight / maxKegWeight + 30.6;
 
         coords.add(newX1);
         coords.add(newY);
@@ -135,14 +151,27 @@ public class DataManager {
         return coords;
     }
 
+    private int returnTaredWeight(int weightFromSensor) {
+        int retVal = weightFromSensor - taredValue + maxKegWeight;
+
+        if (retVal > maxKegWeight) {
+            retVal = maxKegWeight;
+        } else if (retVal < 0) {
+            retVal = 0;
+        }
+
+        return retVal;
+    }
+
     /**
      * Method used by timeline to periodically update GUI
      */
     private void updateData() {
         List <Double> updatedCoord;
+        int weightFromSensor = beerKeg.weightProperty().intValue();
 
         tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, beerKeg.tempProperty().doubleValue()));
-        weightLabel.setText(beerKeg.weightProperty().intValue() + "L");
+        weightLabel.setText(returnTaredWeight(weightFromSensor) + "L");
 
         // Switch between Kelvin and Celsius
         if (displayKelvin) {
@@ -154,7 +183,7 @@ public class DataManager {
         }
 
         // Update coordinates for weight polygon
-        updatedCoord = calculateCoordinates(beerKeg.weightProperty().intValue());
+        updatedCoord = calculateCoordinates(returnTaredWeight(weightFromSensor));
         for (int i=0; i<4; i++) {
             weightMeter.getPoints().set(i,updatedCoord.get(i));
         }
