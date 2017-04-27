@@ -167,10 +167,13 @@ public class SaveData {
         String beer = "";
         Double tare = 0.0;
         Object[] retval = new Object[2];
-
+       
+                
         try {
             String jsonString = Util.readFileToString(currentBeerPath);
             if (jsonString == null) {
+                retval[0] = beer;
+                retval[1] = tare; 
                 return retval;
             }
 
@@ -183,7 +186,8 @@ public class SaveData {
         }
         
         retval[0] = beer;
-        retval[1] = tare;
+        retval[1] = tare; 
+        System.out.println(retval[0]);
         
         return retval;
     }

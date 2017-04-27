@@ -268,7 +268,6 @@ public class Main extends Application {
         Button adminSettings = new Button();
 
         // get current keg data from saveData
-        // get current keg info from file
         Object[] keg = saveData.readCurrentKeg();
         currentKeg.setText((String) keg[0]);
         dataManager.setTare((double) keg[1]);
