@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static java.lang.Math.round;
+
 /**
  * This class gets data from KegManager
  * and updates the line chart and temperature label
@@ -40,7 +42,7 @@ public class DataManager {
     private final NumberAxis xAxis = new NumberAxis(0, MIN_DATA_POINTS + 1, 1);
     private final KegManager beerKeg;
 
-    private double taredValue = 30;
+    private double taredValue;
     private int maxKegWeight = 30;
     private double sequence = 0;
     private boolean displayKelvin = false;
@@ -159,7 +161,7 @@ public class DataManager {
         return coords;
     }
 
-    private double returnTaredWeight(int weightFromSensor) {
+    private int returnTaredWeight(double weightFromSensor) {
         double retVal = weightFromSensor - taredValue + maxKegWeight;
 
         if (retVal > maxKegWeight) {
@@ -168,7 +170,10 @@ public class DataManager {
             retVal = 0;
         }
 
-        return retVal;
+        // round to nearest int for now
+        retVal = round(retVal);
+
+        return (int) retVal;
     }
 
     /**
@@ -176,7 +181,7 @@ public class DataManager {
      */
     private void updateData() {
         List <Double> updatedCoord;
-        int weightFromSensor = beerKeg.weightProperty().intValue();
+        double weightFromSensor = beerKeg.weightProperty().doubleValue();
 
         tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, beerKeg.tempProperty().doubleValue()));
         weightLabel.setText(returnTaredWeight(weightFromSensor) + "L");

@@ -158,14 +158,14 @@ public class SaveData {
      * Reads CURRENT_BEER_FILE and returns an Object[] of .length() = 2 with the
      * String name of the beer at index 0 and the Double tare value for the beer
      * at index 1. If the file does not exist or is empty then the empty string
-     * and 0.0 are turned instead.
+     * and 30.0 are turned instead.
      * 
      * @return Object[] with the String beer name at index 0 and the Double tare
      *         value at index 1.
      */
     public synchronized Object[] readCurrentKeg() {
         String beer = "";
-        Double tare = 0.0;
+        Double tare = 30.0;
         Object[] retval = new Object[2];
        
                 

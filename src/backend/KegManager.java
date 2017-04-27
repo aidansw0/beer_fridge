@@ -14,9 +14,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerWrapper;
-
 /**
  * This class manages updates to the Keg stats by polling dweet data at
  * scheduled time intervals.
@@ -29,7 +26,7 @@ public class KegManager {
     private static final String DWEET_URL = "https://dweet.io/get/latest/dweet/for/teradici-beer-fridge";
     private static final long DWEET_REFRESH_RATE = 5000; // time in ms
 
-    private final ReadOnlyIntegerWrapper weight;
+    private final ReadOnlyDoubleWrapper weight;
     private final ReadOnlyDoubleWrapper temp;
 
     public KegManager() {
@@ -37,14 +34,14 @@ public class KegManager {
         Timer timer = new Timer();
         timer.schedule(dweetParser, 0, DWEET_REFRESH_RATE);
 
-        weight = new ReadOnlyIntegerWrapper();
+        weight = new ReadOnlyDoubleWrapper();
         temp = new ReadOnlyDoubleWrapper();
     }
 
     /**
      * @return ReadOnlyIntegerProperty of weight.
      */
-    public ReadOnlyIntegerProperty weightProperty() {
+    public ReadOnlyDoubleProperty weightProperty() {
         return weight.getReadOnlyProperty();
     }
 
@@ -67,7 +64,7 @@ public class KegManager {
      */
     public void updateContent(ContentType type, double val) {
         if (type == ContentType.WEIGHT) {
-            weight.set((int) val);
+            weight.set(val);
         } else if (type == ContentType.TEMP) {
             temp.set(val);
         }
