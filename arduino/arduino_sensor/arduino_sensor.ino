@@ -14,9 +14,10 @@
 #define UPDATE_DWEET
 
 // This is for the scale HX711
-#define DOUT          27 //8 //PIN_62
-#define CLK           28 //30 //PIN_50
-#define SCALE         454
+#define DOUT          27 
+#define CLK           28
+#define SCALE         -2000
+#define CONVERSION    12.1 // conversion factor to get kg from scale
 #define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
 // Your network SSID and password
@@ -44,7 +45,7 @@ HX711 scale(DOUT, CLK);
 // Create temp senseor object by passing i2c address]
 Adafruit_TMP006 tmp006(0x41);
 
-int data[WINDOW_SIZE]; // array of weight readings for averaging
+float data[WINDOW_SIZE]; // array of weight readings for averaging
 int average_weight = 0;
 
 void setup() {
@@ -53,7 +54,7 @@ void setup() {
 
   // Scale initialization
   scale.set_scale(SCALE);
-  scale.tare(50);
+  scale.tare();
 
   connectWifi();
 
@@ -73,7 +74,7 @@ void setup() {
 }
 
 void loop() {
-  int weight = round(scale.get_units(1));
+  float weight = round(scale.get_units(10) / CONVERSION);
   float temp = getTemperature();
 #ifdef DEBUG_SCALE
   Serial.print("weight: ");
@@ -354,12 +355,12 @@ void check_received_data() {
 
 void scale_tare () {
   Serial.println("Taring!");
-  scale.tare(50);
+  scale.tare();
 }
 
 
 
-void enqueue_data(int new_data) {
+void enqueue_data(float new_data) {
   static int pointer = 0;
   data[pointer] = new_data;
 
