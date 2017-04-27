@@ -51,3 +51,13 @@ The four load cells can be mounted on either a metal or wooden bottom plate usin
 To calibrate the scale open `arduino/scale_calibration/scale_calibration.ino` in Engergia and upload the file to the Launchpad. Open the serial monitor set the baud rate to 115200 and place a known weight on the scale. Then change the values of `#define CALIBRATION` and `#define CONVERSION_FACTOR` until the correct weight of the item is shown. See the documentation for the HX711 library linked above for more information on scale calibration. Once these two values have been determined open `arduino/arduino_sensor/arduino_sensor.ino` and enter their values into the fields `#define SCALE` and `#define CONVERSION`. 
 
 The top plate for the scale will simply rest freely on the load cells and can be made out of wood or metal as well (the beer keg will sit directly on top of this plate).
+
+### Bring it all Together
+Use whichever beer tap, tubing and other connectors for tapping the keg desired; simply drill a whole through the fridge and feed the tubing through to attach onto the tap. 
+
+Place the scale bottom plate in the frige with the top plate and enclose the sensor module in an appropiate containy (preferably one made out of a material with an <a href="http://www.infrared-thermography.com/material-1.htm">emissivity</a> value > 0.7). Plug in the sensor module **BEFORE** placing the keg on the top plate. Wait a few minutes for the scale to connect to wifi/tare and then place the keg on top of the scale. 
+
+Finally, put the sensor module somewhere inside the fridge and set the program to a new keg with the correct size (30/50 L) using the admin panel.
+
+
+Project developed by <a href="https://www.linkedin.com/in/aidan-wilson-5b973b137/">Aidan Wilson</a>, <a href="https://www.linkedin.com/in/rchen93/">Richard Chen</a> with help from <a href="https://www.linkedin.com/in/greg-powell-b3b88515/">Greg Powell</a>.
