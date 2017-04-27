@@ -351,7 +351,7 @@ public class Main extends Application {
         VBox beerDisplay = new VBox();
         StackPane header = new StackPane();
         VBox buttonList = new VBox(15);
-        Rectangle adminContainer = new Rectangle(620,500);
+        Rectangle adminContainer = new Rectangle(620,650);
 
         adminContainer.setFill(Color.web("1e1e1e"));
         adminContainer.setOpacity(0.9);
@@ -359,15 +359,6 @@ public class Main extends Application {
         ImageView close = importImage("img/close.png", 25);
         ImageView navleft = importImage("img/navleft.png", 60);
         ImageView navright = importImage("img/navright.png", 60);
-
-        Button closeButton = new Button();
-        closeButton.setGraphic(close);
-        closeButton.setBackground(Background.EMPTY);
-        closeButton.setOnAction(event -> toggleAdminPanel());
-
-        header.setAlignment(Pos.CENTER_RIGHT);
-        header.getChildren().addAll(closeButton);
-        header.setPrefHeight(70);
 
         beerDisplay.setAlignment(Pos.CENTER);
         beerDisplay.getChildren().addAll(voteManager.createBeerDisplay(),voteManager.createLikesDisplay());
@@ -379,6 +370,7 @@ public class Main extends Application {
         navPane.setRight(right);
         navPane.setMaxWidth(570);
 
+        Button closeButton = new Button();
         Button resetVote = new Button("Reset All Votes");
         resetVote.setMinWidth(500);
         Button delete = new Button("Delete This Beer");
@@ -387,17 +379,36 @@ public class Main extends Application {
         setToCurrent.setMinWidth(500);
         Button kegTapped = new Button("Tap a New Beer Keg");
         kegTapped.setMinWidth(500);
+        Button newAdmin = new Button("Add a New Admin");
+        newAdmin.setMinWidth(500);
+        Button removeAdmin = new Button("Remove an Admin");
+        removeAdmin.setMinWidth(500);
 
-        delete.getStyleClass().add("admin-button");
-        resetVote.getStyleClass().add("admin-button");
+        closeButton.setGraphic(close);
+        closeButton.setBackground(Background.EMPTY);
+        closeButton.setOnAction(event -> {
+            if (adminPopup.getChildren().contains(newKeggedTapped)) {
+                adminPopup.getChildren().remove(newKeggedTapped);
+                adminPopup.getChildren().add(buttonList);
+            }
+            newAdmin.textProperty().unbind();
+            newAdmin.setText("Add a New Admin");
+            removeAdmin.textProperty().unbind();
+            removeAdmin.setText("Remove an Admin");
+
+            toggleAdminPanel();
+        });
+
         setToCurrent.getStyleClass().add("admin-button");
         setToCurrent.setOnAction(event -> currentKeg.setText(voteManager.getCurrentBeer()));
 
+        delete.getStyleClass().add("admin-button");
         delete.setOnAction(event -> {
             System.out.println("Deletings current beer");
             voteManager.deleteCurrentBeer();
         });
-        
+
+        resetVote.getStyleClass().add("admin-button");
         resetVote.setOnAction(event -> {
             System.out.println("Reseting votes");
             voteManager.resetVotes();
@@ -410,19 +421,54 @@ public class Main extends Application {
             adminPopup.getChildren().add(newKeggedTapped);
         });
 
+        newAdmin.getStyleClass().add("admin-button");
+        newAdmin.setOnAction(event -> {
+            removeAdmin.setOnKeyPressed(null);
+            removeAdmin.textProperty().unbind();
+            keyCardListener.resetAdminHint();
+            newAdmin.textProperty().bind(keyCardListener.getAdminHintText());
+            newAdmin.setOnKeyPressed((KeyEvent keyEvent) -> {
+                if(keyCardListener.handleNewAdmin(keyEvent)) {
+                    newAdmin.textProperty().unbind();
+                    newAdmin.setOnKeyPressed(null);
+                }
+            });
+        });
+
+        removeAdmin.getStyleClass().add("admin-button");
+        removeAdmin.setOnAction(event -> {
+            newAdmin.setOnKeyPressed(null);
+            newAdmin.textProperty().unbind();
+            keyCardListener.resetAdminHint();
+            removeAdmin.textProperty().bind(keyCardListener.getAdminHintText());
+            removeAdmin.setOnKeyPressed((KeyEvent keyEvent) -> {
+                if(keyCardListener.handleRemoveAdmin(keyEvent)) {
+                    removeAdmin.textProperty().unbind();
+                    removeAdmin.setOnKeyPressed(null);
+                }
+            });
+        });
+
+        header.setAlignment(Pos.CENTER_RIGHT);
+        header.getChildren().addAll(closeButton);
+        header.setPrefHeight(70);
+
         buttonList.setAlignment(Pos.CENTER);
-        buttonList.getChildren().addAll(setToCurrent,delete,resetVote,kegTapped);
+        buttonList.getChildren().addAll(setToCurrent,delete,resetVote,kegTapped,newAdmin,removeAdmin);
         adminPopup.setMaxWidth(600);
-        adminPopup.setMaxHeight(500);
+        adminPopup.setMaxHeight(650);
         adminPopup.setAlignment(Pos.TOP_CENTER);
         adminPopup.getChildren().addAll(header,navPane,buttonList);
 
         Button thirtyLitre = new Button("30L Keg");
         Button fiftyLitre = new Button("50L Keg");
         Button cancel = new Button("Cancel");
+
         thirtyLitre.setOnAction(event -> {
             dataManager.setMaxKegWeight(30);
             dataManager.tareToMaxWeight();
+            voteManager.resetVotes();
+            saveData.resetVotes();
             currentKeg.setText(voteManager.getCurrentBeer());
             adminPopup.getChildren().remove(newKeggedTapped);
             adminPopup.getChildren().add(buttonList);
@@ -430,6 +476,8 @@ public class Main extends Application {
         fiftyLitre.setOnAction(event -> {
             dataManager.setMaxKegWeight(50);
             dataManager.tareToMaxWeight();
+            voteManager.resetVotes();
+            saveData.resetVotes();
             currentKeg.setText(voteManager.getCurrentBeer());
             adminPopup.getChildren().remove(newKeggedTapped);
             adminPopup.getChildren().add(buttonList);
@@ -442,10 +490,12 @@ public class Main extends Application {
             adminPopup.getChildren().remove(newKeggedTapped);
             adminPopup.getChildren().add(buttonList);
         });
-        HBox buttonRow2 = new HBox(thirtyLitre,fiftyLitre,cancel);
-        buttonRow2.setAlignment(Pos.CENTER);
-        buttonRow2.setSpacing(30);
-        Text line1 = new Text("\n1. Scroll through the beer list to choose the new keg\n" +
+
+        HBox kegSizeButtons = new HBox(thirtyLitre,fiftyLitre,cancel);
+        kegSizeButtons.setAlignment(Pos.CENTER);
+        kegSizeButtons.setSpacing(30);
+        Text line1 = new Text("\n" +
+                "1. Scroll through the beer list to choose the new keg\n" +
                 "2. Select the correct keg size\n\n" +
                 "Please make sure the keg is already tapped before selecting the keg size so that the scale can tare correctly. " +
                 "This will also reset all the votes and allow users to vote again.");
@@ -453,7 +503,7 @@ public class Main extends Application {
         line1.setWrappingWidth(550);
         newKeggedTapped.setMaxWidth(600);
         newKeggedTapped.setAlignment(Pos.TOP_CENTER);
-        newKeggedTapped.getChildren().addAll(buttonRow2,line1);
+        newKeggedTapped.getChildren().addAll(kegSizeButtons,line1);
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
