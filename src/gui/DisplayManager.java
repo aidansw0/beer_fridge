@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javafx.scene.Cursor;
+import javafx.scene.paint.Paint;
 import javafx.stage.StageStyle;
 import userInputs.KeyCardListener;
 import userInputs.VirtualKeyboard;
@@ -35,7 +36,6 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 public class DisplayManager extends Application {
@@ -368,6 +368,8 @@ public class DisplayManager extends Application {
         ImageView close = importImage("img/close.png", 25);
         ImageView navleft = importImage("img/navleft.png", 60);
         ImageView navright = importImage("img/navright.png", 60);
+        ImageView plusimg = importImage("img/plus.png", 20);
+        ImageView minusimg = importImage("img/minus.png", 20);
 
         beerDisplay.setAlignment(Pos.CENTER);
         beerDisplay.getChildren().addAll(voteManager.createBeerDisplay(), voteManager.createLikesDisplay());
@@ -481,6 +483,10 @@ public class DisplayManager extends Application {
         Button thirtyLitre = new Button("30L Keg");
         Button fiftyLitre = new Button("50L Keg");
         Button cancel = new Button("Cancel");
+        Button plus = new Button("",plusimg);
+        Button minus = new Button("",minusimg);
+        plus.setBackground(Background.EMPTY);
+        minus.setBackground(Background.EMPTY);
 
         thirtyLitre.setOnAction(event -> {
             kegManager.setMaxKegWeight(30);
@@ -512,6 +518,7 @@ public class DisplayManager extends Application {
         HBox kegSizeButtons = new HBox(thirtyLitre,fiftyLitre,cancel);
         kegSizeButtons.setAlignment(Pos.CENTER);
         kegSizeButtons.setSpacing(30);
+
         Text line1 = new Text("\n" +
                 "1. Scroll through the beer list to choose the new keg\n" +
                 "2. Select the correct keg size\n\n" +
@@ -519,9 +526,19 @@ public class DisplayManager extends Application {
                 "This will also reset all the votes and allow users to vote again.");
         line1.getStyleClass().add("admin-warning-msg");
         line1.setWrappingWidth(550);
+
+        Text manualAdjust = new Text("\nManually adjust current keg level");
+        manualAdjust.getStyleClass().add("admin-warning-msg");
+        plus.setOnAction(event -> kegManager.adjustTareValue(true));
+        minus.setOnAction(event -> kegManager.adjustTareValue(false));
+
+        HBox kegAdjustButtons = new HBox(minus,kegManager.createTareLabel(),plus);
+        kegAdjustButtons.setAlignment(Pos.CENTER);
+        kegAdjustButtons.setSpacing(30);
+
         newKeggedTapped.setMaxWidth(600);
         newKeggedTapped.setAlignment(Pos.TOP_CENTER);
-        newKeggedTapped.getChildren().addAll(kegSizeButtons,line1);
+        newKeggedTapped.getChildren().addAll(kegSizeButtons,line1,manualAdjust,kegAdjustButtons);
 
         BorderPane.setAlignment(left, Pos.CENTER_LEFT);
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);

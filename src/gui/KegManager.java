@@ -9,6 +9,7 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Polygon;
 import javafx.util.Duration;
 
@@ -38,6 +39,7 @@ public class KegManager {
 
     private final Label tempLabel = new Label("273\u00B0K");
     private final Label weightLabel = new Label("30L");
+    private final Label adjustTare = new Label("30L");
     private final Polygon weightMeter = new Polygon();
     private final XYChart.Series<Number, Number> tempData = new XYChart.Series<>();
     private final NumberAxis xAxis = new NumberAxis(0, MIN_DATA_POINTS + 1, 1);
@@ -67,6 +69,27 @@ public class KegManager {
         taredValue = tare;
     }
 
+    public void adjustTareValue(boolean up) {
+        int currentWeight = beerKeg.weightProperty().intValue();
+        List <Double> updatedCoord;
+
+        if (up) {
+            if (returnTaredWeight(currentWeight) < maxKegWeight) {
+                taredValue--;
+            }
+        }
+        else {
+            if (returnTaredWeight(currentWeight) > 0) {
+                taredValue++;
+            }
+        }
+        adjustTare.setText(returnTaredWeight(currentWeight) + "L");
+        updatedCoord = calculateCoordinates(returnTaredWeight(currentWeight));
+        for (int i=0; i<4; i++) {
+            weightMeter.getPoints().set(i,updatedCoord.get(i));
+        }
+    }
+
     public void setMaxKegWeight(int maxKegWeight) { this.maxKegWeight = maxKegWeight; }
 
     public void tareToMaxWeight() {
@@ -76,6 +99,7 @@ public class KegManager {
 
         // Update GUI
         weightLabel.setText(returnTaredWeight(weightFromSensor) + "L");
+        adjustTare.setText(returnTaredWeight(weightFromSensor) + "L");
         updatedCoord = calculateCoordinates(returnTaredWeight(weightFromSensor));
         for (int i=0; i<4; i++) {
             weightMeter.getPoints().set(i,updatedCoord.get(i));
@@ -124,6 +148,18 @@ public class KegManager {
      */
     public Label createWeightLabel() {
         return weightLabel;
+    }
+
+    /**
+     * Create label used to display weight/volume for taring
+     *
+     * @return Label for weight
+     */
+    public Label createTareLabel() {
+        adjustTare.setText(returnTaredWeight(beerKeg.weightProperty().doubleValue()) + "L");
+        adjustTare.getStyleClass().add("beer-display");
+        adjustTare.setTextFill(Paint.valueOf("aaaaaa"));
+        return adjustTare;
     }
 
     /**
