@@ -16,13 +16,13 @@
 // This is for the scale HX711
 #define DOUT          27 
 #define CLK           28
-#define SCALE         -2000
+#define SCALE         -2000 // this number comes from scale calibration
 #define CONVERSION    12.1 // conversion factor to get kg from scale
 #define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
 // Your network SSID and password
 char ssid[] =         "Tera-Guest";
-char password[] =     "TeraPc0!P";
+char password[] =     "";
 
 // HTTP Request
 #define HTTP_PORT             80  
