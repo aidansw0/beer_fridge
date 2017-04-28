@@ -59,5 +59,7 @@ Place the scale bottom plate in the frige with the top plate and enclose the sen
 
 Finally, put the sensor module somewhere inside the fridge and set the program to a new keg with the correct size (30/50 L) using the admin panel.
 
+![Alt text](/blob/master/photos/IMG_20170428_150106.jpg "Optional Title")
+
 
 *Project developed by <a href="https://www.linkedin.com/in/aidan-wilson-5b973b137/">Aidan Wilson</a> and <a href="https://www.linkedin.com/in/rchen93/">Richard Chen</a> with help from <a href="https://www.linkedin.com/in/greg-powell-b3b88515/">Greg Powell</a>.*
