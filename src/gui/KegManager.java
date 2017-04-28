@@ -1,6 +1,5 @@
 package gui;
 
-import backend.KegManager;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -18,16 +17,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import dataManagement.DweetManager;
+
 import static java.lang.Math.round;
 
 /**
- * This class gets data from KegManager
+ * This class gets data from DweetManager
  * and updates the line chart and temperature label
  *
  * @author Richard
  */
 
-public class DataManager {
+public class KegManager {
     private static final int MIN_DATA_POINTS        = 10;
     private static final int MAX_DATA_POINTS        = 2000;
     private static final int Y_MIN                  = 270;
@@ -40,15 +41,15 @@ public class DataManager {
     private final Polygon weightMeter = new Polygon();
     private final XYChart.Series<Number, Number> tempData = new XYChart.Series<>();
     private final NumberAxis xAxis = new NumberAxis(0, MIN_DATA_POINTS + 1, 1);
-    private final KegManager beerKeg;
+    private final DweetManager beerKeg;
 
     private double taredValue;
     private int maxKegWeight = 30;
     private double sequence = 0;
     private boolean displayKelvin = false;
 
-    public DataManager(KegManager kegManager) {
-        beerKeg = kegManager;
+    public KegManager(DweetManager dweetManager) {
+        beerKeg = dweetManager;
 
         Timeline animation;
         animation = new Timeline();

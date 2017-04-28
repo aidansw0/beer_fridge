@@ -1,7 +1,6 @@
 package gui;
 
-import backend.KeyCardListener;
-import backend.SaveData;
+import dataManagement.DataManager;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -14,6 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import tools.Util;
+import userInputs.KeyCardListener;
 
 import java.util.*;
 
@@ -34,7 +34,7 @@ public class VoteManager {
     private final List<Text> beerDisplay, likesDisplay;
     private final HBox pollsPane;
 
-    private final SaveData saveData;
+    private final DataManager dataManager;
 
     private static final int MAX_BAR_HEIGHT         = 100;
     private static final int FIXED_BAR_WIDTH        = 55;
@@ -47,9 +47,9 @@ public class VoteManager {
     private int lowestIndexed = 0;
     private int highestVote = 10;
 
-    public VoteManager(SaveData saveData) {
+    public VoteManager(DataManager dataManager) {
         // Read data from saved file
-        beerTypeLikes = saveData.readBeerData();
+        beerTypeLikes = dataManager.readBeerData();
         beerTypes = Util.toList(beerTypeLikes);
 
         beerVotesBar = new ArrayList<>();
@@ -57,7 +57,7 @@ public class VoteManager {
         likesDisplay = new ArrayList<>();
         pollsPane = new HBox();
 
-        this.saveData = saveData;
+        this.dataManager = dataManager;
     }
 
     /**
@@ -65,7 +65,7 @@ public class VoteManager {
      */
     public String getCurrentBeer() {
         String retval = " ";
-        if (saveData.isBeerDataReady()) {
+        if (dataManager.isBeerDataReady()) {
             retval = beerTypes.get(currentBeer);
         }
         return retval;
@@ -112,7 +112,7 @@ public class VoteManager {
      */
     public String getCurrentVotes() {
         String retval = " ";
-        if (saveData.isBeerDataReady()) {
+        if (dataManager.isBeerDataReady()) {
             retval = beerTypeLikes.get(beerTypes.get(currentBeer)).toString();
         }
         return retval;
@@ -210,7 +210,7 @@ public class VoteManager {
             // makes deep copy of beerTypeLikes in case it is modified during
             // save process
             // saveData.writeBeerData(new HashMap<String, Integer>(beerTypeLikes));
-            saveData.writeBeerData(Util.deepCopy(beerTypeLikes));
+            dataManager.writeBeerData(Util.deepCopy(beerTypeLikes));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -335,7 +335,7 @@ public class VoteManager {
         }
 
         likeButton.setOnAction(event -> {
-            if (saveData.isBeerDataReady() && keyCardListener.checkRegularKeyVerified(true)) {
+            if (dataManager.isBeerDataReady() && keyCardListener.checkRegularKeyVerified(true)) {
                 listener.registerVote();
 
                 String beerToUpvote = beerTypes.get(currentBeer);
@@ -389,7 +389,7 @@ public class VoteManager {
         }
 
         // Highlight the current element
-        if (saveData.isBeerDataReady()) {
+        if (dataManager.isBeerDataReady()) {
             beerVotesBar.get(currentBeer).setFill(SELECTED);
         }
 

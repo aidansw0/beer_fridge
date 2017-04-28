@@ -6,13 +6,13 @@ import java.util.TimerTask;
 
 import javafx.scene.Cursor;
 import javafx.stage.StageStyle;
+import userInputs.KeyCardListener;
+import userInputs.VirtualKeyboard;
+
 import org.json.JSONException;
 
-import backend.KegManager;
-import backend.KeyCardListener;
-import backend.SaveData;
-import backend.VirtualKeyboard;
-
+import dataManagement.DweetManager;
+import dataManagement.DataManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -38,14 +38,14 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
-public class Main extends Application {
+public class DisplayManager extends Application {
 
-    private final KegManager beerKeg = new KegManager();
-    private final DataManager dataManager = new DataManager(beerKeg);
+    private final DweetManager dweetManager = new DweetManager();
+    private final KegManager kegManager = new KegManager(dweetManager);
 
-    private final SaveData saveData = new SaveData();
-    private final VoteManager voteManager = new VoteManager(saveData);
-    private final KeyCardListener keyCardListener = new KeyCardListener(saveData);
+    private final DataManager dataManager = new DataManager();
+    private final VoteManager voteManager = new VoteManager(dataManager);
+    private final KeyCardListener keyCardListener = new KeyCardListener(dataManager);
 
     private static final long WRITE_DATA_PERIOD = 600000; // in ms
 
@@ -86,8 +86,8 @@ public class Main extends Application {
             public void run() {
                 voteManager.saveBeerData();
                 try {
-                    saveData.writeCurrentKeg(currentKeg.getText(), dataManager.getTare());
-                    saveData.writeUsersToFile();
+                    dataManager.writeCurrentKeg(currentKeg.getText(), kegManager.getTare());
+                    dataManager.writeUsersToFile();
                 } catch (JSONException | IOException e) {
                     e.printStackTrace();
                 }
@@ -99,8 +99,8 @@ public class Main extends Application {
         primaryStage.setOnCloseRequest(event -> {
             try {
                 voteManager.saveBeerData();
-                saveData.writeUsersToFile();
-                saveData.writeCurrentKeg(currentKeg.getText(), dataManager.getTare());
+                dataManager.writeUsersToFile();
+                dataManager.writeCurrentKeg(currentKeg.getText(), kegManager.getTare());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -113,8 +113,8 @@ public class Main extends Application {
     private void createKegFrame() {
         kegFrame = new BorderPane();
         StackPane kegMeterStack = new StackPane();
-        Polygon kegMeter = dataManager.createWeightMeter();
-        Label kegVolume = dataManager.createWeightLabel();
+        Polygon kegMeter = kegManager.createWeightMeter();
+        Label kegVolume = kegManager.createWeightLabel();
 
         // Import images
         ImageView keg = importImage("img/keg.png", 345);
@@ -143,7 +143,7 @@ public class Main extends Application {
 
     private BorderPane createTempFrame() {
         BorderPane tempFrame = new BorderPane();
-        Label temperature = dataManager.createTempLabel();
+        Label temperature = kegManager.createTempLabel();
         ImageView tempheader = importImage("img/tempheader.png", 53);
 
         temperature.getStyleClass().add("data-labels");
@@ -152,7 +152,7 @@ public class Main extends Application {
         tempFrame.setPrefSize(715, 270);
         tempFrame.setMaxWidth(715);
         tempFrame.setTop(tempheader);
-        tempFrame.setCenter(dataManager.createLineChart());
+        tempFrame.setCenter(kegManager.createLineChart());
         tempFrame.setRight(temperature);
 
         BorderPane.setAlignment(temperature, Pos.TOP_RIGHT);
@@ -270,9 +270,9 @@ public class Main extends Application {
         Button adminSettings = new Button();
 
         // get current keg data from saveData
-        Object[] keg = saveData.readCurrentKeg();
+        Object[] keg = dataManager.readCurrentKeg();
         currentKeg.setText((String) keg[0]);
-        dataManager.setTare((double) keg[1]);
+        kegManager.setTare((double) keg[1]);
 
         // Import images
         ImageView footerheader = importImage("img/footerheader.png", 53);
@@ -421,7 +421,7 @@ public class Main extends Application {
         resetVote.setOnAction(event -> {
             System.out.println("Reseting votes");
             voteManager.resetVotes();
-            saveData.resetVotes();
+            dataManager.resetVotes();
         });
 
         kegTapped.getStyleClass().add("admin-button");
@@ -474,19 +474,19 @@ public class Main extends Application {
         Button cancel = new Button("Cancel");
 
         thirtyLitre.setOnAction(event -> {
-            dataManager.setMaxKegWeight(30);
-            dataManager.tareToMaxWeight();
+            kegManager.setMaxKegWeight(30);
+            kegManager.tareToMaxWeight();
             voteManager.resetVotes();
-            saveData.resetVotes();
+            dataManager.resetVotes();
             currentKeg.setText(voteManager.getCurrentBeer());
             adminPopup.getChildren().remove(newKeggedTapped);
             adminPopup.getChildren().add(buttonList);
         });
         fiftyLitre.setOnAction(event -> {
-            dataManager.setMaxKegWeight(50);
-            dataManager.tareToMaxWeight();
+            kegManager.setMaxKegWeight(50);
+            kegManager.tareToMaxWeight();
             voteManager.resetVotes();
-            saveData.resetVotes();
+            dataManager.resetVotes();
             currentKeg.setText(voteManager.getCurrentBeer());
             adminPopup.getChildren().remove(newKeggedTapped);
             adminPopup.getChildren().add(buttonList);

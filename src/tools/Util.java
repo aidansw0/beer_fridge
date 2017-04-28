@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import backend.SaveData;
+import dataManagement.DataManager;
 
 /**
  * Contains several static utility methods.
@@ -110,7 +110,7 @@ public final class Util {
      *         system dependent file separator at the end of the path.
      */
     public static String getJarPath() {
-        URL url = SaveData.class.getProtectionDomain().getCodeSource().getLocation();
+        URL url = DataManager.class.getProtectionDomain().getCodeSource().getLocation();
         String jarPath = "";
         try {
             jarPath = URLDecoder.decode(url.getFile(), "UTF-8");
