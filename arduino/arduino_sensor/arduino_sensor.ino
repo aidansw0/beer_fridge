@@ -16,8 +16,8 @@
 // This is for the scale HX711
 #define DOUT          27 
 #define CLK           28
-#define SCALE         -2000 // this number comes from scale calibration
-#define CONVERSION    12.1 // conversion factor to get kg from scale
+#define CALIBRATION  -2000 // this number comes from scale calibration
+#define CONVERSION_FACTOR    12.1 // conversion factor to get kg from scale
 #define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
 // Your network SSID and password
@@ -33,6 +33,7 @@ char password[] =     "";
 WiFiClient client;
 unsigned long last_update = 0;
 unsigned long last_wifi_check = 0;
+// unused variables for slack notifications
 char dweet_server[] = "dweet.io";
 char thingspeak_server[] = "api.thingspeak.com";
 char slack_server[] = "hooks.slack.com";
@@ -53,8 +54,9 @@ void setup() {
   Serial.begin(115200);
 
   // Scale initialization
-  scale.set_scale(SCALE);
-  scale.tare();
+  scale.set_scale(CALIBRATION);
+  // scale doesnt tare and instead the Java app handles taring
+  //scale.tare();
 
   connectWifi();
 
@@ -74,7 +76,7 @@ void setup() {
 }
 
 void loop() {
-  float weight = scale.get_units(10) / CONVERSION;
+  float weight = scale.get_units(10) / CONVERSION_FACTOR;
   float temp = getTemperature();
 #ifdef DEBUG_SCALE
   Serial.print("weight: ");
