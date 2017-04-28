@@ -330,10 +330,10 @@ public class DisplayManager extends Application {
         scene.getStylesheets().add("css/keyboard.css");
         scene.getStylesheets().add("css/main.css");
 
-//        scene.setCursor(Cursor.NONE);
-//        window.initStyle(StageStyle.UNDECORATED);
-        window.setMaxWidth(1280);
-        window.setMaxHeight(1024);
+        scene.setCursor(Cursor.NONE);
+        window.initStyle(StageStyle.UNDECORATED);
+//        window.setMaxWidth(1280);
+//        window.setMaxHeight(1024);
 
         window.setScene(scene);
         window.show();
@@ -408,8 +408,8 @@ public class DisplayManager extends Application {
             // Save data
             try {
                 voteManager.saveBeerData();
-                saveData.writeUsersToFile();
-                saveData.writeCurrentKeg(currentKeg.getText(), dataManager.getTare());
+                dataManager.writeUsersToFile();
+                dataManager.writeCurrentKeg(currentKeg.getText(), kegManager.getTare());
             } catch (Exception e) {
                 e.printStackTrace();
             }
