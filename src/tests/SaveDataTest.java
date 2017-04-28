@@ -15,13 +15,13 @@ import org.json.JSONException;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import backend.SaveData;
+import dataManagement.DataManager;
 
 public class SaveDataTest {
 
     @Ignore
     public void addUserTest() {
-        SaveData save = new SaveData();
+        DataManager save = new DataManager();
 
         save.addUser("user0");
         save.addUser("user1");
@@ -38,7 +38,7 @@ public class SaveDataTest {
 
     @Ignore
     public void checkUserExistsTest() {
-        SaveData save = new SaveData();
+        DataManager save = new DataManager();
 
         assertTrue(save.checkUserExists("user0"));
         assertTrue(save.checkUserExists("user1"));
@@ -49,7 +49,7 @@ public class SaveDataTest {
 
     @Ignore
     public void checkFlagsFalseTest() {
-        SaveData save = new SaveData();
+        DataManager save = new DataManager();
 
         assertEquals(false, save.checkAdmin("user0"));
         assertEquals(false, save.checkAdmin("user1"));
@@ -84,7 +84,7 @@ public class SaveDataTest {
 
     @Ignore
     public void checkFlagsTrueTest() {
-        SaveData save = new SaveData();
+        DataManager save = new DataManager();
 
         assertEquals(true, save.checkAdmin("user0"));
         assertEquals(true, save.checkAdmin("user1"));
@@ -101,7 +101,7 @@ public class SaveDataTest {
 
     @Ignore
     public void addExistingUsers() {
-        SaveData save = new SaveData();
+        DataManager save = new DataManager();
 
         save.addUser("user0");
 
@@ -111,7 +111,7 @@ public class SaveDataTest {
 
     @Test
     public void writeCurrentBeerTest() {
-        SaveData save = new SaveData();
+        DataManager save = new DataManager();
 
         try {
             save.writeCurrentKeg("beer0", 100.1);
@@ -127,7 +127,7 @@ public class SaveDataTest {
 
     @Test
     public void readCurrentBeerTest() {
-        SaveData save = new SaveData();
+        DataManager save = new DataManager();
         Object[] obj = save.readCurrentKeg();
 
         assertEquals("beer0", obj[0]);

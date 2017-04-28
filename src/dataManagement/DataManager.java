@@ -1,4 +1,4 @@
-package backend;
+package dataManagement;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,7 +48,7 @@ import tools.Util;
  * @author Aidan
  *
  */
-public class SaveData {
+public class DataManager {
 
     private static final String BEER_FILE = "beer_data.json";
     private static final String USER_FILE = "user_data.json";
@@ -79,7 +79,7 @@ public class SaveData {
      * Assigns path names for data files and loads beer and user information
      * into memory if available.
      */
-    public SaveData() {
+    public DataManager() {
         saltPath = Util.getJarPath() + "data" + System.getProperty("file.separator") + SALT_FILE;
         beerFilePath = Util.getJarPath() + "data" + System.getProperty("file.separator") + BEER_FILE;
         userFilePath = Util.getJarPath() + "data" + System.getProperty("file.separator") + USER_FILE;

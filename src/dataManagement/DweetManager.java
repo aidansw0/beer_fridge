@@ -1,4 +1,4 @@
-package backend;
+package dataManagement;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,7 +21,7 @@ import org.json.JSONTokener;
  * @author Aidan
  *
  */
-public class KegManager {
+public class DweetManager {
 
     private static final String DWEET_URL = "https://dweet.io/get/latest/dweet/for/teradici-beer-fridge";
     private static final long DWEET_REFRESH_RATE = 5000; // time in ms
@@ -29,7 +29,7 @@ public class KegManager {
     private final ReadOnlyDoubleWrapper weight;
     private final ReadOnlyDoubleWrapper temp;
 
-    public KegManager() {
+    public DweetManager() {
         DweetParser dweetParser = new DweetParser(this, DWEET_URL);
         Timer timer = new Timer();
         timer.schedule(dweetParser, 0, DWEET_REFRESH_RATE);
@@ -80,10 +80,10 @@ public class KegManager {
  */
 class DweetParser extends TimerTask {
 
-    private final KegManager kegManager;
+    private final DweetManager kegManager;
     private final String urlString;
 
-    public DweetParser(KegManager kegManager, String url) {
+    public DweetParser(DweetManager kegManager, String url) {
         this.kegManager = kegManager;
         this.urlString = url;
     }

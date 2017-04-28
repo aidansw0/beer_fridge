@@ -1,4 +1,4 @@
-package backend;
+package userInputs;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -8,6 +8,8 @@ import javafx.scene.input.KeyEvent;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+import dataManagement.DataManager;
 
 /**
  * This class listens to the key access card scanner
@@ -19,7 +21,7 @@ import java.util.TimerTask;
 public class KeyCardListener {
     private Timer timer = new Timer();
     
-    private final SaveData saveData;
+    private final DataManager dataManager;
 
     private String readInput = "";
     private String newCardBuffer = "";
@@ -32,11 +34,11 @@ public class KeyCardListener {
     private static final int ACCESS_EXPIRY_TIME = 60000; // in ms
     private static final int ATTEMPT_EXPIRY_TIME = 3000; // in ms
 
-    public KeyCardListener(SaveData saveData) {
-        this.saveData = saveData;
+    public KeyCardListener(DataManager dataManager) {
+        this.dataManager = dataManager;
 
-        saveData.setAdmin("0000000000000000708c14057", true); // Richard
-        saveData.setAdmin("0000000000000000708c14054", true); // Aidan
+        this.dataManager.setAdmin("0000000000000000708c14057", true); // Richard
+        this.dataManager.setAdmin("0000000000000000708c14054", true); // Aidan
 
         cardHintText = new SimpleStringProperty("Please Scan Card ...");
         adminHintText = new SimpleStringProperty("Please Scan Card ...");
@@ -56,7 +58,7 @@ public class KeyCardListener {
     public ReadOnlyBooleanProperty adminKeyVerifiedProperty() { return adminKeyVerified.getReadOnlyProperty(); }
 
     public void registerVote() {
-        saveData.setVoted(newCardBuffer, true);
+        dataManager.setVoted(newCardBuffer, true);
     }
 
     /**
@@ -108,7 +110,7 @@ public class KeyCardListener {
                 String keyCardRead = readInput.substring(readInput.length() - KEY_CARD_ID_LENGTH);
 
                 // admin access
-                if (saveData.checkAdmin(keyCardRead)) {
+                if (dataManager.checkAdmin(keyCardRead)) {
                     timer = new Timer();
                     timer.schedule(new ExpireAccess(), ACCESS_EXPIRY_TIME);
 
@@ -118,7 +120,7 @@ public class KeyCardListener {
                     regularKeyVerified.set(true);
 
                 // already voted
-                } else if (saveData.checkVoted(keyCardRead)) {
+                } else if (dataManager.checkVoted(keyCardRead)) {
                     System.out.print("Already Voted: ");
                     cardHintText.set("Already Voted");
                     adminKeyVerified.set(false);
@@ -174,13 +176,13 @@ public class KeyCardListener {
                 String keyCardRead = readInput.substring(readInput.length() - KEY_CARD_ID_LENGTH);
 
                 // admin access
-                if (saveData.checkAdmin(keyCardRead)) {
+                if (dataManager.checkAdmin(keyCardRead)) {
                     System.out.print("Already an Admin: ");
                     adminHintText.set("Already an Admin");
 
                     // new card
                 } else {
-                    saveData.setAdmin(keyCardRead,true);
+                    dataManager.setAdmin(keyCardRead,true);
                     readInput = "";
 
                     System.out.print("New Admin Added: ");
@@ -215,8 +217,8 @@ public class KeyCardListener {
                 String keyCardRead = readInput.substring(readInput.length() - KEY_CARD_ID_LENGTH);
 
                 // admin access
-                if (saveData.checkAdmin(keyCardRead)) {
-                    saveData.setAdmin(keyCardRead,false);
+                if (dataManager.checkAdmin(keyCardRead)) {
+                    dataManager.setAdmin(keyCardRead,false);
                     readInput = "";
 
                     System.out.print("Admin Removed: ");

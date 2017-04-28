@@ -21,12 +21,12 @@
 #define WINDOW_SIZE   20 // number of readings taken to calculate average weight
 
 // Your network SSID and password
-char ssid[] =         "Tera-Guest";
+char ssid[] =         "";
 char password[] =     "";
 
 // HTTP Request
 #define HTTP_PORT             80  
-#define THING_NAME            "test-beer"
+#define THING_NAME            ""
 #define REQUEST_INTERVAL      2000    // dweet update interval in ms
 #define WIFI_CHECK_INTERVAL   60000   // check wifi interval in ms
 

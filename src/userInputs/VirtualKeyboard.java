@@ -1,4 +1,4 @@
-package backend;
+package userInputs;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;

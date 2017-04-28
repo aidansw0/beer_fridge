@@ -1,4 +1,4 @@
-package backend;
+package dataManagement;
 
 /**
  * Data type holds information on user admin and vote status as well as their
