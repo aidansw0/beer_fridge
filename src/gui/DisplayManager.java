@@ -53,7 +53,7 @@ public class DisplayManager extends Application {
     private Label currentKeg;
     private Stage window;
     private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
-    private StackPane adminPanel, finalStack; //asda
+    private StackPane adminPanel, finalStack;
 
     private double initial = 0;
 
