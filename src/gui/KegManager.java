@@ -222,6 +222,7 @@ public class KegManager {
 
         tempData.getData().add(new XYChart.Data<Number, Number>(++sequence, beerKeg.tempProperty().doubleValue()));
         weightLabel.setText(returnTaredWeight(weightFromSensor) + "L");
+        adjustTare.setText(returnTaredWeight(weightFromSensor) + "L");
 
         // Switch between Kelvin and Celsius
         if (displayKelvin) {

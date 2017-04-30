@@ -23,7 +23,7 @@ import org.json.JSONTokener;
  */
 public class DweetManager {
 
-    private static final String DWEET_URL = "https://dweet.io/get/latest/dweet/for/teradici-beer-fridge";
+    private static final String DWEET_URL = "https://dweet.io/get/latest/dweet/for/beer-test";
     private static final long DWEET_REFRESH_RATE = 5000; // time in ms
 
     private final ReadOnlyDoubleWrapper weight;
