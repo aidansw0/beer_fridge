@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import dataManagement.DataManager;
+import javafx.scene.image.ImageView;
 
 /**
  * Contains several static utility methods.
@@ -121,4 +122,11 @@ public final class Util {
         return parentPath + System.getProperty("file.separator");
     }
 
+    public static ImageView importImage(String imgPath, int fitHeight) {
+        ImageView imgView = new ImageView(imgPath);
+        imgView.setFitHeight(fitHeight);
+        imgView.setPreserveRatio(true);
+
+        return imgView;
+    }
 }
