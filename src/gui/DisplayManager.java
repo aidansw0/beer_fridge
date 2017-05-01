@@ -19,12 +19,19 @@ import javafx.scene.text.Text;
 import tools.Util;
 
 /**
- * Created by rchen on 2017-04-29.
+ * This class manages the layout of the GUI.
+ * It manages fonts, images, applying style sheets to
+ * all elements drawn on the main scene.
+ *
+ * @author Richard
  */
 
 public class DisplayManager {
 
     private final Map<String,ImageView> images;
+    private BorderPane kegFrame, tempFrame, votingFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
+    private StackPane adminPanel;
+    private boolean keyboardOn = false;
 
     DisplayManager() {
         images = new HashMap<>();
@@ -33,8 +40,24 @@ public class DisplayManager {
         loadImages();
     }
 
-    public BorderPane createKegLayout(List<Node> elements) {
-        BorderPane kegFrame = new BorderPane();
+    public boolean getKeyboardVisibleStatus() { return keyboardOn; }
+
+    public BorderPane getRoot() { return root; }
+
+    public StackPane getAdminPanel() { return adminPanel; }
+
+    public void toggleFooter() {
+        if (keyboardOn) {
+            root.setBottom(footerFrame);
+            keyboardOn = !keyboardOn;
+        } else {
+            root.setBottom(keyboardFrame);
+            keyboardOn = !keyboardOn;
+        }
+    }
+
+    public void createKegLayout(List<Node> elements) {
+        kegFrame = new BorderPane();
 
         Node kegMeter = elements.get(0);
         Node kegVolume = elements.get(1);
@@ -56,12 +79,10 @@ public class DisplayManager {
 
         BorderPane.setAlignment(images.get("keg"), Pos.BOTTOM_LEFT);
         BorderPane.setMargin(images.get("keg"), new Insets(15, 10, 15, 30));
-
-        return kegFrame;
     }
 
     public BorderPane createTempLayout(List<Node> elements) {
-        BorderPane tempFrame = new BorderPane();
+        tempFrame = new BorderPane();
 
         Node temperature = elements.get(0);
         Node tempChart = elements.get(1);
@@ -82,7 +103,7 @@ public class DisplayManager {
     }
 
     public BorderPane createVotingLayout(List<Node> elements) {
-        BorderPane votingFrame = new BorderPane();
+        votingFrame = new BorderPane();
 
         Text pressToVote = (Text) elements.get(0);
         Text pleaseScanCard = (Text) elements.get(1);
@@ -145,8 +166,19 @@ public class DisplayManager {
         return votingFrame;
     }
 
-    public BorderPane createFooterLayout(List<Node> elements) {
-        BorderPane footerFrame = new BorderPane();
+    public void createTempAndVotingLayout(List<Node> elements) {
+        tempAndVotingFrame = new BorderPane();
+        tempAndVotingFrame.getStyleClass().add("temp-voting-frame");
+        tempAndVotingFrame.setPrefSize(715, 450);
+        tempAndVotingFrame.setTop(tempFrame);
+        tempAndVotingFrame.setCenter(votingFrame);
+
+        BorderPane.setAlignment(votingFrame, Pos.TOP_LEFT);
+        BorderPane.setAlignment(tempFrame, Pos.TOP_LEFT);
+    }
+
+    public void createFooterLayout(List<Node> elements) {
+        footerFrame = new BorderPane();
 
         Label currentKeg = (Label) elements.get(0);
         Button adminSettings = (Button) elements.get(1);
@@ -173,12 +205,10 @@ public class DisplayManager {
         BorderPane.setMargin(currentKeg, new Insets(5, 0, 0, 14));
         BorderPane.setAlignment(images.get("teralogo"), Pos.BOTTOM_RIGHT);
         BorderPane.setMargin(images.get("teralogo"), new Insets(5, 0, 15, 0));
-
-        return footerFrame;
     }
 
-    public BorderPane createKeyboardLayout(Node element) {
-        BorderPane keyboardFrame = new BorderPane();
+    public void createKeyboardLayout(Node element) {
+        keyboardFrame = new BorderPane();
 
         keyboardFrame.setCenter(element);
         keyboardFrame.setPrefWidth(1190);
@@ -186,11 +216,26 @@ public class DisplayManager {
 
         BorderPane.setAlignment(keyboardFrame, Pos.TOP_LEFT);
         BorderPane.setMargin(keyboardFrame, new Insets(15, 50, 45, 50));
-
-        return keyboardFrame;
     }
 
-    public StackPane createAdminPanelLayout(List<Node> elements) {
+    public BorderPane createRoot() {
+        root = new BorderPane();
+        root.setPrefSize(1190, 450);
+        root.getStyleClass().add("main-window");
+        root.setLeft(kegFrame);
+        root.setCenter(tempAndVotingFrame);
+        root.setBottom(footerFrame);
+
+        BorderPane.setAlignment(root.getLeft(), Pos.CENTER_RIGHT);
+        BorderPane.setAlignment(root.getCenter(), Pos.CENTER_LEFT);
+        BorderPane.setAlignment(root.getBottom(), Pos.TOP_LEFT);
+
+        return root;
+    }
+
+    public void createAdminPanelLayout(List<Node> elements) {
+        adminPanel = new StackPane();
+
         Button left = (Button) elements.get(0);
         Button right = (Button) elements.get(1);
         Text beerDisplay = (Text) elements.get(2);
@@ -212,7 +257,6 @@ public class DisplayManager {
         VBox adminPopup = (VBox) elements.get(18);
         VBox buttonList = (VBox) elements.get(19);
 
-        StackPane adminPanel = new StackPane();
         BorderPane navPane = new BorderPane();
         VBox beerDisplayBox = new VBox();
         StackPane header = new StackPane();
@@ -295,8 +339,6 @@ public class DisplayManager {
         BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
 
         adminPanel.getChildren().addAll(adminContainer, adminPopup);
-
-        return adminPanel;
     }
 
     private void loadFonts() {

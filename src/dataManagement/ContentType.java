@@ -9,6 +9,6 @@ package dataManagement;
 public enum ContentType {
     
     WEIGHT,
-    TEMP;
+    TEMP
 
 }

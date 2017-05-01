@@ -16,21 +16,15 @@ import dataManagement.DataManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -46,13 +40,10 @@ public class Main extends Application {
     private static final long WRITE_DATA_PERIOD = 600000; // in ms
 
     private final Label newBeerField = new Label();
+    private final StackPane finalStack = new StackPane();
     private Stage window;
-    private BorderPane kegFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
-    private StackPane adminPanel, finalStack;
 
     private double initial = 0;
-
-    private boolean keyboardOn = false;
     private boolean adminPanelOn = false;
 
     public static void main(String[] args) {
@@ -109,20 +100,8 @@ public class Main extends Application {
         createKeyboardPopUp();
         createAdminPanel();
 
-        root = new BorderPane();
-        root.setPrefSize(1190, 450);
-        root.getStyleClass().add("main-window");
-        root.setLeft(kegFrame);
-        root.setCenter(tempAndVotingFrame);
-        root.setBottom(footerFrame);
-        root.setOnKeyPressed((KeyEvent event) -> keyCardListener.handleEvent(event));
-
-        finalStack = new StackPane();
-        finalStack.getChildren().addAll(root);
-
-        BorderPane.setAlignment(root.getLeft(), Pos.CENTER_RIGHT);
-        BorderPane.setAlignment(root.getCenter(), Pos.CENTER_LEFT);
-        BorderPane.setAlignment(root.getBottom(), Pos.TOP_LEFT);
+        finalStack.getChildren().addAll(displayManager.createRoot());
+        displayManager.getRoot().setOnKeyPressed((KeyEvent event) -> keyCardListener.handleEvent(event));
 
         Scene scene = new Scene(finalStack, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
@@ -138,178 +117,27 @@ public class Main extends Application {
         window.show();
     }
 
-    private void createKeyboardPopUp() {
-        VirtualKeyboard vkb = new VirtualKeyboard(newBeerField);
-        keyboardFrame = displayManager.createKeyboardLayout(vkb.view());
-    }
-
-    private void createAdminPanel() {
-        List<Node> elements = new ArrayList<>();
-        elements.add(voteManager.createLeftButton());
-        elements.add(voteManager.createRightButton());
-        elements.add(voteManager.createBeerDisplay());
-        elements.add(voteManager.createLikesDisplay());
-        elements.add(new Button());
-        elements.add(new Button("Reset All Votes"));
-        elements.add(new Button("Delete This Beer"));
-        elements.add(new Button("Set This Beer to the Current Keg"));
-        elements.add(new Button("Tap a New Beer Keg"));
-        elements.add(new Button("Add a New Admin"));
-        elements.add(new Button("Remove an Admin"));
-        elements.add(new Button("30L Keg"));
-        elements.add(new Button("50L Keg"));
-        elements.add(new Button("Cancel"));
-        elements.add(new Button());
-        elements.add(new Button());
-        elements.add(kegManager.createTareLabel());
-        elements.add(new VBox(20));
-        elements.add(new VBox(30));
-        elements.add(new VBox(15));
-
-        Button closeButton = (Button) elements.get(4);
-        Button resetVote = (Button) elements.get(5);
-        Button delete = (Button) elements.get(6);
-        Button setToCurrent = (Button) elements.get(7);
-        Button kegTapped = (Button) elements.get(8);
-        Button newAdmin = (Button) elements.get(9);
-        Button removeAdmin = (Button) elements.get(10);
-        Button thirtyLitre = (Button) elements.get(11);
-        Button fiftyLitre = (Button) elements.get(12);
-        Button cancel = (Button) elements.get(13);
-        Button plus = (Button) elements.get(14);
-        Button minus = (Button) elements.get(15);
-        VBox newKeggedTapped = (VBox) elements.get(17);
-        VBox adminPopup = (VBox) elements.get(18);
-        VBox buttonList = (VBox) elements.get(19);
-
-        closeButton.setOnAction(event -> {
-            if (adminPopup.getChildren().contains(newKeggedTapped)) {
-                adminPopup.getChildren().remove(newKeggedTapped);
-                adminPopup.getChildren().add(buttonList);
-            }
-            newAdmin.textProperty().unbind();
-            newAdmin.setText("Add a New Admin");
-            removeAdmin.textProperty().unbind();
-            removeAdmin.setText("Remove an Admin");
-
-            // Save data
-            try {
-                voteManager.saveBeerData();
-                dataManager.writeUsersToFile();
-                dataManager.writeCurrentKeg(voteManager.getCurrentKeg(), kegManager.getTare());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            toggleAdminPanel();
-        });
-
-        setToCurrent.setOnAction(event -> voteManager.setCurrentKeg(voteManager.getCurrentBeer()));
-
-        delete.setOnAction(event -> {
-            System.out.println("Deleting current beer");
-            voteManager.deleteCurrentBeer();
-        });
-
-        resetVote.setOnAction(event -> {
-            System.out.println("Resetting votes");
-            voteManager.resetVotes();
-            dataManager.resetVotes();
-        });
-
-        kegTapped.setOnAction(event -> {
-            adminPopup.getChildren().remove(buttonList);
-            adminPopup.getChildren().add(newKeggedTapped);
-        });
-
-        newAdmin.setOnAction(event -> {
-            removeAdmin.setOnKeyPressed(null);
-            removeAdmin.textProperty().unbind();
-            keyCardListener.resetAdminHint();
-            newAdmin.textProperty().bind(keyCardListener.getAdminHintText());
-            newAdmin.setOnKeyPressed((KeyEvent keyEvent) -> {
-                if(keyCardListener.handleNewAdmin(keyEvent)) {
-                    newAdmin.textProperty().unbind();
-                    newAdmin.setOnKeyPressed(null);
-                }
-            });
-        });
-
-        removeAdmin.setOnAction(event -> {
-            newAdmin.setOnKeyPressed(null);
-            newAdmin.textProperty().unbind();
-            keyCardListener.resetAdminHint();
-            removeAdmin.textProperty().bind(keyCardListener.getAdminHintText());
-            removeAdmin.setOnKeyPressed((KeyEvent keyEvent) -> {
-                if(keyCardListener.handleRemoveAdmin(keyEvent)) {
-                    removeAdmin.textProperty().unbind();
-                    removeAdmin.setOnKeyPressed(null);
-                }
-            });
-        });
-
-        thirtyLitre.setOnAction(event -> {
-            kegManager.setMaxKegWeight(30);
-            kegManager.tareToMaxWeight();
-            voteManager.resetVotes();
-            dataManager.resetVotes();
-            voteManager.setCurrentKeg(voteManager.getCurrentBeer());
-            adminPopup.getChildren().remove(newKeggedTapped);
-            adminPopup.getChildren().add(buttonList);
-        });
-
-        fiftyLitre.setOnAction(event -> {
-            kegManager.setMaxKegWeight(50);
-            kegManager.tareToMaxWeight();
-            voteManager.resetVotes();
-            dataManager.resetVotes();
-            voteManager.setCurrentKeg(voteManager.getCurrentBeer());
-            adminPopup.getChildren().remove(newKeggedTapped);
-            adminPopup.getChildren().add(buttonList);
-        });
-
-        cancel.setOnAction(event -> {
-            adminPopup.getChildren().remove(newKeggedTapped);
-            adminPopup.getChildren().add(buttonList);
-        });
-
-        plus.setOnAction(event -> kegManager.adjustTareValue(true));
-
-        minus.setOnAction(event -> kegManager.adjustTareValue(false));
-
-        adminPanel = displayManager.createAdminPanelLayout(elements);
-    }
-
     private void toggleAdminPanel() {
         if (adminPanelOn) {
-            finalStack.getChildren().remove(adminPanel);
+            finalStack.getChildren().remove(displayManager.getAdminPanel());
             keyCardListener.checkAdminKeyVerified(true);
         } else {
-            finalStack.getChildren().add(adminPanel);
+            finalStack.getChildren().add(displayManager.getAdminPanel());
         }
         adminPanelOn = !adminPanelOn;
     }
 
-    private void toggleAdminKeyboard(BorderPane votingFrame) {
-        if (keyboardOn) {
+    private void toggleKeyboard(BorderPane votingFrame) {
+        if (displayManager.getKeyboardVisibleStatus()) {
+            newBeerField.setText("");
             keyCardListener.checkAdminKeyVerified(true);
             votingFrame.setBottom(voteManager.getPollChart());
-            toggleKeyboard();
+            displayManager.toggleFooter();
         } else {
             newBeerField.setText("");
             votingFrame.setBottom(newBeerField);
             newBeerField.requestFocus();
-            toggleKeyboard();
-        }
-    }
-
-    private void toggleKeyboard() {
-        if (keyboardOn) {
-            root.setBottom(footerFrame);
-            keyboardOn = !keyboardOn;
-        } else {
-            root.setBottom(keyboardFrame);
-            keyboardOn = !keyboardOn;
+            displayManager.toggleFooter();
         }
     }
 
@@ -318,9 +146,7 @@ public class Main extends Application {
         case ENTER:
             if (!newBeerField.getText().isEmpty()) {
                 if (voteManager.addBeer(newBeerField.getText(), 0)) {
-                    keyCardListener.checkAdminKeyVerified(true);
-                    frame.setBottom(voteManager.getPollChart());
-                    toggleKeyboard();
+                    toggleKeyboard(frame);
                 }
                 newBeerField.setText("");
             }
@@ -330,7 +156,7 @@ public class Main extends Application {
             newBeerField.setText("");
             keyCardListener.checkAdminKeyVerified(true);
             frame.setBottom(voteManager.getPollChart());
-            toggleKeyboard();
+            toggleKeyboard(frame);
             break;
         }
     }
@@ -340,7 +166,7 @@ public class Main extends Application {
         elements.add(kegManager.createWeightMeter());
         elements.add(kegManager.createWeightLabel());
 
-        kegFrame = displayManager.createKegLayout(elements);
+        displayManager.createKegLayout(elements);
     }
 
     private BorderPane createTempFrame() {
@@ -363,11 +189,10 @@ public class Main extends Application {
         elements.add(voteManager.createLikesDisplay());
         elements.add(voteManager.createPollChart());
 
-
         BorderPane votingFrame = displayManager.createVotingLayout(elements);
 
         ((Text) elements.get(1)).textProperty().bind(keyCardListener.getHintText());
-        ((Button) elements.get(2)).setOnAction(event -> toggleAdminKeyboard(votingFrame));
+        ((Button) elements.get(2)).setOnAction(event -> toggleKeyboard(votingFrame));
         elements.get(2).disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
         elements.get(5).disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
 
@@ -398,17 +223,11 @@ public class Main extends Application {
     }
 
     private void createTempAndVotingFrame() {
-        BorderPane tempFrame = createTempFrame();
-        BorderPane votingFrame = createVotingFrame();
+        List<Node> elements = new ArrayList<>();
+        elements.add(createTempFrame());
+        elements.add(createVotingFrame());
 
-        tempAndVotingFrame = new BorderPane();
-        tempAndVotingFrame.getStyleClass().add("temp-voting-frame");
-        tempAndVotingFrame.setPrefSize(715, 450);
-        tempAndVotingFrame.setTop(tempFrame);
-        tempAndVotingFrame.setCenter(votingFrame);
-
-        BorderPane.setAlignment(votingFrame, Pos.TOP_LEFT);
-        BorderPane.setAlignment(tempFrame, Pos.TOP_LEFT);
+        displayManager.createTempAndVotingLayout(elements);
     }
 
     private void createFooterFrame() {
@@ -416,7 +235,11 @@ public class Main extends Application {
         elements.add(new Label());
         elements.add(new Button());
 
+
+        // current keg display
         ((Label) elements.get(0)).textProperty().bind(voteManager.currentKegProperty());
+
+        // admin panel button
         ((Button) elements.get(1)).setOnAction(event -> toggleAdminPanel());
         elements.get(1).disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
 
@@ -425,6 +248,142 @@ public class Main extends Application {
         voteManager.setCurrentKeg((String) keg[0]);
         kegManager.setTare((double) keg[1]);
 
-        footerFrame = displayManager.createFooterLayout(elements);
+        displayManager.createFooterLayout(elements);
+    }
+
+    private void createKeyboardPopUp() {
+        VirtualKeyboard vkb = new VirtualKeyboard(newBeerField);
+        displayManager.createKeyboardLayout(vkb.view());
+    }
+
+    private void createAdminPanel() {
+        List<Node> elements = new ArrayList<>();
+        elements.add(voteManager.createLeftButton());
+        elements.add(voteManager.createRightButton());
+        elements.add(voteManager.createBeerDisplay());
+        elements.add(voteManager.createLikesDisplay());
+        elements.add(new Button());
+        elements.add(new Button("Reset All Votes"));
+        elements.add(new Button("Delete This Beer"));
+        elements.add(new Button("Set This Beer to the Current Keg"));
+        elements.add(new Button("Tap a New Beer Keg"));
+        elements.add(new Button("Add a New Admin"));
+        elements.add(new Button("Remove an Admin"));
+        elements.add(new Button("30L Keg"));
+        elements.add(new Button("50L Keg"));
+        elements.add(new Button("Cancel"));
+        elements.add(new Button());
+        elements.add(new Button());
+        elements.add(kegManager.createTareLabel());
+        elements.add(new VBox(20));
+        elements.add(new VBox(30));
+        elements.add(new VBox(15));
+
+        // close button
+        ((Button) elements.get(4)).setOnAction(event -> {
+            if (((VBox) elements.get(18)).getChildren().contains(elements.get(17))) {
+                ((VBox) elements.get(18)).getChildren().remove(elements.get(17));
+                ((VBox) elements.get(18)).getChildren().add(elements.get(19));
+            }
+            ((Button) elements.get(9)).textProperty().unbind();
+            ((Button) elements.get(9)).setText("Add a New Admin");
+            ((Button) elements.get(10)).textProperty().unbind();
+            ((Button) elements.get(10)).setText("Remove an Admin");
+
+            // Save data
+            try {
+                voteManager.saveBeerData();
+                dataManager.writeUsersToFile();
+                dataManager.writeCurrentKeg(voteManager.getCurrentKeg(), kegManager.getTare());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            toggleAdminPanel();
+        });
+
+        // set to current button
+        ((Button) elements.get(7)).setOnAction(event -> voteManager.setCurrentKeg(voteManager.getCurrentBeer()));
+
+        //delete button
+        ((Button) elements.get(6)).setOnAction(event -> {
+            voteManager.deleteCurrentBeer();
+        });
+
+        // reset vote button
+        ((Button) elements.get(5)).setOnAction(event -> {
+            voteManager.resetVotes();
+            dataManager.resetVotes();
+        });
+
+        // tap a new keg button
+        ((Button) elements.get(8)).setOnAction(event -> {
+            ((VBox) elements.get(18)).getChildren().remove(elements.get(19));
+            ((VBox) elements.get(18)).getChildren().add(elements.get(17));
+        });
+
+        // add a new admin button
+        ((Button) elements.get(9)).setOnAction(event -> {
+            keyCardListener.resetAdminHint();
+            ((Button) elements.get(10)).textProperty().unbind();
+            ((Button) elements.get(9)).textProperty().bind(keyCardListener.getAdminHintText());
+            elements.get(10).setOnKeyPressed(null);
+            elements.get(9).setOnKeyPressed((KeyEvent keyEvent) -> {
+                if(keyCardListener.handleNewAdmin(keyEvent)) {
+                    ((Button) elements.get(9)).textProperty().unbind();
+                    elements.get(9).setOnKeyPressed(null);
+                }
+            });
+        });
+
+        // remove an admin button
+        ((Button) elements.get(10)).setOnAction(event -> {
+            keyCardListener.resetAdminHint();
+            ((Button) elements.get(9)).textProperty().unbind();
+            ((Button) elements.get(10)).textProperty().bind(keyCardListener.getAdminHintText());
+            elements.get(9).setOnKeyPressed(null);
+            elements.get(10).setOnKeyPressed((KeyEvent keyEvent) -> {
+                if(keyCardListener.handleRemoveAdmin(keyEvent)) {
+                    ((Button) elements.get(10)).textProperty().unbind();
+                    elements.get(10).setOnKeyPressed(null);
+                }
+            });
+        });
+
+        // tare to thirty litre button
+        ((Button) elements.get(11)).setOnAction(event -> {
+            kegManager.setMaxKegWeight(30);
+            kegManager.tareToMaxWeight();
+            voteManager.resetVotes();
+            dataManager.resetVotes();
+            voteManager.setCurrentKeg(voteManager.getCurrentBeer());
+            ((VBox) elements.get(18)).getChildren().remove(elements.get(17));
+            ((VBox) elements.get(18)).getChildren().add(elements.get(19));
+        });
+
+        // tare to fifty litre button
+        ((Button) elements.get(12)).setOnAction(event -> {
+            kegManager.setMaxKegWeight(50);
+            kegManager.tareToMaxWeight();
+            voteManager.resetVotes();
+            dataManager.resetVotes();
+            voteManager.setCurrentKeg(voteManager.getCurrentBeer());
+            ((VBox) elements.get(18)).getChildren().remove(elements.get(17));
+            ((VBox) elements.get(18)).getChildren().add(elements.get(19));
+        });
+
+        // cancel button, return to main admin menu
+        ((Button) elements.get(13)).setOnAction(event -> {
+            ((VBox) elements.get(18)).getChildren().remove(elements.get(17));
+            ((VBox) elements.get(18)).getChildren().add(elements.get(19));
+        });
+
+        // plus button for manually adjusting keg tare value
+        ((Button) elements.get(14)).setOnAction(event -> kegManager.adjustTareValue(true));
+
+        // minus button for manually adjusting keg tare value
+        ((Button) elements.get(15)).setOnAction(event -> kegManager.adjustTareValue(false));
+
+        displayManager.createAdminPanelLayout(elements);
     }
 }
