@@ -102,103 +102,6 @@ public class Main extends Application {
         });
     }
 
-    private void createKegFrame() {
-        List<Node> elements = new ArrayList<>();
-        elements.add(kegManager.createWeightMeter());
-        elements.add(kegManager.createWeightLabel());
-
-        displayManager.createKegLayout(elements);
-        kegFrame = displayManager.getKegFrame();
-    }
-
-    private BorderPane createTempFrame() {
-        List<Node> elements = new ArrayList<>();
-        elements.add(kegManager.createTempLabel());
-        elements.add(kegManager.createLineChart());
-
-        displayManager.createTempLayout(elements);
-        return displayManager.getTempFrame();
-    }
-
-    private BorderPane createVotingFrame() {
-        List<Node> elements = new ArrayList<>();
-        elements.add(new Text("Press to Vote"));
-        elements.add(new Text("Please scan card ..."));
-        elements.add(new Button());
-        elements.add(voteManager.createLeftButton());
-        elements.add(voteManager.createRightButton());
-        elements.add(voteManager.createLikeButton(keyCardListener));
-        elements.add(voteManager.createBeerDisplay());
-        elements.add(voteManager.createLikesDisplay());
-        elements.add(voteManager.createPollChart());
-
-        displayManager.createVotingLayout(elements);
-        BorderPane votingFrame = displayManager.getVotingFrame();
-
-        ((Text) elements.get(1)).textProperty().bind(keyCardListener.getHintText());
-        ((Button) elements.get(2)).setOnAction(event -> toggleAdminKeyboard(votingFrame));
-        elements.get(2).disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
-        elements.get(5).disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
-
-        newBeerField.getStyleClass().add("new-beer-field");
-        newBeerField.setPrefWidth(715);
-        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event, votingFrame));
-
-        votingFrame.onMousePressedProperty().set(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                event.setDragDetect(true);
-                initial = event.getX();
-            }
-        });
-
-        votingFrame.onMouseReleasedProperty().set(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.getX() < initial - 100) {
-                    voteManager.swipeLeft();
-                } else if (event.getX() > initial + 100) {
-                    voteManager.swipeRight();
-                }
-            }
-        });
-
-        return votingFrame;
-    }
-
-    private void createTempAndVotingFrame() {
-        BorderPane tempFrame = createTempFrame();
-        BorderPane votingFrame = createVotingFrame();
-
-        tempAndVotingFrame = new BorderPane();
-        tempAndVotingFrame.getStyleClass().add("temp-voting-frame");
-        tempAndVotingFrame.setPrefSize(715, 450);
-        tempAndVotingFrame.setTop(tempFrame);
-        tempAndVotingFrame.setCenter(votingFrame);
-
-        BorderPane.setAlignment(votingFrame, Pos.TOP_LEFT);
-        BorderPane.setAlignment(tempFrame, Pos.TOP_LEFT);
-    }
-
-    private void createFooterFrame() {
-        List<Node> elements = new ArrayList<>();
-        elements.add(new Label());
-        elements.add(new Button());
-
-        displayManager.createFooterLayout(elements);
-
-        ((Label) elements.get(0)).textProperty().bind(voteManager.currentKegProperty());
-        ((Button) elements.get(1)).setOnAction(event -> toggleAdminPanel());
-        ((Button) elements.get(1)).disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
-
-        // get current keg data from saveData
-        Object[] keg = dataManager.readCurrentKeg();
-        voteManager.setCurrentKeg((String) keg[0]);
-        kegManager.setTare((double) keg[1]);
-
-        footerFrame = displayManager.getFooterFrame();
-    }
-
     private void createScene() {
         createKegFrame();
         createTempAndVotingFrame();
@@ -217,9 +120,9 @@ public class Main extends Application {
         finalStack = new StackPane();
         finalStack.getChildren().addAll(root);
 
-        BorderPane.setAlignment(kegFrame, Pos.CENTER_RIGHT);
-        BorderPane.setAlignment(tempAndVotingFrame, Pos.CENTER_LEFT);
-        BorderPane.setAlignment(footerFrame, Pos.TOP_LEFT);
+        BorderPane.setAlignment(root.getLeft(), Pos.CENTER_RIGHT);
+        BorderPane.setAlignment(root.getCenter(), Pos.CENTER_LEFT);
+        BorderPane.setAlignment(root.getBottom(), Pos.TOP_LEFT);
 
         Scene scene = new Scene(finalStack, 1280, 1024);
         scene.getStylesheets().add("css/linechart.css");
@@ -249,44 +152,44 @@ public class Main extends Application {
     }
 
     private void createAdminPanel() {
-        adminPanel = new StackPane();
-        BorderPane navPane = new BorderPane();
-        VBox adminPopup = new VBox(30);
-        VBox newKeggedTapped = new VBox(20);
-        VBox beerDisplay = new VBox();
-        StackPane header = new StackPane();
-        VBox buttonList = new VBox(15);
-        Rectangle adminContainer = new Rectangle(620,650);
+        List<Node> elements = new ArrayList<>();
+        elements.add(voteManager.createLeftButton());
+        elements.add(voteManager.createRightButton());
+        elements.add(voteManager.createBeerDisplay());
+        elements.add(voteManager.createLikesDisplay());
+        elements.add(new Button());
+        elements.add(new Button("Reset All Votes"));
+        elements.add(new Button("Delete This Beer"));
+        elements.add(new Button("Set This Beer to the Current Keg"));
+        elements.add(new Button("Tap a New Beer Keg"));
+        elements.add(new Button("Add a New Admin"));
+        elements.add(new Button("Remove an Admin"));
+        elements.add(new Button("30L Keg"));
+        elements.add(new Button("50L Keg"));
+        elements.add(new Button("Cancel"));
+        elements.add(new Button());
+        elements.add(new Button());
+        elements.add(kegManager.createTareLabel());
+        elements.add(new VBox(20));
+        elements.add(new VBox(30));
+        elements.add(new VBox(15));
 
-        adminContainer.setFill(Color.web("1e1e1e"));
-        adminContainer.setOpacity(0.9);
+        Button closeButton = (Button) elements.get(4);
+        Button resetVote = (Button) elements.get(5);
+        Button delete = (Button) elements.get(6);
+        Button setToCurrent = (Button) elements.get(7);
+        Button kegTapped = (Button) elements.get(8);
+        Button newAdmin = (Button) elements.get(9);
+        Button removeAdmin = (Button) elements.get(10);
+        Button thirtyLitre = (Button) elements.get(11);
+        Button fiftyLitre = (Button) elements.get(12);
+        Button cancel = (Button) elements.get(13);
+        Button plus = (Button) elements.get(14);
+        Button minus = (Button) elements.get(15);
+        VBox newKeggedTapped = (VBox) elements.get(17);
+        VBox adminPopup = (VBox) elements.get(18);
+        VBox buttonList = (VBox) elements.get(19);
 
-        beerDisplay.setAlignment(Pos.CENTER);
-        beerDisplay.getChildren().addAll(voteManager.createBeerDisplay(), voteManager.createLikesDisplay());
-
-        Button left = voteManager.createLeftButton();
-        Button right = voteManager.createRightButton();
-        navPane.setLeft(left);
-        navPane.setCenter(beerDisplay);
-        navPane.setRight(right);
-        navPane.setMaxWidth(570);
-
-        Button closeButton = new Button();
-        Button resetVote = new Button("Reset All Votes");
-        resetVote.setMinWidth(500);
-        Button delete = new Button("Delete This Beer");
-        delete.setMinWidth(500);
-        Button setToCurrent = new Button("Set This Beer to the Current Keg");
-        setToCurrent.setMinWidth(500);
-        Button kegTapped = new Button("Tap a New Beer Keg");
-        kegTapped.setMinWidth(500);
-        Button newAdmin = new Button("Add a New Admin");
-        newAdmin.setMinWidth(500);
-        Button removeAdmin = new Button("Remove an Admin");
-        removeAdmin.setMinWidth(500);
-
-        closeButton.setGraphic(displayManager.getImage("close"));
-        closeButton.setBackground(Background.EMPTY);
         closeButton.setOnAction(event -> {
             if (adminPopup.getChildren().contains(newKeggedTapped)) {
                 adminPopup.getChildren().remove(newKeggedTapped);
@@ -309,29 +212,24 @@ public class Main extends Application {
             toggleAdminPanel();
         });
 
-        setToCurrent.getStyleClass().add("admin-button");
         setToCurrent.setOnAction(event -> voteManager.setCurrentKeg(voteManager.getCurrentBeer()));
 
-        delete.getStyleClass().add("admin-button");
         delete.setOnAction(event -> {
             System.out.println("Deleting current beer");
             voteManager.deleteCurrentBeer();
         });
 
-        resetVote.getStyleClass().add("admin-button");
         resetVote.setOnAction(event -> {
             System.out.println("Resetting votes");
             voteManager.resetVotes();
             dataManager.resetVotes();
         });
 
-        kegTapped.getStyleClass().add("admin-button");
         kegTapped.setOnAction(event -> {
             adminPopup.getChildren().remove(buttonList);
             adminPopup.getChildren().add(newKeggedTapped);
         });
 
-        newAdmin.getStyleClass().add("admin-button");
         newAdmin.setOnAction(event -> {
             removeAdmin.setOnKeyPressed(null);
             removeAdmin.textProperty().unbind();
@@ -345,7 +243,6 @@ public class Main extends Application {
             });
         });
 
-        removeAdmin.getStyleClass().add("admin-button");
         removeAdmin.setOnAction(event -> {
             newAdmin.setOnKeyPressed(null);
             newAdmin.textProperty().unbind();
@@ -359,25 +256,6 @@ public class Main extends Application {
             });
         });
 
-        header.setAlignment(Pos.CENTER_RIGHT);
-        header.getChildren().addAll(closeButton);
-        header.setPrefHeight(70);
-
-        buttonList.setAlignment(Pos.CENTER);
-        buttonList.getChildren().addAll(setToCurrent,delete,resetVote,kegTapped,newAdmin,removeAdmin);
-        adminPopup.setMaxWidth(600);
-        adminPopup.setMaxHeight(650);
-        adminPopup.setAlignment(Pos.TOP_CENTER);
-        adminPopup.getChildren().addAll(header, navPane, buttonList);
-
-        Button thirtyLitre = new Button("30L Keg");
-        Button fiftyLitre = new Button("50L Keg");
-        Button cancel = new Button("Cancel");
-        Button plus = new Button("",displayManager.getImage("plus"));
-        Button minus = new Button("",displayManager.getImage("minus"));
-        plus.setBackground(Background.EMPTY);
-        minus.setBackground(Background.EMPTY);
-
         thirtyLitre.setOnAction(event -> {
             kegManager.setMaxKegWeight(30);
             kegManager.tareToMaxWeight();
@@ -387,6 +265,7 @@ public class Main extends Application {
             adminPopup.getChildren().remove(newKeggedTapped);
             adminPopup.getChildren().add(buttonList);
         });
+
         fiftyLitre.setOnAction(event -> {
             kegManager.setMaxKegWeight(50);
             kegManager.tareToMaxWeight();
@@ -397,43 +276,16 @@ public class Main extends Application {
             adminPopup.getChildren().add(buttonList);
         });
 
-        thirtyLitre.getStyleClass().add("admin-button");
-        fiftyLitre.getStyleClass().add("admin-button");
-        cancel.getStyleClass().add("admin-button");
         cancel.setOnAction(event -> {
             adminPopup.getChildren().remove(newKeggedTapped);
             adminPopup.getChildren().add(buttonList);
         });
 
-        HBox kegSizeButtons = new HBox(thirtyLitre,fiftyLitre,cancel);
-        kegSizeButtons.setAlignment(Pos.CENTER);
-        kegSizeButtons.setSpacing(30);
-
-        Text line1 = new Text("\n" +
-                "1. Scroll through the beer list to choose the new keg\n" +
-                "2. Select the correct keg size\n\n" +
-                "Please make sure the keg is already tapped before selecting the keg size so that the scale can tare correctly. " +
-                "This will also reset all the votes and allow users to vote again.");
-        line1.getStyleClass().add("admin-warning-msg");
-        line1.setWrappingWidth(550);
-
-        Text manualAdjust = new Text("\nManually adjust current keg level");
-        manualAdjust.getStyleClass().add("admin-warning-msg");
         plus.setOnAction(event -> kegManager.adjustTareValue(true));
+
         minus.setOnAction(event -> kegManager.adjustTareValue(false));
 
-        HBox kegAdjustButtons = new HBox(minus,kegManager.createTareLabel(),plus);
-        kegAdjustButtons.setAlignment(Pos.CENTER);
-        kegAdjustButtons.setSpacing(30);
-
-        newKeggedTapped.setMaxWidth(600);
-        newKeggedTapped.setAlignment(Pos.TOP_CENTER);
-        newKeggedTapped.getChildren().addAll(kegSizeButtons,line1,manualAdjust,kegAdjustButtons);
-
-        BorderPane.setAlignment(left, Pos.CENTER_LEFT);
-        BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
-
-        adminPanel.getChildren().addAll(adminContainer, adminPopup);
+        adminPanel = displayManager.createAdminPanelLayout(elements);
     }
 
     private void toggleAdminPanel() {
@@ -489,5 +341,98 @@ public class Main extends Application {
             toggleKeyboard();
             break;
         }
+    }
+
+    private void createKegFrame() {
+        List<Node> elements = new ArrayList<>();
+        elements.add(kegManager.createWeightMeter());
+        elements.add(kegManager.createWeightLabel());
+
+        kegFrame = displayManager.createKegLayout(elements);
+    }
+
+    private BorderPane createTempFrame() {
+        List<Node> elements = new ArrayList<>();
+        elements.add(kegManager.createTempLabel());
+        elements.add(kegManager.createLineChart());
+
+        return displayManager.createTempLayout(elements);
+    }
+
+    private BorderPane createVotingFrame() {
+        List<Node> elements = new ArrayList<>();
+        elements.add(new Text("Press to Vote"));
+        elements.add(new Text("Please scan card ..."));
+        elements.add(new Button());
+        elements.add(voteManager.createLeftButton());
+        elements.add(voteManager.createRightButton());
+        elements.add(voteManager.createLikeButton(keyCardListener));
+        elements.add(voteManager.createBeerDisplay());
+        elements.add(voteManager.createLikesDisplay());
+        elements.add(voteManager.createPollChart());
+
+
+        BorderPane votingFrame = displayManager.createVotingLayout(elements);
+
+        ((Text) elements.get(1)).textProperty().bind(keyCardListener.getHintText());
+        ((Button) elements.get(2)).setOnAction(event -> toggleAdminKeyboard(votingFrame));
+        elements.get(2).disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
+        elements.get(5).disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
+
+        newBeerField.getStyleClass().add("new-beer-field");
+        newBeerField.setPrefWidth(715);
+        newBeerField.setOnKeyPressed((KeyEvent event) -> keyboardEvents(event, votingFrame));
+
+        votingFrame.onMousePressedProperty().set(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                event.setDragDetect(true);
+                initial = event.getX();
+            }
+        });
+
+        votingFrame.onMouseReleasedProperty().set(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getX() < initial - 100) {
+                    voteManager.swipeLeft();
+                } else if (event.getX() > initial + 100) {
+                    voteManager.swipeRight();
+                }
+            }
+        });
+
+        return votingFrame;
+    }
+
+    private void createTempAndVotingFrame() {
+        BorderPane tempFrame = createTempFrame();
+        BorderPane votingFrame = createVotingFrame();
+
+        tempAndVotingFrame = new BorderPane();
+        tempAndVotingFrame.getStyleClass().add("temp-voting-frame");
+        tempAndVotingFrame.setPrefSize(715, 450);
+        tempAndVotingFrame.setTop(tempFrame);
+        tempAndVotingFrame.setCenter(votingFrame);
+
+        BorderPane.setAlignment(votingFrame, Pos.TOP_LEFT);
+        BorderPane.setAlignment(tempFrame, Pos.TOP_LEFT);
+    }
+
+    private void createFooterFrame() {
+        List<Node> elements = new ArrayList<>();
+        elements.add(new Label());
+        elements.add(new Button());
+
+        ((Label) elements.get(0)).textProperty().bind(voteManager.currentKegProperty());
+        ((Button) elements.get(1)).setOnAction(event -> toggleAdminPanel());
+        elements.get(1).disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
+
+        // get current keg data from saveData
+        Object[] keg = dataManager.readCurrentKeg();
+        voteManager.setCurrentKeg((String) keg[0]);
+        kegManager.setTare((double) keg[1]);
+
+        footerFrame = displayManager.createFooterLayout(elements);
     }
 }

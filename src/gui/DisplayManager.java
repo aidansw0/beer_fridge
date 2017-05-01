@@ -6,9 +6,9 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
-import javafx.scene.shape.Polygon;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 
 import java.util.HashMap;
@@ -25,30 +25,17 @@ import tools.Util;
 public class DisplayManager {
 
     private final Map<String,ImageView> images;
-    private final BorderPane kegFrame, tempFrame, votingFrame, footerFrame;
 
     DisplayManager() {
         images = new HashMap<>();
-        kegFrame = new BorderPane();
-        tempFrame = new BorderPane();
-        votingFrame = new BorderPane();
-        footerFrame = new BorderPane();
 
         loadFonts();
         loadImages();
     }
 
-    public ImageView getImage(String imgName) { return images.get(imgName); }
+    public BorderPane createKegLayout(List<Node> elements) {
+        BorderPane kegFrame = new BorderPane();
 
-    public BorderPane getKegFrame() { return kegFrame;  }
-
-    public BorderPane getTempFrame() { return tempFrame; }
-
-    public BorderPane getVotingFrame() { return votingFrame; }
-
-    public BorderPane getFooterFrame() { return footerFrame; }
-
-    public void createKegLayout(List<Node> elements) {
         Node kegMeter = elements.get(0);
         Node kegVolume = elements.get(1);
 
@@ -63,15 +50,19 @@ public class DisplayManager {
         StackPane.setMargin(kegMeter, new Insets(0, 0, 43, 5));
 
         kegFrame.setPrefSize(445, 450);
-        kegFrame.setTop(getImage("kegheader"));
-        kegFrame.setLeft(getImage("keg"));
+        kegFrame.setTop(images.get("kegheader"));
+        kegFrame.setLeft(images.get("keg"));
         kegFrame.setCenter(kegMeterStack);
 
-        BorderPane.setAlignment(getImage("keg"), Pos.BOTTOM_LEFT);
-        BorderPane.setMargin(getImage("keg"), new Insets(15, 10, 15, 30));
+        BorderPane.setAlignment(images.get("keg"), Pos.BOTTOM_LEFT);
+        BorderPane.setMargin(images.get("keg"), new Insets(15, 10, 15, 30));
+
+        return kegFrame;
     }
 
-    public void createTempLayout(List<Node> elements) {
+    public BorderPane createTempLayout(List<Node> elements) {
+        BorderPane tempFrame = new BorderPane();
+
         Node temperature = elements.get(0);
         Node tempChart = elements.get(1);
 
@@ -80,15 +71,19 @@ public class DisplayManager {
 
         tempFrame.setPrefSize(715, 270);
         tempFrame.setMaxWidth(715);
-        tempFrame.setTop(getImage("tempheader"));
+        tempFrame.setTop(images.get("tempheader"));
         tempFrame.setCenter(tempChart);
         tempFrame.setRight(temperature);
 
         BorderPane.setAlignment(temperature, Pos.TOP_RIGHT);
         BorderPane.setMargin(temperature, new Insets(5, 30, 0, 0));
+
+        return tempFrame;
     }
 
-    public void createVotingLayout(List<Node> elements) {
+    public BorderPane createVotingLayout(List<Node> elements) {
+        BorderPane votingFrame = new BorderPane();
+
         Text pressToVote = (Text) elements.get(0);
         Text pleaseScanCard = (Text) elements.get(1);
         Button addButton = (Button) elements.get(2);
@@ -107,16 +102,16 @@ public class DisplayManager {
         pleaseScanCard.getStyleClass().add("votes-display");
         votingFrame.getStyleClass().addAll("all-frames", "voting-frame");
 
-        addButton.setGraphic(getImage("add"));
+        addButton.setGraphic(images.get("add"));
         addButton.setBackground(Background.EMPTY);
-        left.setGraphic(getImage("navleft1"));
+        left.setGraphic(images.get("navleft1"));
         left.setBackground(Background.EMPTY);
-        right.setGraphic(getImage("navright1"));
+        right.setGraphic(images.get("navright1"));
         right.setBackground(Background.EMPTY);
-        like.setGraphic(getImage("like"));
+        like.setGraphic(images.get("like"));
         like.setBackground(Background.EMPTY);
 
-        votingHeader.getChildren().add(getImage("votingheader"));
+        votingHeader.getChildren().add(images.get("votingheader"));
         votingHeader.getChildren().add(addButton);
         votingHeader.getChildren().add(pleaseScanCard);
         StackPane.setAlignment(addButton, Pos.CENTER_RIGHT);
@@ -146,18 +141,22 @@ public class DisplayManager {
         BorderPane.setMargin(likePane, new Insets(0, 5, 0, 20));
         BorderPane.setMargin(navPane, new Insets(5, 10, 5, 10));
         BorderPane.setMargin(votingFrame.getBottom(), new Insets(5, 5, 20, 5));
+
+        return votingFrame;
     }
 
-    public void createFooterLayout(List<Node> elements) {
+    public BorderPane createFooterLayout(List<Node> elements) {
+        BorderPane footerFrame = new BorderPane();
+
         Label currentKeg = (Label) elements.get(0);
         Button adminSettings = (Button) elements.get(1);
 
         StackPane headerStack = new StackPane();
 
-        adminSettings.setGraphic(getImage("settings"));
+        adminSettings.setGraphic(images.get("settings"));
         adminSettings.setBackground(Background.EMPTY);
 
-        headerStack.getChildren().addAll(getImage("footerheader"), adminSettings);
+        headerStack.getChildren().addAll(images.get("footerheader"), adminSettings);
         StackPane.setAlignment(adminSettings, Pos.CENTER_RIGHT);
         StackPane.setMargin(adminSettings, new Insets(0, 15, 0, 0));
 
@@ -168,12 +167,123 @@ public class DisplayManager {
         footerFrame.setMaxWidth(1190);
         footerFrame.setTop(headerStack);
         footerFrame.setLeft(currentKeg);
-        footerFrame.setRight(getImage("teralogo"));
+        footerFrame.setRight(images.get("teralogo"));
 
         BorderPane.setAlignment(currentKeg, Pos.BOTTOM_LEFT);
         BorderPane.setMargin(currentKeg, new Insets(5, 0, 0, 14));
-        BorderPane.setAlignment(getImage("teralogo"), Pos.BOTTOM_RIGHT);
-        BorderPane.setMargin(getImage("teralogo"), new Insets(5, 0, 15, 0));
+        BorderPane.setAlignment(images.get("teralogo"), Pos.BOTTOM_RIGHT);
+        BorderPane.setMargin(images.get("teralogo"), new Insets(5, 0, 15, 0));
+
+        return footerFrame;
+    }
+
+    public StackPane createAdminPanelLayout(List<Node> elements) {
+        Button left = (Button) elements.get(0);
+        Button right = (Button) elements.get(1);
+        Text beerDisplay = (Text) elements.get(2);
+        Text likesDisplay = (Text) elements.get(3);
+        Button closeButton = (Button) elements.get(4);
+        Button resetVote = (Button) elements.get(5);
+        Button delete = (Button) elements.get(6);
+        Button setToCurrent = (Button) elements.get(7);
+        Button kegTapped = (Button) elements.get(8);
+        Button newAdmin = (Button) elements.get(9);
+        Button removeAdmin = (Button) elements.get(10);
+        Button thirtyLitre = (Button) elements.get(11);
+        Button fiftyLitre = (Button) elements.get(12);
+        Button cancel = (Button) elements.get(13);
+        Button plus = (Button) elements.get(14);
+        Button minus = (Button) elements.get(15);
+        Label tareLabel = (Label) elements.get(16);
+        VBox newKeggedTapped = (VBox) elements.get(17);
+        VBox adminPopup = (VBox) elements.get(18);
+        VBox buttonList = (VBox) elements.get(19);
+
+        StackPane adminPanel = new StackPane();
+        BorderPane navPane = new BorderPane();
+        VBox beerDisplayBox = new VBox();
+        StackPane header = new StackPane();
+        Rectangle adminContainer = new Rectangle(620,650);
+
+        setToCurrent.getStyleClass().add("admin-button");
+        delete.getStyleClass().add("admin-button");
+        resetVote.getStyleClass().add("admin-button");
+        kegTapped.getStyleClass().add("admin-button");
+        newAdmin.getStyleClass().add("admin-button");
+        removeAdmin.getStyleClass().add("admin-button");
+        thirtyLitre.getStyleClass().add("admin-button");
+        fiftyLitre.getStyleClass().add("admin-button");
+        cancel.getStyleClass().add("admin-button");
+
+        closeButton.setGraphic(images.get("close"));
+        closeButton.setBackground(Background.EMPTY);
+        plus.setGraphic(images.get("plus"));
+        plus.setBackground(Background.EMPTY);
+        minus.setGraphic(images.get("minus"));
+        minus.setBackground(Background.EMPTY);
+        left.setGraphic(images.get("navleft2"));
+        left.setBackground(Background.EMPTY);
+        right.setGraphic(images.get("navright2"));
+        right.setBackground(Background.EMPTY);
+
+        adminContainer.setFill(Color.web("1e1e1e"));
+        adminContainer.setOpacity(0.9);
+
+        beerDisplayBox.setAlignment(Pos.CENTER);
+        beerDisplayBox.getChildren().addAll(beerDisplay,likesDisplay);
+
+        navPane.setLeft(left);
+        navPane.setCenter(beerDisplayBox);
+        navPane.setRight(right);
+        navPane.setMaxWidth(570);
+
+        resetVote.setMinWidth(500);
+        delete.setMinWidth(500);
+        setToCurrent.setMinWidth(500);
+        kegTapped.setMinWidth(500);
+        newAdmin.setMinWidth(500);
+        removeAdmin.setMinWidth(500);
+
+        header.setAlignment(Pos.CENTER_RIGHT);
+        header.getChildren().addAll(closeButton);
+        header.setPrefHeight(70);
+
+        buttonList.setAlignment(Pos.CENTER);
+        buttonList.getChildren().addAll(setToCurrent,delete,resetVote,kegTapped,newAdmin,removeAdmin);
+        adminPopup.setMaxWidth(600);
+        adminPopup.setMaxHeight(650);
+        adminPopup.setAlignment(Pos.TOP_CENTER);
+        adminPopup.getChildren().addAll(header, navPane, buttonList);
+
+        HBox kegSizeButtons = new HBox(thirtyLitre,fiftyLitre,cancel);
+        kegSizeButtons.setAlignment(Pos.CENTER);
+        kegSizeButtons.setSpacing(30);
+
+        Text line1 = new Text("\n" +
+                "1. Scroll through the beer list to choose the new keg\n" +
+                "2. Select the correct keg size\n\n" +
+                "Please make sure the keg is already tapped before selecting the keg size so that the scale can tare correctly. " +
+                "This will also reset all the votes and allow users to vote again.");
+        line1.getStyleClass().add("admin-warning-msg");
+        line1.setWrappingWidth(550);
+
+        Text manualAdjust = new Text("\nManually adjust current keg level");
+        manualAdjust.getStyleClass().add("admin-warning-msg");
+
+        HBox kegAdjustButtons = new HBox(minus,tareLabel,plus);
+        kegAdjustButtons.setAlignment(Pos.CENTER);
+        kegAdjustButtons.setSpacing(30);
+
+        newKeggedTapped.setMaxWidth(600);
+        newKeggedTapped.setAlignment(Pos.TOP_CENTER);
+        newKeggedTapped.getChildren().addAll(kegSizeButtons,line1,manualAdjust,kegAdjustButtons);
+
+        BorderPane.setAlignment(left, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(right, Pos.CENTER_RIGHT);
+
+        adminPanel.getChildren().addAll(adminContainer, adminPopup);
+
+        return adminPanel;
     }
 
     private void loadFonts() {
