@@ -1,6 +1,8 @@
 package gui;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -105,30 +107,12 @@ public class Main extends Application {
     }
 
     private void createKegFrame() {
-        kegFrame = new BorderPane();
-        StackPane kegMeterStack = new StackPane();
-        Polygon kegMeter = kegManager.createWeightMeter();
-        Label kegVolume = kegManager.createWeightLabel();
+        List<Node> kegElements = new ArrayList<>();
+        kegElements.add(kegManager.createWeightMeter());
+        kegElements.add(kegManager.createWeightLabel());
 
-        kegMeter.getStyleClass().add("keg-meter");
-        kegVolume.getStyleClass().add("data-labels");
-
-        kegMeterStack.getChildren().add(kegMeter);
-        kegMeterStack.getChildren().add(kegVolume);
-
-        StackPane.setAlignment(kegVolume, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(kegVolume, new Insets(0, 0, 20, 60));
-        StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(kegMeter, new Insets(0, 0, 43, 5));
-
-        kegFrame.getStyleClass().addAll("all-frames", "keg-frame");
-        kegFrame.setPrefSize(445, 450);
-        kegFrame.setTop(displayManager.getImage("kegheader"));
-        kegFrame.setLeft(displayManager.getImage("keg"));
-        kegFrame.setCenter(kegMeterStack);
-
-        BorderPane.setAlignment(displayManager.getImage("keg"), Pos.BOTTOM_LEFT);
-        BorderPane.setMargin(displayManager.getImage("keg"), new Insets(15, 10, 15, 30));
+        displayManager.createKegFrame(kegElements);
+        kegFrame = displayManager.getKegFrame();
     }
 
     private BorderPane createTempFrame() {

@@ -29,7 +29,6 @@ public class VoteManager {
 
     private final Map<String, Integer> beerTypeLikes;
     private final List<String> beerTypes;
-
     private final List<Rectangle> beerVotesBar;
     private final List<Text> beerDisplay, likesDisplay;
     private final HBox pollsPane;

@@ -1,9 +1,17 @@
 package gui;
 
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import tools.Util;
@@ -15,15 +23,45 @@ import tools.Util;
 public class DisplayManager {
 
     private final Map<String,ImageView> images;
+    private final BorderPane kegFrame, tempFrame, votingFrame, footerFrame;
 
     DisplayManager() {
         images = new HashMap<>();
+        kegFrame = new BorderPane();
+        tempFrame = new BorderPane();
+        votingFrame = new BorderPane();
+        footerFrame = new BorderPane();
 
         loadFonts();
         loadImages();
     }
 
     public ImageView getImage(String imgName) { return images.get(imgName); }
+
+    public BorderPane getKegFrame() { return kegFrame;  }
+
+    public void createKegFrame(List<Node> elements) {
+        Node kegMeter = elements.get(0);
+        Node kegVolume = elements.get(1);
+
+        kegMeter.getStyleClass().add("keg-meter");
+        kegVolume.getStyleClass().add("data-labels");
+        kegFrame.getStyleClass().addAll("all-frames", "keg-frame");
+
+        StackPane kegMeterStack = new StackPane(kegMeter,kegVolume);
+        StackPane.setAlignment(kegVolume, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(kegVolume, new Insets(0, 0, 20, 60));
+        StackPane.setAlignment(kegMeter, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(kegMeter, new Insets(0, 0, 43, 5));
+
+        kegFrame.setPrefSize(445, 450);
+        kegFrame.setTop(getImage("kegheader"));
+        kegFrame.setLeft(getImage("keg"));
+        kegFrame.setCenter(kegMeterStack);
+
+        BorderPane.setAlignment(getImage("keg"), Pos.BOTTOM_LEFT);
+        BorderPane.setMargin(getImage("keg"), new Insets(15, 10, 15, 30));
+    }
 
     private void loadFonts() {
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
