@@ -177,6 +177,19 @@ public class DisplayManager {
         return footerFrame;
     }
 
+    public BorderPane createKeyboardLayout(Node element) {
+        BorderPane keyboardFrame = new BorderPane();
+
+        keyboardFrame.setCenter(element);
+        keyboardFrame.setPrefWidth(1190);
+        keyboardFrame.setMaxWidth(1190);
+
+        BorderPane.setAlignment(keyboardFrame, Pos.TOP_LEFT);
+        BorderPane.setMargin(keyboardFrame, new Insets(15, 50, 45, 50));
+
+        return keyboardFrame;
+    }
+
     public StackPane createAdminPanelLayout(List<Node> elements) {
         Button left = (Button) elements.get(0);
         Button right = (Button) elements.get(1);

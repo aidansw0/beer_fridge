@@ -140,15 +140,7 @@ public class Main extends Application {
 
     private void createKeyboardPopUp() {
         VirtualKeyboard vkb = new VirtualKeyboard(newBeerField);
-        Node keys = vkb.view();
-
-        keyboardFrame = new BorderPane();
-        keyboardFrame.setCenter(keys);
-        keyboardFrame.setPrefWidth(1190);
-        keyboardFrame.setMaxWidth(1190);
-
-        BorderPane.setAlignment(keyboardFrame, Pos.TOP_LEFT);
-        BorderPane.setMargin(keyboardFrame, new Insets(15, 50, 45, 50));
+        keyboardFrame = displayManager.createKeyboardLayout(vkb.view());
     }
 
     private void createAdminPanel() {
