@@ -1,13 +1,10 @@
 package gui;
 
 import dataManagement.DataManager;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -42,6 +39,7 @@ public class VoteManager {
     private static final Color UNSELECTED           = Color.web("006B68");
     private static final Color SELECTED             = Color.web("06D3CE");
 
+    private final SimpleStringProperty currentKeg;
     private int currentBeer = 0;
     private int lowestIndexed = 0;
     private int highestVote = 10;
@@ -57,7 +55,14 @@ public class VoteManager {
         pollsPane = new HBox();
 
         this.dataManager = dataManager;
+        currentKeg = new SimpleStringProperty("");
     }
+
+    public void setCurrentKeg(String currentKeg) { this.currentKeg.set(currentKeg); }
+
+    public String getCurrentKeg() { return currentKeg.get(); }
+
+    public StringProperty currentKegProperty() { return currentKeg; }
 
     /**
      * @return String of current beer displayed.
@@ -266,13 +271,10 @@ public class VoteManager {
     /**
      * Sets up the navigation button to scroll left through the list
      *
-     * @param img,
-     *            Graphic used to represent the button
      * @return returns Button left
      */
-    public Button createLeftButton(ImageView img) {
-        Button left = new Button("", img);
-        left.setBackground(Background.EMPTY);
+    public Button createLeftButton() {
+        Button left = new Button();
 
         left.setOnAction(event -> {
             if (beerTypes.size() > 1) {
@@ -293,13 +295,10 @@ public class VoteManager {
     /**
      * Sets up the navigation button to scroll right through the list
      *
-     * @param img,
-     *            Graphic used to represent the button
      * @return returns Button right
      */
-    public Button createRightButton(ImageView img) {
-        Button right = new Button("", img);
-        right.setBackground(Background.EMPTY);
+    public Button createRightButton() {
+        Button right = new Button();
 
         right.setOnAction(event -> {
             if (beerTypes.size() > 1) {
@@ -317,14 +316,11 @@ public class VoteManager {
     /**
      * Sets up the like button used to upvote
      *
-     * @param img,
-     *            Graphic used to represent the button
      * @return returns Button likesButton
      */
-    public Button createLikeButton(ImageView img, KeyCardListener listener) {
-        Button likeButton = new Button("", img);
+    public Button createLikeButton(KeyCardListener listener) {
+        Button likeButton = new Button();
         KeyCardListener keyCardListener = listener;
-        likeButton.setBackground(Background.EMPTY);
 
         // Find the highest vote and set the global variable used for drawing
         for (int i = 0; i < beerTypeLikes.size(); i++) {
