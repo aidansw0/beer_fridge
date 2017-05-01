@@ -187,8 +187,7 @@ public class DataManager {
         
         retval[0] = beer;
         retval[1] = tare; 
-        System.out.println(retval[0]);
-        
+
         return retval;
     }
 

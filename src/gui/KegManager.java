@@ -20,13 +20,6 @@ import dataManagement.DweetManager;
 
 import static java.lang.Math.round;
 
-/**
- * This class gets data from DweetManager
- * and updates the line chart and temperature label
- *
- * @author Richard
- */
-
 public class KegManager {
     private static final int MIN_DATA_POINTS        = 10;
     private static final int MAX_DATA_POINTS        = 2000;

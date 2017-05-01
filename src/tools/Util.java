@@ -122,6 +122,14 @@ public final class Util {
         return parentPath + System.getProperty("file.separator");
     }
 
+
+    /**
+     * Imports image into project and specifies height. Always preserves ratio.
+     *
+     * @param imgPath, the relative file path to the image file
+     * @param fitHeight, the specified height of the image
+     * @return an ImageView object for use as a node in the GUI
+     */
     public static ImageView importImage(String imgPath, int fitHeight) {
         ImageView imgView = new ImageView(imgPath);
         imgView.setFitHeight(fitHeight);

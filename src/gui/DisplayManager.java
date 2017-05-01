@@ -28,14 +28,12 @@ import tools.Util;
 
 public class DisplayManager {
 
-    private final Map<String,ImageView> images;
+    private final Map<String,ImageView> images = new HashMap<>();
     private BorderPane kegFrame, tempFrame, votingFrame, tempAndVotingFrame, footerFrame, keyboardFrame, root;
     private StackPane adminPanel;
     private boolean keyboardOn = false;
 
     DisplayManager() {
-        images = new HashMap<>();
-
         loadFonts();
         loadImages();
     }
