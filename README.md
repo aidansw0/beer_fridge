@@ -34,9 +34,11 @@ Connect the Launchpad to the computer via USB and short pins TCK 2 (marked by wh
 ### Setting up the Java Application
 CLone this repo and open the project in your Java IDE. Locate the file `src/backend/KegManager.java` and change the field `DWEET_URL` declared just below the class declaration to the **same** "thing name" that you used when editing `arduino_sensor.ino`. Compile the program to ensure there are no errors and then export the application as a runnable `.jar` file; place the `.jar` file where desired but note that data files for the program will be generated at the same location.
 
-* In it's current state the GUI for the application is not completely responsive on a 16:9 aspect ratio display.
+*In it's current state the GUI for the application is not completely responsive on a 16:9 aspect ratio display.*
 
 The GUI itself is straight forward to use and is most natural on a touch screen, however a mouse can still be used. Users are verified using a USB RFID card scanner; administrators can add beers along with other options found in the admin panel while regular users can only up-vote a single beer until an admin resets the voting. To add an admin locate the file `src/backend/KeyCardListener.java` and add the line `saveData.setAdmin("your key card id here", true);` (before exporting the `.jar` file) in the constructor below the initialization of `saveData`. See the RFID scanner setup section for info on how to find your key card ID. Once an initial admin has been set new ones can be added via the admin panel. 
+
+![Alt text](https://github.com/aidansw0/beer_fridge/blob/master/photos/screenshot.png "GUI")
 
 ### Setting up the RFID Scanner
 The beer fridge uses a <a href="https://www.rfideas.com/products/readers/pcprox">RFIDeas pcProx card reader</a> to track and verify users however, with some modification to the source code this can be disabled to allow anyone to access the system. 
@@ -52,14 +54,18 @@ To calibrate the scale open `arduino/scale_calibration/scale_calibration.ino` in
 
 The top plate for the scale will simply rest freely on the load cells and can be made out of wood or metal as well (the beer keg will sit directly on top of this plate).
 
+![Alt text](https://github.com/aidansw0/beer_fridge/blob/master/photos/IMG_20170427_145124.jpg "Scale")
+
 ### Bring it all Together
 Use whichever beer tap, tubing and other connectors for tapping the keg desired; simply drill a whole through the fridge and feed the tubing through to attach onto the tap. 
 
-Place the scale bottom plate in the frige with the top plate and enclose the sensor module in an appropiate containy (preferably one made out of a material with an <a href="http://www.infrared-thermography.com/material-1.htm">emissivity</a> value > 0.7). Plug in the sensor module **BEFORE** placing the keg on the top plate. Wait a few minutes for the scale to connect to wifi/tare and then place the keg on top of the scale. 
+Place the scale bottom plate in the frige with the top plate and enclose the sensor module in an appropiate containy (preferably one made out of a material with an <a href="http://www.infrared-thermography.com/material-1.htm">emissivity</a> value > 0.7). Plug in the sensor module and place the keg onto the top plate of the scale. 
 
-Finally, put the sensor module somewhere inside the fridge and set the program to a new keg with the correct size (30/50 L) using the admin panel.
+Finally, put the sensor module somewhere inside the fridge and set the program to a new keg with the correct size (30/50 L) using the admin panel; the sensor only reads the change in weight of the keg and thus does not need to be tared during the keggin process. If the temperature sensor seems to be reading a slightly different value than expected or when compared to another sensor then refer to <a href="https://cdn.sparkfun.com/datasheets/Sensors/Temp/sbou107.pdf">this</a> document for information on exact placement of the sensor.
 
-![Alt text](/blob/master/photos/IMG_20170428_150106.jpg "Optional Title")
+![Alt text](https://github.com/aidansw0/beer_fridge/blob/master/photos/IMG_20170428_150106.jpg "Outside")
+
+![Alt text](https://github.com/aidansw0/beer_fridge/blob/master/photos/IMG_20170428_150119.jpg "Inside")
 
 
 *Project developed by <a href="https://www.linkedin.com/in/aidan-wilson-5b973b137/">Aidan Wilson</a> and <a href="https://www.linkedin.com/in/rchen93/">Richard Chen</a> with help from <a href="https://www.linkedin.com/in/greg-powell-b3b88515/">Greg Powell</a>.*
