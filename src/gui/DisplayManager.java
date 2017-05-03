@@ -20,7 +20,7 @@ import tools.Util;
 
 /**
  * This class manages the layout of the GUI.
- * It manages fonts, images, applying style sheets to
+ * It manages fonts, images, and applying style sheets to
  * all elements drawn on the main scene.
  *
  * @author Richard
@@ -38,12 +38,33 @@ public class DisplayManager {
         loadImages();
     }
 
+    /**
+     * Get the status of the keyboard in the GUI
+     *
+     * @return true if keyboard is visible, else false
+     */
     public boolean getKeyboardVisibleStatus() { return keyboardOn; }
 
+    /**
+     * Get the root node that contains all frames
+     *
+     * @return BorderPane root
+     */
     public BorderPane getRoot() { return root; }
 
+    /**
+     * Get the node of the adminPanel
+     *
+     * @return StackPane adminPanel
+     */
     public StackPane getAdminPanel() { return adminPanel; }
 
+    /**
+     * Toggles the keyboard and footer frame based and toggles
+     * the boolean status variable keyboardOn
+     *
+     * @return true if keyboard is visible, else false
+     */
     public void toggleFooter() {
         if (keyboardOn) {
             root.setBottom(footerFrame);
@@ -54,6 +75,11 @@ public class DisplayManager {
         }
     }
 
+    /**
+     * Creates the layout of the keg frame
+     *
+     * @param elements, a list of all nodes to be placed in the frame
+     */
     public void createKegLayout(List<Node> elements) {
         kegFrame = new BorderPane();
 
@@ -79,6 +105,12 @@ public class DisplayManager {
         BorderPane.setMargin(images.get("keg"), new Insets(15, 10, 15, 30));
     }
 
+    /**
+     * Creates the layout of the temp frame
+     *
+     * @param elements, a list of all nodes to be placed in the frame
+     * @return the tempFrame node
+     */
     public BorderPane createTempLayout(List<Node> elements) {
         tempFrame = new BorderPane();
 
@@ -100,6 +132,12 @@ public class DisplayManager {
         return tempFrame;
     }
 
+    /**
+     * Creates the layout of the voting frame
+     *
+     * @param elements, a list of all nodes to be placed in the frame
+     * @return the votingFrame node
+     */
     public BorderPane createVotingLayout(List<Node> elements) {
         votingFrame = new BorderPane();
 
@@ -164,6 +202,12 @@ public class DisplayManager {
         return votingFrame;
     }
 
+    /**
+     * Creates the layout of the temp and voting frame combined so
+     * it can be used as the right pane of a BorderPane node
+     *
+     * @param elements, a list of all nodes to be placed in the frame
+     */
     public void createTempAndVotingLayout(List<Node> elements) {
         tempAndVotingFrame = new BorderPane();
         tempAndVotingFrame.getStyleClass().add("temp-voting-frame");
@@ -175,6 +219,11 @@ public class DisplayManager {
         BorderPane.setAlignment(tempFrame, Pos.TOP_LEFT);
     }
 
+    /**
+     * Creates the layout of the footer frame
+     *
+     * @param elements, a list of all nodes to be placed in the frame
+     */
     public void createFooterLayout(List<Node> elements) {
         footerFrame = new BorderPane();
 
@@ -205,6 +254,11 @@ public class DisplayManager {
         BorderPane.setMargin(images.get("teralogo"), new Insets(5, 0, 15, 0));
     }
 
+    /**
+     * Creates the layout of the keg frame
+     *
+     * @param element, the virtual keyboard node
+     */
     public void createKeyboardLayout(Node element) {
         keyboardFrame = new BorderPane();
 
@@ -216,6 +270,13 @@ public class DisplayManager {
         BorderPane.setMargin(keyboardFrame, new Insets(15, 50, 45, 50));
     }
 
+    /**
+     * Creates the layout of the main GUI. This method creates the GUI
+     * from the global nodes under the assumption that they have already
+     * been created using the above methods. The class calling this createRoot()
+     * is responsible for creating the frames needed: kegFrame, tempFrame, votingFrame,
+     * and footerFrame.
+     */
     public BorderPane createRoot() {
         root = new BorderPane();
         root.setPrefSize(1190, 450);
@@ -231,9 +292,15 @@ public class DisplayManager {
         return root;
     }
 
+    /**
+     * Creates the layout of the admin panel
+     *
+     * @param elements, a list of all nodes to be placed in the frame
+     */
     public void createAdminPanelLayout(List<Node> elements) {
         adminPanel = new StackPane();
 
+        // assign the element nodes to variables for readability
         Button left = (Button) elements.get(0);
         Button right = (Button) elements.get(1);
         Text beerDisplay = (Text) elements.get(2);
@@ -339,11 +406,17 @@ public class DisplayManager {
         adminPanel.getChildren().addAll(adminContainer, adminPopup);
     }
 
+    /**
+     * Used by the constructor to load all fonts used in the GUI
+     */
     private void loadFonts() {
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Hairline.ttf"), 80);
         Font.loadFont(getClass().getResourceAsStream("/css/Lato-Light.ttf"), 20);
     }
 
+    /**
+     * Used by the constructor to load all images used in the GUI
+     */
     private void loadImages() {
         images.put("kegheader",Util.importImage("img/kegheader.png", 53));
         images.put("tempheader",Util.importImage("img/tempheader.png", 53));
