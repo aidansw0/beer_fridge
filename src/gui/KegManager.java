@@ -51,15 +51,35 @@ public class KegManager {
         animation.setCycleCount(Animation.INDEFINITE);
         animation.play();
     }
-    
+
+    /**
+     * Get the current tare value
+     *
+     * @return taredValue
+     */
     public double getTare() {
         return taredValue;
     }
-    
+
+    /**
+     * Set the current tare value
+     *
+     * @param tare, double tare
+     */
     public void setTare(double tare) {
         taredValue = tare;
     }
 
+    /**
+     * Manually adjusts the tare value up or down by 1 litre
+     * when called. This method will also update the text displays
+     * and the weight meter drawn in the GUI.
+     *
+     * @param up
+     *          true observed weight should be increased, which
+     *          actually decreases the current tare value set, and
+     *          false if the observed weight should decrease.
+     */
     public void adjustTareValue(boolean up) {
         int currentWeight = beerKeg.weightProperty().intValue();
         List <Double> updatedCoord;
@@ -81,8 +101,18 @@ public class KegManager {
         }
     }
 
+    /**
+     * Set the max weight of the keg used for calculating the percentage
+     * for the weight meter to be drawn.
+     *
+     * @param maxKegWeight, int maxKegWeight
+     */
     public void setMaxKegWeight(int maxKegWeight) { this.maxKegWeight = maxKegWeight; }
 
+    /**
+     * This is used in the case a new keg is tapped. This will get the current weight from
+     * the sensor and adjust the tare value such that the observed weight is the max weight
+     */
     public void tareToMaxWeight() {
         List <Double> updatedCoord;
         int weightFromSensor = beerKeg.weightProperty().intValue();
@@ -189,6 +219,13 @@ public class KegManager {
         return coords;
     }
 
+    /**
+     * Returns the tared weight calculated from tareValue. This method
+     * will also limit the observed weight between 0 and maxWeight.
+     *
+     * @param weightFromSensor, weight obtained from the sensor
+     * @return value adjusted for the tare offset
+     */
     private int returnTaredWeight(double weightFromSensor) {
         double retVal = weightFromSensor - taredValue + maxKegWeight;
 
