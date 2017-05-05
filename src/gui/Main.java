@@ -307,7 +307,7 @@ public class Main extends Application {
         // set to current button
         ((Button) elements.get(7)).setOnAction(event -> voteManager.setCurrentKeg(voteManager.getCurrentBeer()));
 
-        //delete button
+        // delete button
         ((Button) elements.get(6)).setOnAction(event -> {
             voteManager.deleteCurrentBeer();
         });

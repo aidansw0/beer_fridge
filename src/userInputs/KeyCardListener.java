@@ -47,14 +47,37 @@ public class KeyCardListener {
         newAttempt = new ReadOnlyBooleanWrapper(false);
     }
 
+    /**
+     * Used for binding the hint display in the voting frame.
+     *
+     * @return StringProperty cardHintText
+     */
     public StringProperty getHintText() { return cardHintText; }
 
+    /**
+     * Used for binding the hint text in the admin panel.
+     *
+     * @return StringProperty adminHintText
+     */
     public StringProperty getAdminHintText() { return adminHintText; }
 
+    /**
+     * Void function used to reset the hint text to "Please Scan Card ..."
+     */
     public void resetAdminHint() { adminHintText.set("Please Scan Card ..."); }
 
+    /**
+     * Used for binding the disable property to whether a regular key card has been verified.
+     *
+     * @return ReadOnlyBooleanProperty regularKeyVerified
+     */
     public ReadOnlyBooleanProperty regularKeyVerifiedProperty() { return regularKeyVerified.getReadOnlyProperty(); }
 
+    /**
+     * Used for binding the disable property to whether an admin key card has been verified.
+     *
+     * @return ReadOnlyBooleanProperty adminKeyVerified
+     */
     public ReadOnlyBooleanProperty adminKeyVerifiedProperty() { return adminKeyVerified.getReadOnlyProperty(); }
 
     public void registerVote() {
@@ -247,6 +270,9 @@ public class KeyCardListener {
         return false;
     }
 
+    /**
+     * TimerTask implementation for expiring key card access if no action is performed.
+     */
     private class ExpireAccess extends TimerTask {
         @Override
         public void run() {
@@ -257,6 +283,10 @@ public class KeyCardListener {
         }
     }
 
+    /**
+     * TimerTask implementation for expiring a key card attempt if only a partial key code
+     * is detected. For the current key card scanner, a '/' character acts as the EOL.
+     */
     private class ExpireAttempt extends TimerTask {
         @Override
         public void run() {
