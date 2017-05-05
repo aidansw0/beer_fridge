@@ -20,6 +20,11 @@ import dataManagement.DweetManager;
 
 import static java.lang.Math.round;
 
+/**
+ * This class refreshes the data labels and charts in the GUI.
+ *
+ * @author Richard
+ */
 public class KegManager {
     private static final int MIN_DATA_POINTS        = 10;
     private static final int MAX_DATA_POINTS        = 2000;
