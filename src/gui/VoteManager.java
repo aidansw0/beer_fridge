@@ -58,10 +58,25 @@ public class VoteManager {
         currentKeg = new SimpleStringProperty("");
     }
 
+    /**
+     * Sets the current keg to the string parameter.
+     *
+     * @param currentKeg, String of the keg to be set.
+     */
     public void setCurrentKeg(String currentKeg) { this.currentKeg.set(currentKeg); }
 
+    /**
+     * This method returns the string value of the current keg
+     *
+     * @return String currentKeg
+     */
     public String getCurrentKeg() { return currentKeg.get(); }
 
+    /**
+     * String property used to bind to the label in the GUI.
+     *
+     * @return StringProperty currentKeg
+     */
     public StringProperty currentKegProperty() { return currentKeg; }
 
     /**
@@ -250,6 +265,11 @@ public class VoteManager {
         }
     }
 
+    /**
+     * Creates a Text node for the display showing number of likes for each beer.
+     *
+     * @return Text likesDiplay
+     */
     public Text createLikesDisplay() {
         Text newLikesDisplay = new Text(getCurrentVotes() + " Votes");
         newLikesDisplay.getStyleClass().add("votes-display");
@@ -259,6 +279,11 @@ public class VoteManager {
         return likesDisplay.get(likesDisplay.size() - 1);
     }
 
+    /**
+     * Creates a Text node for display the current beer in the list.
+     *
+     * @return Text beerDisplay
+     */
     public Text createBeerDisplay() {
         Text newBeerDisplay = new Text(getCurrentBeer());
         newBeerDisplay.getStyleClass().add("beer-display");
