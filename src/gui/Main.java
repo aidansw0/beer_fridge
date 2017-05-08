@@ -187,8 +187,8 @@ public class Main extends Application {
         elements.add(voteManager.createLeftButton());
         elements.add(voteManager.createRightButton());
         elements.add(voteManager.createLikeButton(keyCardListener));
-        elements.add(voteManager.createBeerDisplay());
-        elements.add(voteManager.createLikesDisplay());
+        elements.add(new Text());
+        elements.add(new Text());
         elements.add(voteManager.createPollChart());
 
         BorderPane votingFrame = displayManager.createVotingLayout(elements);
@@ -197,6 +197,8 @@ public class Main extends Application {
         ((Button) elements.get(2)).setOnAction(event -> toggleKeyboard(votingFrame));
         elements.get(2).disableProperty().bind(keyCardListener.adminKeyVerifiedProperty().not());
         elements.get(5).disableProperty().bind(keyCardListener.regularKeyVerifiedProperty().not());
+        ((Text) elements.get(6)).textProperty().bind(voteManager.getBeerDisplay());
+        ((Text) elements.get(7)).textProperty().bind(voteManager.getLikesDisplay());
 
         newBeerField.getStyleClass().add("new-beer-field");
         newBeerField.setPrefWidth(715);
@@ -262,8 +264,8 @@ public class Main extends Application {
         List<Node> elements = new ArrayList<>();
         elements.add(voteManager.createLeftButton());
         elements.add(voteManager.createRightButton());
-        elements.add(voteManager.createBeerDisplay());
-        elements.add(voteManager.createLikesDisplay());
+        elements.add(new Text());
+        elements.add(new Text());
         elements.add(new Button());
         elements.add(new Button("Reset All Votes"));
         elements.add(new Button("Delete This Beer"));
@@ -280,6 +282,10 @@ public class Main extends Application {
         elements.add(new VBox(20));
         elements.add(new VBox(30));
         elements.add(new VBox(15));
+
+        // likes and beer display
+        ((Text) elements.get(2)).textProperty().bind(voteManager.getBeerDisplay());
+        ((Text) elements.get(3)).textProperty().bind(voteManager.getLikesDisplay());
 
         // close button
         ((Button) elements.get(4)).setOnAction(event -> {
