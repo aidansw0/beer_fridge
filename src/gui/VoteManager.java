@@ -24,13 +24,12 @@ import java.util.*;
 
 public class VoteManager {
 
+    private final DataManager dataManager;
     private final Map<String, Integer> beerTypeLikes;
     private final List<String> beerTypes;
     private final List<Rectangle> beerVotesBar;
-    private final List<Text> beerDisplay, likesDisplay;
     private final HBox pollsPane;
-
-    private final DataManager dataManager;
+    private final SimpleStringProperty beerDisplay, likesDisplay, currentKeg;
 
     private static final int MAX_BAR_HEIGHT         = 100;
     private static final int FIXED_BAR_WIDTH        = 55;
@@ -39,7 +38,6 @@ public class VoteManager {
     private static final Color UNSELECTED           = Color.web("006B68");
     private static final Color SELECTED             = Color.web("06D3CE");
 
-    private final SimpleStringProperty currentKeg;
     private int currentBeer = 0;
     private int lowestIndexed = 0;
     private int highestVote = 10;
@@ -50,13 +48,29 @@ public class VoteManager {
         beerTypes = Util.toList(beerTypeLikes);
 
         beerVotesBar = new ArrayList<>();
-        beerDisplay = new ArrayList<>();
-        likesDisplay = new ArrayList<>();
         pollsPane = new HBox();
 
         this.dataManager = dataManager;
-        currentKeg = new SimpleStringProperty("");
+
+        likesDisplay = new SimpleStringProperty();
+        beerDisplay = new SimpleStringProperty();
+        currentKeg = new SimpleStringProperty();
+        updateBeerScrollList();
     }
+
+    /**
+     * Used for binding the number of likes to the voting frame.
+     *
+     * @return StringProperty likesDisplay
+     */
+    public StringProperty getLikesDisplay() { return likesDisplay; }
+
+    /**
+     * Used for binding the current beer to the voting frame.
+     *
+     * @return StringProperty beerDisplay
+     */
+    public StringProperty getBeerDisplay() { return beerDisplay; }
 
     /**
      * Sets the current keg to the string parameter.
@@ -145,10 +159,7 @@ public class VoteManager {
             beerTypeLikes.put(beer, 0);
         }
 
-        for (int i = 0; i < likesDisplay.size(); i++) {
-            likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-        }
-
+        updateBeerScrollList();
         updatePollChart(0, true);
         saveBeerData();
     }
@@ -213,12 +224,8 @@ public class VoteManager {
      * held in beerDisplay and likesDisplay.
      */
     private void updateBeerScrollList() {
-        for (int i = 0; i < beerDisplay.size(); i++) {
-            beerDisplay.get(i).setText(beerTypes.get(currentBeer));
-        }
-        for (int i = 0; i < likesDisplay.size(); i++) {
-            likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-        }
+        beerDisplay.set(beerTypes.get(currentBeer));
+        likesDisplay.set(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
     }
 
     /**
@@ -263,34 +270,6 @@ public class VoteManager {
                 goToElement(beerTypes.size() - 1, true);
             }
         }
-    }
-
-    /**
-     * Creates a Text node for the display showing number of likes for each beer.
-     *
-     * @return Text likesDiplay
-     */
-    public Text createLikesDisplay() {
-        Text newLikesDisplay = new Text(getCurrentVotes() + " Votes");
-        newLikesDisplay.getStyleClass().add("votes-display");
-
-        likesDisplay.add(newLikesDisplay);
-
-        return likesDisplay.get(likesDisplay.size() - 1);
-    }
-
-    /**
-     * Creates a Text node for display the current beer in the list.
-     *
-     * @return Text beerDisplay
-     */
-    public Text createBeerDisplay() {
-        Text newBeerDisplay = new Text(getCurrentBeer());
-        newBeerDisplay.getStyleClass().add("beer-display");
-
-        beerDisplay.add(newBeerDisplay);
-
-        return beerDisplay.get(beerDisplay.size() - 1);
     }
 
     /**
@@ -360,10 +339,7 @@ public class VoteManager {
 
                 String beerToUpvote = beerTypes.get(currentBeer);
                 beerTypeLikes.put(beerToUpvote, beerTypeLikes.get(beerToUpvote) + 1);
-
-                for (int i = 0; i < likesDisplay.size(); i++) {
-                    likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-                }
+                updateBeerScrollList();
 
                 if (beerTypeLikes.get(beerToUpvote) > highestVote) {
                     // Update all chart elements if highestVote increases
@@ -471,13 +447,7 @@ public class VoteManager {
         }
 
         currentBeer = newIndex;
-
-        for (int i = 0; i < beerDisplay.size(); i++) {
-            beerDisplay.get(i).setText(beerTypes.get(currentBeer));
-        }
-        for (int i = 0; i < likesDisplay.size(); i++) {
-            likesDisplay.get(i).setText(beerTypeLikes.get(beerTypes.get(currentBeer)).toString() + " Votes");
-        }
+        updateBeerScrollList();
     }
 
     /**

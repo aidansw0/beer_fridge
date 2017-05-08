@@ -155,6 +155,8 @@ public class DisplayManager {
         BorderPane navPane = new BorderPane();
         VBox likePane = new VBox();
 
+        beerDisplay.getStyleClass().add("beer-display");
+        likesDisplay.getStyleClass().add("votes-display");
         pressToVote.getStyleClass().add("press-to-vote");
         pleaseScanCard.getStyleClass().add("votes-display");
         votingFrame.getStyleClass().addAll("all-frames", "voting-frame");
@@ -327,6 +329,8 @@ public class DisplayManager {
         StackPane header = new StackPane();
         Rectangle adminContainer = new Rectangle(620,650);
 
+        beerDisplay.getStyleClass().add("beer-display");
+        likesDisplay.getStyleClass().add("votes-display");
         setToCurrent.getStyleClass().add("admin-button");
         delete.getStyleClass().add("admin-button");
         resetVote.getStyleClass().add("admin-button");
